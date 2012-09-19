@@ -18,8 +18,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class modreq extends JavaPlugin  {
 	public static modreq plugin;
 	public final Logger logger = Logger.getLogger("Minecraft");
-	public final ArrayList<String> hasnotplayed = new ArrayList<String>();
-	public final ArrayList<String> isloggedin = new ArrayList<String>();
 	public ModReqCommandExecutor myExecutor;
 	
 	public File configFile;
