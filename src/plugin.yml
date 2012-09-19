@@ -1,0 +1,57 @@
+name: ModReq
+main: modreq.modreq
+author: Sgt_Tailor
+dev-url: http://dev.bukkit.org/server-mods/modreq/
+description: A Moderator Request plugin
+version: 2.0
+commands:
+    modreq:
+        description: Request a mod command
+        usage: /modreq <message>
+        permission: modreq.request
+    check:
+        description: Returns a list of requests
+        usage: /check <pagenumber>
+        permission: modreq.check 
+    tp-id:
+        description: Teleports you to the location of the request.
+        usage: /tp-id <id>
+        permission: modreq.tp-id
+    claim:
+        description: let a player claim a id
+        usage: /claim <id>
+        permission: modreq.claim
+    re-open:
+        description: re-opens a ticked
+        usage: /re-open <id> (message)
+        permission: modreq.reopen
+    done:
+        description: close a ticked
+        usage: /done <id> (message)
+        permission: modreq.close
+    status:
+        description: checks the status of a ticked
+        usage: /status <id>
+        permission: modreq.status
+permissions:
+    modreq.check:
+        description: allows a person to to /check
+        default: OP
+    modreq.tp-id:
+        description: allows a person to use /tp-id
+        default: OP
+    modreq.claim: 
+        description: allows a person to claim a ticked
+        default: OP
+    modreq.request:
+        description: allows a person to submit a ticked
+        default: TRUE
+    modreq.close:
+        description: allows a person to close a ticked
+        default: OP
+    modreq.reopen:
+        description: allows a person to re-open a ticked
+        default: OP
+    modreq.status:
+        default: TRUE
+    
