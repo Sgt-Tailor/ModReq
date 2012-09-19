@@ -65,28 +65,27 @@ public class ModReqCommandExecutor implements CommandExecutor {
 				if(arg.length == 0) {
 					if(sender.hasPermission("modreq.status")){
 						try {
-							ArrayList<Ticket> t = tickets.getTicketsByPlayer(p, sender.getName());
+							ArrayList<Ticket> t = tickets.getTicketsByPlayer(p, sender.getName());//get last tickets (max 5, but not always)
 							p.sendMessage(ChatColor.GOLD + "-----List-of-Your-Last-5-Requests-----");
-							for(int i=0;i<t.size(); i++) {
+							for(int i=0;i<t.size(); i++) {//for each ticket, send status
 								t.get(i).sendStatus(p);
 							}
 							return true;
-						} catch (SQLException e) {
-							// TODO Auto-generated catch block
+						} catch (SQLException e) {//never happens
 							e.printStackTrace();
 						}
 					}
 				}
-				if(arg.length ==1) {
+				if(arg.length ==1) {//the command must me /status <id>
 					int id;
-					try{
+					try{//check if arg[0] is an Integer
 						id = Integer.parseInt(arg[0]);
-						if(id > tickets.getTicketCount()) {
+						if(id > tickets.getTicketCount()) {//check if that ticket exists
 							p.sendMessage(ChatColor.RED + "That Ticket does not exist");
 							return true;
 						}
 						Ticket t = tickets.getTicket(id);
-						if(t.getSubmitter().equals(p.getName())) {
+						if(t.getSubmitter().equals(p.getName())) {//check if the ticket is from the sender
 							t.sendMessageToPlayer(p);
 						}
 						else {
@@ -101,31 +100,31 @@ public class ModReqCommandExecutor implements CommandExecutor {
 				
 			}
 		}
-		if(cmd.getName().equalsIgnoreCase("check")){
+		if(cmd.getName().equalsIgnoreCase("check")){//the command can be /check <page/id/closed/claimed> <id>
 			if(sender instanceof Player){
 				Player p = (Player) sender;
-				if(p.hasPermission("modreq.check")){//check <page>
-					if(arg.length == 0){
+				if(p.hasPermission("modreq.check")){
+					if(arg.length == 0){//command = /check
 						tickets.sendPlayerPage(1, "open", p);
 						return true;
 						
 					}
 					if(arg.length == 1){
-						if(arg[0].equalsIgnoreCase("claimed")){
+						if(arg[0].equalsIgnoreCase("claimed")){//command = /check claimed
 							tickets.sendPlayerPage(1, "claimed", p);
 							return true;
 						}
-						if(arg[0].equalsIgnoreCase("closed")){
+						if(arg[0].equalsIgnoreCase("closed")){//command = /check closed
 							tickets.sendPlayerPage(1, "closed", p);
 							return true;
 							}
 						else {
-							int page = Integer.parseInt(arg[0]);
+							int page = Integer.parseInt(arg[0]);//command must be /check <id>
 							tickets.sendPlayerPage(page, "open", p);
 							return true;
 						}
 					}
-					if(arg.length == 2) {
+					if(arg.length == 2) {//command must be /check <closed,claimed,id> <page,id>
 						if(arg[0].equals("claimed")) {
 							int id;
 							try{id = Integer.parseInt(arg[1]);
@@ -170,7 +169,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 				}
 			}
 		}
-		if(cmd.getName().equalsIgnoreCase("done")){
+		if(cmd.getName().equalsIgnoreCase("done")){//closes a ticket
 			if(sender instanceof Player){
 				Player p = (Player)sender;
 				if(p.hasPermission("modreq.close")){
@@ -238,7 +237,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 			}
 			
 		}
-		if(cmd.getName().equalsIgnoreCase("re-open")){
+		if(cmd.getName().equalsIgnoreCase("re-open")){//sets the status of a ticket back to open
 			if(sender instanceof Player){
 				Player p = (Player)sender;
 				if(p.hasPermission("modreq.reopen")){
@@ -322,7 +321,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 				}
 			}
 		}
-		if(cmd.getName().equalsIgnoreCase("claim")){
+		if(cmd.getName().equalsIgnoreCase("claim")){//claims a ticket
 			if(sender instanceof Player){
 				Player p = (Player)sender;
 				if(p.hasPermission("modreq.claim")){
@@ -370,7 +369,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 		
 		return false;
 	}
-	public void savereq(String message, CommandSender sender, Location loc) {
+	public void savereq(String message, CommandSender sender, Location loc) {//save a ticket to the database
 		TicketHandler tickets = new TicketHandler();
 		String cal = Calendar.getInstance().getTime().toString();
 		cal = cal.split(" ")[0] + " "+ cal.split(" ")[1] + " " + cal.split(" ")[2];
@@ -383,7 +382,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 		}
 		plugin.saveYaml();
 	}
-	public void sendMessageToAdmins(String message) {
+	public void sendMessageToAdmins(String message) {//sends a message to all online players with the modreq.check permission
 		Player[] list = Bukkit.getServer().getOnlinePlayers();
 		int l = list.length;
 		int n = 0;
@@ -396,7 +395,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 		}
 		
 	}
-	public String argToString(String[] arg) {
+	public String argToString(String[] arg) {//converts arg[] to a string
 		int a=0;
 		String message = "";
 		while( (a <= arg.length)){
@@ -408,7 +407,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 		}
 		return message;
 	}
-	public void sendMessageToSubmitter(String player, String message) {
+	public void sendMessageToSubmitter(String player, String message) {//sends a message to the submitter of a ticket if he is online
 		Player[] op = Bukkit.getOnlinePlayers();
 		for(int i = 0; i<op.length; i++) {
 			if(op[i].getName().equals(player)) {

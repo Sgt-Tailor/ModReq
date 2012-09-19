@@ -25,7 +25,7 @@ public class TicketHandler {
 			e.printStackTrace();
 		}
 	}
-	public int getTicketsFromPlayer(Player p, String target, String status) throws SQLException {
+	public int getTicketsFromPlayer(Player p, String target, String status) throws SQLException {//returns the amount of tickets send by a player
 		ArrayList<Integer> tickets = new ArrayList<Integer>();
 		ResultSet result = stat.executeQuery("select * from 'requests' where submitter = '"+target+"' and status = '"+status+"' limit 5");
 		while(result.next()) {
@@ -39,7 +39,7 @@ public class TicketHandler {
 		}
 		return i;
 	}
-	public ArrayList<Ticket> getTicketsByPlayer(Player p, String target) throws SQLException{
+	public ArrayList<Ticket> getTicketsByPlayer(Player p, String target) throws SQLException{//returns an arraylist containing all the tickets that a player has submitted
 		ArrayList<Integer> tickets = new ArrayList<Integer>();
 		ArrayList<Ticket> value = new ArrayList<Ticket>();
 		ResultSet result = stat.executeQuery("select * from 'requests' where submitter = '"+target+"'");
@@ -61,7 +61,7 @@ public class TicketHandler {
 		}
 		return value;
 	}
-	public void sendPlayerPage(int page, String status, Player p) {
+	public void sendPlayerPage(int page, String status, Player p) {//send the -----List-of-STATUS-Requests----- 
 		try {
 			ArrayList<Integer> tickets = new ArrayList<Integer>();
 			int nmbr = page *10;
@@ -85,7 +85,7 @@ public class TicketHandler {
 		}	
 	
 	}    
-    public int getTicketCount() {
+    public int getTicketCount() {//get the total amount of tickets
 		try {
 			ResultSet rs = stat.executeQuery("select id from 'requests' ");
 			int i = 0;
@@ -101,7 +101,7 @@ public class TicketHandler {
 		return 0;
 		
 	}
-	public void addTicket(String submitter, String message, String date, String status, String location) throws SQLException {
+	public void addTicket(String submitter, String message, String date, String status, String location) throws SQLException {//add a new ticket to the database
 		PreparedStatement prep = conn.prepareStatement("INSERT INTO `requests` VALUES (?, ?, ?, ?, ?, ?,?,?)");
 		prep.setInt(1, getTicketCount() +1);
 		prep.setString(2, submitter);
@@ -118,7 +118,7 @@ public class TicketHandler {
         //conn.setAutoCommit(true); 
 		
 	}
-	public Ticket getTicket(int i) {//int idp, String submitt, String messa, String date, String status, String comment
+	public Ticket getTicket(int i) {//returns the Ticket where id=i
 			try {
 				ResultSet result = stat.executeQuery("select * from 'requests' where id = "+i);
 				result.next();
@@ -142,7 +142,7 @@ public class TicketHandler {
 		return null;
 		
 	}
-	public void updateTicket(Ticket t) throws SQLException {
+	public void updateTicket(Ticket t) throws SQLException {//updates the status, staff and comment of tickt t
 		int id = t.getId();
 		PreparedStatement prep = conn.prepareStatement("UPDATE `requests` set status = ?, staff = ?, comment = ? where id = '"+id+"'");
 		

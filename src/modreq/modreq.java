@@ -2,12 +2,8 @@ package modreq;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.logging.Logger;
-
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -19,10 +15,7 @@ public class modreq extends JavaPlugin  {
 	public static modreq plugin;
 	public final Logger logger = Logger.getLogger("Minecraft");
 	public ModReqCommandExecutor myExecutor;
-	
 	public File configFile;
-	public File requestFile;
-	public FileConfiguration req;
 	public FileConfiguration config;
 	
 	
@@ -55,7 +48,7 @@ public class modreq extends JavaPlugin  {
 		this.logger.info(pdfFile.getName() + " is now disabled ");
 	}
 	
-	private void firstrun() {
+	private void firstrun() {//create the config.yml
 		PluginDescriptionFile pdfFile = this.getDescription();
 		if(!configFile.exists()){
 			
@@ -64,7 +57,7 @@ public class modreq extends JavaPlugin  {
 			} catch (IOException e) {
 				
 			}
-			config.set("maximum-open-tickets", 5);
+			config.set("maximum-open-tickets", 5);//add the default value to the config.yml
 			this.logger.info("[" + pdfFile.getName()+ "]" + " config.yml successfully created");
 		}
 		
