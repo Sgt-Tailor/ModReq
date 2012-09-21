@@ -4,3 +4,6 @@ ModReq is a bukkit plugin designed to make the life of a moderator or admin a lo
 
 Any more information and aswers to your question can be found on bukkit Dev
 Bukkit Dev link: http://dev.bukkit.org/server-mods/modreq/
+
+Greetings,
+Sgt_Tailor
