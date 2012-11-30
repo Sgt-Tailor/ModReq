@@ -1,13 +1,15 @@
 package modreq;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.logging.Logger;
-import org.bukkit.configuration.InvalidConfigurationException;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 
@@ -28,9 +30,10 @@ public class modreq extends JavaPlugin  {
 		if(!configFile.exists()){
 			firstrun();
 		}
-		loadYaml();
 		myExecutor = new ModReqCommandExecutor(this);
-		
+		if(!this.getConfig().getString("version").equalsIgnoreCase(this.getDescription().getVersion())){
+			logger.info("[ModReq] You plugin version does not match the config version. Please visit the bukkitdev page for more information");
+		}
 		getCommand("modreq").setExecutor(myExecutor);
 		getCommand("check").setExecutor(myExecutor);
 		getCommand("tp-id").setExecutor(myExecutor);
@@ -38,10 +41,50 @@ public class modreq extends JavaPlugin  {
 		getCommand("re-open").setExecutor(myExecutor);
 		getCommand("status").setExecutor(myExecutor);
 		getCommand("done").setExecutor(myExecutor);
+		getCommand("mods").setExecutor(myExecutor);
+		getCommand("modhelp").setExecutor(myExecutor);
+		PluginManager pm = this.getServer().getPluginManager();
+		pm.registerEvents(new ModReqListener(this), this);
 		PluginDescriptionFile pdfFile = this.getDescription();
+		checkSQL();
 		this.logger.info(pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled.");
+	
+		startNotify();
 	}
 	
+	@SuppressWarnings("unused")
+	private void checkSQL() {
+		TicketHandler th = new TicketHandler();
+		
+	}
+
+	private void startNotify() {
+		if(this.getConfig().getBoolean("notify-on-time")){
+			logger.info("[ModReq] Notifying on time enabled");
+			long time = this.getConfig().getLong("time-period");
+			time = time * 1200;
+			Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, new Runnable() {
+				
+				   public void run() {
+					   TicketHandler th = new TicketHandler();
+					   int opentickets = th.getOpenTicketsAmount();
+					   if(opentickets > 0) {
+						   Player[] online = Bukkit.getOnlinePlayers();
+						   for(int i=0; i<online.length;i++) {
+							   if(online[i].hasPermission("modreq.check")) {
+								   online[i].sendMessage(ChatColor.GOLD+"[ModReq]" + ChatColor.GREEN + "There are "+ Integer.toString(opentickets) + " open Tickets waiting for you!");
+							   }
+						   }
+					   }
+						  
+					
+					 
+				   }
+			}, 60L, time);
+		}
+		
+	}
+
 	@Override
 	public void onDisable() {
 		PluginDescriptionFile pdfFile = this.getDescription();
@@ -49,45 +92,10 @@ public class modreq extends JavaPlugin  {
 	}
 	
 	private void firstrun() {//create the config.yml
-		PluginDescriptionFile pdfFile = this.getDescription();
-		if(!configFile.exists()){
-			
-			try {
-				configFile.createNewFile();
-			} catch (IOException e) {
-				
-			}
-			config.set("maximum-open-tickets", 5);//add the default value to the config.yml
-			this.logger.info("[" + pdfFile.getName()+ "]" + " config.yml successfully created");
-		}
-		
-		saveYaml();
-		
-		
+		this.saveDefaultConfig();
 	}
 	
 	public void saveYaml() {
-		try {
-			config.save(configFile);
-			} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}	
+		
 	}
-	public void loadYaml(){
-		try {
-			config.load(configFile);
-		} catch (FileNotFoundException e) {
-	
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-
 }

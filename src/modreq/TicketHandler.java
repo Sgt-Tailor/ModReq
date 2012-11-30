@@ -6,28 +6,43 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class TicketHandler {
 	private java.sql.Connection conn;
 	private java.sql.Statement stat;
-	public static modreq plugin;
+	public static modreq plugin = (modreq) Bukkit.getPluginManager().getPlugin("ModReq");
 	public final Logger logger = Logger.getLogger("Minecraft");
 
 	public TicketHandler(){//create database if it does not yet exist
 		try {
 			Class.forName("org.sqlite.JDBC");
+			if(plugin.getConfig().getBoolean("use-mysql")) {
+				String ip = plugin.getConfig().getString("mysql.ip");
+				String user = plugin.getConfig().getString("mysql.user"); 
+				String pass = plugin.getConfig().getString("mysql.pass");
+				
+				conn = DriverManager.getConnection("jdbc:mysql://"+ip, user, pass);
+				stat = conn.createStatement();
+				stat.execute("CREATE TABLE IF NOT EXISTS requests (id INT, submitter TEXT, message TEXT, date TEXT, status TEXT, comment TEXT, location TEXT, staff TEXT)");
+			}
+			else {
 			conn = DriverManager.getConnection("jdbc:sqlite:plugins/ModReq/DataBase.sql");
 			stat = conn.createStatement();
-			stat.execute("create table if not exists `requests` (id int, submitter string, message string, date string, status string, comment string , location string, staff string)");
+			stat.execute("CREATE TABLE IF NOT EXISTS requests (id int, submitter String, message String, date String, status String, comment String, location String, staff String)");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.severe("[ModReq] no connection could be made with the database. Shutting down plugin D:");
+			plugin.getServer().getPluginManager().disablePlugin(plugin);
 		}
 	}
 	public int getTicketsFromPlayer(Player p, String target, String status) throws SQLException {//returns the amount of tickets send by a player
 		ArrayList<Integer> tickets = new ArrayList<Integer>();
-		ResultSet result = stat.executeQuery("select * from 'requests' where submitter = '"+target+"' and status = '"+status+"' limit 5");
+		ResultSet result = stat.executeQuery("SELECT * FROM requests WHERE submitter = '"+target+"' AND status = '"+status+"' limit 5");
 		while(result.next()) {
 			
 				tickets.add(result.getInt(1));
@@ -42,7 +57,7 @@ public class TicketHandler {
 	public ArrayList<Ticket> getTicketsByPlayer(Player p, String target) throws SQLException{//returns an arraylist containing all the tickets that a player has submitted
 		ArrayList<Integer> tickets = new ArrayList<Integer>();
 		ArrayList<Ticket> value = new ArrayList<Ticket>();
-		ResultSet result = stat.executeQuery("select * from 'requests' where submitter = '"+target+"'");
+		ResultSet result = stat.executeQuery("SELECT * FROM requests WHERE submitter = '"+target+"'");
 		
 		
 		while(result.next()) {
@@ -65,7 +80,18 @@ public class TicketHandler {
 		try {
 			ArrayList<Integer> tickets = new ArrayList<Integer>();
 			int nmbr = page *10;
-			ResultSet result = stat.executeQuery("select * from 'requests' where status = '"+status+"' limit "+nmbr);
+			ResultSet result;
+			if(status.equalsIgnoreCase("open")) {
+				if(plugin.getConfig().getBoolean("show-claimed-tickets-in-open-list") == true) {
+					result = stat.executeQuery("SELECT * FROM requests WHERE status = 'open' or status = 'claimed' limit "+nmbr);
+				}
+				else {
+					result = stat.executeQuery("SELECT * FROM requests WHERE status = '"+status+"' limit "+nmbr);
+					}
+			}
+			else {
+			result = stat.executeQuery("SELECT * FROM requests WHERE status = '"+status+"' limit "+nmbr);
+			}
 			while(result.next()) {
 				if(result.getRow() > nmbr-10) {
 					tickets.add(result.getInt(1));
@@ -87,7 +113,7 @@ public class TicketHandler {
 	}    
     public int getTicketCount() {//get the total amount of tickets
 		try {
-			ResultSet rs = stat.executeQuery("select id from 'requests' ");
+			ResultSet rs = stat.executeQuery("SELECT id FROM requests ");
 			int i = 0;
 			while(rs.next()) {
 			 i++;
@@ -102,7 +128,7 @@ public class TicketHandler {
 		
 	}
 	public void addTicket(String submitter, String message, String date, String status, String location) throws SQLException {//add a new ticket to the database
-		PreparedStatement prep = conn.prepareStatement("INSERT INTO `requests` VALUES (?, ?, ?, ?, ?, ?,?,?)");
+		PreparedStatement prep = conn.prepareStatement("INSERT INTO requests VALUES (?, ?, ?, ?, ?, ?,?,?)");
 		prep.setInt(1, getTicketCount() +1);
 		prep.setString(2, submitter);
 		prep.setString(3, message);
@@ -118,9 +144,9 @@ public class TicketHandler {
         //conn.setAutoCommit(true); 
 		
 	}
-	public Ticket getTicket(int i) {//returns the Ticket where id=i
+	public Ticket getTicket(int i) {//returns the Ticket WHERE id=i
 			try {
-				ResultSet result = stat.executeQuery("select * from 'requests' where id = "+i);
+				ResultSet result = stat.executeQuery("SELECT * FROM requests WHERE id = '"+i+"'");
 				result.next();
 				String status = result.getString(5);
 				String submitter = result.getString(2);
@@ -142,9 +168,9 @@ public class TicketHandler {
 		return null;
 		
 	}
-	public void updateTicket(Ticket t) throws SQLException {//updates the status, staff and comment of tickt t
+	public void updateTicket(Ticket t) throws SQLException {//updates the status, staff AND comment of tickt t
 		int id = t.getId();
-		PreparedStatement prep = conn.prepareStatement("UPDATE `requests` set status = ?, staff = ?, comment = ? where id = '"+id+"'");
+		PreparedStatement prep = conn.prepareStatement("UPDATE requests SET status = ?, staff = ?, comment = ? WHERE id = "+id+"");
 		
 		String status = t.getStatus();
 		String comment = t.getComment();
@@ -155,6 +181,21 @@ public class TicketHandler {
 		prep.setString(3, comment);
 		prep.addBatch();
 		prep.executeBatch();
+	}
+	public int getOpenTicketsAmount() {
+		int i = 0;
+			try {
+				ResultSet result = stat.executeQuery("SELECT id FROM requests WHERE status = 'open'");
+				while(result.next()) {
+					i++;
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			
+			
+			}	
+		return i;
 	}
 
 }

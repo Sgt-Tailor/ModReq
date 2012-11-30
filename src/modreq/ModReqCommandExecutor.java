@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.logging.Logger;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -21,10 +22,39 @@ public class ModReqCommandExecutor implements CommandExecutor {
 	plugin = instance;
 	}
 	public File configFile;
-	public TicketHandler tickets = new TicketHandler();
+	public TicketHandler tickets;
 	
 	@Override
 	public boolean onCommand(final CommandSender sender, Command cmd, String arg2, final String[] arg) {
+		if(cmd.getName().equalsIgnoreCase("mods")) {
+			if(sender.hasPermission("modreq.mods")) {
+				
+				sender.sendMessage(ChatColor.GOLD+"-------List-of-Online-Mods-------");
+				
+				Player[] op = Bukkit.getOnlinePlayers();
+				String online = "";
+				for(int i=0; i<op.length;i++) {
+					if(op[i].hasPermission("modreq.check")) {
+						if(i==0) {
+							online = op[i].getDisplayName();
+						}
+						else {
+							online = online + " " + op[i].getDisplayName();
+						}
+					}
+				}
+				if(online.equals("")) {
+					sender.sendMessage(ChatColor.GRAY + "There are no mods online");
+					return true;
+				}
+				sender.sendMessage(online);
+				return true;
+			}
+			else {
+				sender.sendMessage(ChatColor.RED + "You don't have permissions to do this");
+				return true;
+			}
+		}
 		tickets = new TicketHandler();
 		if(cmd.getName().equalsIgnoreCase("modreq")){
 			if(sender instanceof Player){
@@ -38,7 +68,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 						int ticketfromplayer;
 						try {
 							ticketfromplayer = tickets.getTicketsFromPlayer(p, sender.getName(), "open");
-							if(plugin.config.getInt("maximum-open-tickets") > ticketfromplayer) {
+							if(plugin.getConfig().getInt("maximum-open-tickets") > ticketfromplayer) {
 								String message = argToString(arg);
 								savereq(message, sender, ((Player) sender).getLocation());
 								sendMessageToAdmins(ChatColor.GREEN + sender.getName() + ChatColor.AQUA + " submitted a moderator request");
@@ -219,7 +249,6 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							try {
 								t.update();
 							} catch (SQLException e) {
-								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 							p.sendMessage(ChatColor.GREEN + "Ticket closed");
@@ -276,7 +305,6 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							try {
 								t.update();
 							} catch (SQLException e) {
-								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 							p.sendMessage(ChatColor.GREEN + "Ticket re-open");
@@ -354,7 +382,6 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							try {
 								t.update();
 							} catch (SQLException e) {
-								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 							p.sendMessage(ChatColor.GREEN + "Ticket claimed");
@@ -363,21 +390,19 @@ public class ModReqCommandExecutor implements CommandExecutor {
 						}
 					}
 				}
-			}
-			
-		}
-		
+			}	
+		}	
 		return false;
 	}
 	public void savereq(String message, CommandSender sender, Location loc) {//save a ticket to the database
 		TicketHandler tickets = new TicketHandler();
 		String cal = Calendar.getInstance().getTime().toString();
+		logger.info(cal);
 		cal = cal.split(" ")[0] + " "+ cal.split(" ")[1] + " " + cal.split(" ")[2];
 		String location =  loc.getWorld().getName()+" "+Math.round(loc.getX()) + " "+Math.round(loc.getY())+" "+Math.round(loc.getZ());
 		try {
 			tickets.addTicket( sender.getName(), message, cal, "open", location);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		plugin.saveYaml();

@@ -3,7 +3,7 @@ main: modreq.modreq
 author: Sgt_Tailor
 dev-url: http://dev.bukkit.org/server-mods/modreq/
 description: A Moderator Request plugin
-version: 2.0
+version: 2.0.3
 commands:
     modreq:
         description: Request a mod command
@@ -22,18 +22,25 @@ commands:
         usage: /claim <id>
         permission: modreq.claim
     re-open:
-        description: re-opens a ticked
+        description: re-opens a ticket
         usage: /re-open <id> (message)
         permission: modreq.reopen
     done:
-        description: close a ticked
+        description: close a ticket
         usage: /done <id> (message)
         permission: modreq.close
     status:
-        description: checks the status of a ticked
+        description: checks the status of a ticket
         usage: /status <id>
         permission: modreq.status
+    mods:
+        description: returns a list of online mods
+        usage: /mods
+        permission: modreq.mods
 permissions:
+    modreq.mods:
+        default: TRUE
+        description: allos a person to do /mods
     modreq.check:
         description: allows a person to to /check
         default: OP
