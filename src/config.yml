@@ -21,23 +21,31 @@
 ####################################################################
 #                            DO NOT EDIT                           #
 ####################################################################
-version: 2.0.2                                                     
+#The config File version. DO NOT CHANGE YOURSELF
+version: 2.1.1                                                    
 
 ####################################################################
 #                           Configurations                         #
 ####################################################################
-
-#Use this variable to set ModReq enabled or disabled. Setting this
-#to falso will completely disable the plugin.
-enabled: true
-
 #Use this to specify the maximum amount of open/closed tickets a 
 #player may have.
 maximum-open-tickets: 5
 
+#use metrics. This sends anonymous data to mcstats.org to analize. This is NO HARM for your server
+metrics: true
+#If you change this to true, a staff member can claim multiple
+#tickets at the same time
+may-claim-multiple: false
+
+#Use this to display the Nickname of the submitter when he is
+#online
+use-nickname: false
 #Change this to true if you want claimed ticket to appear in the
 #/check list
 show-claimed-tickets-in-open-list: false
+
+#Specify the TimeZone used for the Date here
+timezone: GMT+0
 
 #Change this to true if you want the staff to be notified about
 #open tickets uppon login
@@ -56,35 +64,8 @@ mysql:
     ip: example.com/sgt_tailor
     user: Sgt_Tailor
     pass: Walrus
-    
-####################################################################
-#                         Language options NOT YET FUNCTIONAL!!!   #
-####################################################################
 
-#these are the default messages. Colours are not yet supported. 
-#because of that it will use the default colours
-
-no-mods: There are no mods online
-no-permission: You don't have permissions to do this
-no-message: You have not typed a message. Please do so.
-no-ticket: That ticket does not exist
-no-number: is not a number
-
-can-not-close: you can not close that ticket
-can-not-claim: you can not claim that ticket
-
-closed-ticket: just closed your ModReq
-closed-ticket-withmessage: just closed your ModReq with the comment
-
-reopen-ticket: Ticket re-opened
-reopen-ticket2: just re-openend your ModReq
-reopen-with-comment: just re-opened your modreq with the comment
-
-ticket-teleport: You have been teleported
-ticket-teleport2: just teleported to you modreq
+#To change the language used in the messages, replace the messages.yml with the messages you would like to be used
 
 
 
-not-your: That is not your ticket
-
-too-many-tickets: You have too many open requests

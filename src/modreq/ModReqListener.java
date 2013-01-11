@@ -18,21 +18,26 @@ public class ModReqListener implements Listener{
 		final Player p = event.getPlayer();
 		if(p.hasPermission("modreq.check")) {
 		
-			Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {//check for open tickets
 					
 				   public void run() {
 					   TicketHandler th = new TicketHandler();
 					   int opentickets = th.getOpenTicketsAmount();
 					   if(opentickets > 0) {
-						p.sendMessage(ChatColor.GOLD+"[ModReq]" + ChatColor.GREEN + "There are "+ Integer.toString(opentickets) + " open Tickets waiting for you!");
+						p.sendMessage(ChatColor.GOLD+"[ModReq]" + ChatColor.GREEN + Integer.toString(opentickets) +" "+ plugin.Messages.getString("notification", "open tickets are waiting for you"));
 							
 					   }
 						  
 					
 					 
 				   }
-			}, 60L);
-			
+			}, 60L);		
+		}
+		if(p.isOp()) {
+			String currentVersion = plugin.getDescription().getVersion();
+			if(!plugin.latestVersion.equals(currentVersion)) {
+				p.sendMessage(ChatColor.GOLD+"[ModReq]" + ChatColor.DARK_PURPLE + "A newer version of ModReq is available. If you wish to download this file to the modreq folder do /updatemodreq");
+			}
 		}
 	}
 }

@@ -76,6 +76,17 @@ public class TicketHandler {
 		}
 		return value;
 	}
+	public boolean hasClaimed(Player p) {
+		try {
+		ResultSet result = stat.executeQuery("SELECT * FROM requests WHERE staff = '"+p.getName()+"' AND status = '"+Status.CLAIMED.getStatusString()+"' limit 5");
+		
+			if(result.next()) {
+				return true;
+			}
+		} catch (SQLException e) {
+		}
+		return false;
+	}
 	public void sendPlayerPage(int page, String status, Player p) {//send the -----List-of-STATUS-Requests----- 
 		try {
 			ArrayList<Integer> tickets = new ArrayList<Integer>();
@@ -127,6 +138,23 @@ public class TicketHandler {
 		return 0;
 		
 	}
+    public int getTicketAmount(Status status) {
+    	String statusString = status.getStatusString();
+    	try {
+			ResultSet rs = stat.executeQuery("SELECT id FROM requests WHERE status = '"+statusString+"'");
+			int i = 0;
+			while(rs.next()) {
+			 i++;
+			}
+			rs.close();
+			return i;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return 0;
+    	
+    }
 	public void addTicket(String submitter, String message, String date, String status, String location) throws SQLException {//add a new ticket to the database
 		PreparedStatement prep = conn.prepareStatement("INSERT INTO requests VALUES (?, ?, ?, ?, ?, ?,?,?)");
 		prep.setInt(1, getTicketCount() +1);
@@ -155,7 +183,7 @@ public class TicketHandler {
 				String message = result.getString(3);
 				String comment = result.getString(6);
 				String staff = result.getString(8);
-				Ticket ticket = new Ticket(i, submitter, message, date, status, comment,location,staff);
+				Ticket ticket = new Ticket(plugin,i, submitter, message, date, Status.getByString(status), comment,location,staff);
 				result.close();
 				return ticket;
 			} catch (SQLException e) {
@@ -172,7 +200,7 @@ public class TicketHandler {
 		int id = t.getId();
 		PreparedStatement prep = conn.prepareStatement("UPDATE requests SET status = ?, staff = ?, comment = ? WHERE id = "+id+"");
 		
-		String status = t.getStatus();
+		String status = t.getStatus().getStatusString();
 		String comment = t.getComment();
 		String staff = t.getStaff();
 		

@@ -1,9 +1,19 @@
 package modreq;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
@@ -15,21 +25,54 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class ModReqCommandExecutor implements CommandExecutor {
-
+	public File configFile;
+	public TicketHandler tickets;
 	public static modreq plugin;
 	public final Logger logger = Logger.getLogger("Minecraft");
 	public ModReqCommandExecutor(modreq instance) {
 	plugin = instance;
+	tickets = new TicketHandler();
 	}
-	public File configFile;
-	public TicketHandler tickets;
+	
 	
 	@Override
 	public boolean onCommand(final CommandSender sender, Command cmd, String arg2, final String[] arg) {
+		if(cmd.getName().equals("updatemodreq")) {
+			if(sender instanceof Player) {
+				Player p = (Player) sender;
+				File Jar = new File(plugin.getDataFolder().getAbsolutePath()+  "/" + plugin.latestVersion, "modreq.jar");
+				File ChangeLog = new File(plugin.getDataFolder().getAbsolutePath()+  "/" + plugin.latestVersion, "Changelog.txt");
+				if(!ChangeLog.exists() || ! Jar.exists()) {
+					ChangeLog.getParentFile().mkdir();
+					try {
+						saveUrl(Jar.getAbsolutePath(), "http://www.curse.com/server-mods/minecraft/modreq/download");
+						saveUrl(plugin.getDataFolder().getAbsolutePath()+ "/" + plugin.latestVersion + "/Changelog.txt", "http://www.wampiedriessen.eu/sven/modreqchangelog.txt");
+						p.sendMessage(ChatColor.GOLD + "[ModReq]" + ChatColor.GREEN + "version " + plugin.latestVersion + " has been download to the plugin folder");
+						return true;
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		if(cmd.getName().equalsIgnoreCase("modhelp")) {
+			sender.sendMessage(ChatColor.YELLOW + "----ModReq-Help-Message----");
+			sender.sendMessage(ChatColor.GOLD + "/modreq <message>" + ChatColor.WHITE + plugin.Messages.getString("info-modreq"));
+			sender.sendMessage(ChatColor.GOLD + "/check " + ChatColor.WHITE + plugin.Messages.getString("info-check"));
+			sender.sendMessage(ChatColor.GOLD + "/tp-id <number>" + ChatColor.WHITE + plugin.Messages.getString("info-tp-id"));
+			sender.sendMessage(ChatColor.GOLD + "/claim <number>" + ChatColor.WHITE + plugin.Messages.getString("info-claim"));
+			sender.sendMessage(ChatColor.GOLD + "/re-open <number> (message)" + ChatColor.WHITE + plugin.Messages.getString("info-re-open"));
+			sender.sendMessage(ChatColor.GOLD + "/status (number)" + ChatColor.WHITE + plugin.Messages.getString("info-status"));
+			sender.sendMessage(ChatColor.GOLD + "/done <number> (message)" + ChatColor.WHITE + plugin.Messages.getString("info-done"));
+			sender.sendMessage(ChatColor.GOLD + "/mods " + ChatColor.WHITE + plugin.Messages.getString("info-mods"));
+			sender.sendMessage(ChatColor.GOLD + "/modhelp " + ChatColor.WHITE + plugin.Messages.getString("info-modhelp"));
+			return true;
+		}
 		if(cmd.getName().equalsIgnoreCase("mods")) {
 			if(sender.hasPermission("modreq.mods")) {
 				
-				sender.sendMessage(ChatColor.GOLD+"-------List-of-Online-Mods-------");
+				sender.sendMessage(ChatColor.GOLD+plugin.Messages.getString("list-of-mods", "-------List-of-Online-Mods-------"));
 				
 				Player[] op = Bukkit.getOnlinePlayers();
 				String online = "";
@@ -44,24 +87,23 @@ public class ModReqCommandExecutor implements CommandExecutor {
 					}
 				}
 				if(online.equals("")) {
-					sender.sendMessage(ChatColor.GRAY + "There are no mods online");
+					sender.sendMessage(ChatColor.GRAY + plugin.Messages.getString("no-mods", "There are no mods online"));
 					return true;
 				}
 				sender.sendMessage(online);
 				return true;
 			}
 			else {
-				sender.sendMessage(ChatColor.RED + "You don't have permissions to do this");
+				sender.sendMessage(ChatColor.RED + plugin.Messages.getString("no-permission", "You don't have permissions to do this)"));
 				return true;
 			}
 		}
-		tickets = new TicketHandler();
 		if(cmd.getName().equalsIgnoreCase("modreq")){
 			if(sender instanceof Player){
 				Player p = (Player) sender;
 				if(p.hasPermission("modreq.request")){
 					if(arg.length == 0){
-						p.sendMessage(ChatColor.RED + "You have not typed any message. Please do so");
+						p.sendMessage(ChatColor.RED + plugin.Messages.getString("no-message", "You have not typed a message, please do so"));
 						return true;
 					}
 					else{
@@ -71,12 +113,12 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							if(plugin.getConfig().getInt("maximum-open-tickets") > ticketfromplayer) {
 								String message = argToString(arg);
 								savereq(message, sender, ((Player) sender).getLocation());
-								sendMessageToAdmins(ChatColor.GREEN + sender.getName() + ChatColor.AQUA + " submitted a moderator request");
-								p.sendMessage(ChatColor.GREEN + "You successfully submitted a moderator request");
+								sendMessageToAdmins(ChatColor.GREEN + sender.getName() + ChatColor.AQUA + plugin.Messages.getString("submitted-mod", "submitted a moderator request"));
+								p.sendMessage(ChatColor.GREEN + plugin.Messages.getString("submitted-player", "You successfully submitted a help ticket, a moderator will help you soon"));
 								return true;
 							}
 							else {
-								p.sendMessage(ChatColor.RED + "You have too many open requests");
+								p.sendMessage(ChatColor.RED + plugin.Messages.getString("too-many-tickets", "You have too many open requests"));
 								return true;
 							}
 						} catch (SQLException e) {
@@ -96,10 +138,11 @@ public class ModReqCommandExecutor implements CommandExecutor {
 					if(sender.hasPermission("modreq.status")){
 						try {
 							ArrayList<Ticket> t = tickets.getTicketsByPlayer(p, sender.getName());//get last tickets (max 5, but not always)
-							p.sendMessage(ChatColor.GOLD + "-----List-of-Your-Last-5-Requests-----");
+							p.sendMessage(ChatColor.GOLD + plugin.Messages.getString("status-header", "-----List-of-Your-Last-5-Requests-----"));
 							for(int i=0;i<t.size(); i++) {//for each ticket, send status
 								t.get(i).sendStatus(p);
 							}
+							p.sendMessage(ChatColor.GOLD + plugin.Messages.getString("status-footer", "do /status <id> for more info"));
 							return true;
 						} catch (SQLException e) {//never happens
 							e.printStackTrace();
@@ -111,7 +154,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 					try{//check if arg[0] is an Integer
 						id = Integer.parseInt(arg[0]);
 						if(id > tickets.getTicketCount()) {//check if that ticket exists
-							p.sendMessage(ChatColor.RED + "That Ticket does not exist");
+							p.sendMessage(ChatColor.RED + plugin.Messages.getString("no-ticket","That Ticket does not exist"));
 							return true;
 						}
 						Ticket t = tickets.getTicket(id);
@@ -119,12 +162,12 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							t.sendMessageToPlayer(p);
 						}
 						else {
-							p.sendMessage(ChatColor.RED + "That is not your ticket");
+							p.sendMessage(ChatColor.RED + plugin.Messages.getString("not-your","That is not your ticket"));
 						}
 						return true;
 					}
 					catch(Exception e) {
-						p.sendMessage(ChatColor.RED + arg[0] + " is not a number");
+						p.sendMessage(ChatColor.RED + arg[0] + " "+ plugin.Messages.getString("no-number", "is not a number"));
 					}
 				}
 				
@@ -160,7 +203,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							try{id = Integer.parseInt(arg[1]);
 							}
 							catch(Exception e) {
-								p.sendMessage(ChatColor.RED + arg[1] + " is not a number");
+								p.sendMessage(ChatColor.RED + arg[1] + " "+ plugin.Messages.getString("no-number", "is not a number"));
 								return true;
 							}
 							tickets.sendPlayerPage(id, "claimed", p);
@@ -171,7 +214,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							try{id = Integer.parseInt(arg[1]);
 							}
 							catch(Exception e) {
-								p.sendMessage(ChatColor.RED + arg[1] + " is not a number");
+								p.sendMessage(ChatColor.RED + arg[1] + " "+ plugin.Messages.getString("no-number", "is not a number"));
 								return true;
 							}
 							tickets.sendPlayerPage(id, "closed", p);
@@ -183,11 +226,11 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							try{id = Integer.parseInt(arg[1]);
 							}
 							catch(Exception e) {
-								p.sendMessage(ChatColor.RED + arg[1] + " is not a number");
+								p.sendMessage(ChatColor.RED + arg[1] +" "+ plugin.Messages.getString("no-number", "is not a number"));
 								return true;
 							}
 							if(tickets.getTicketCount() < id) {
-								p.sendMessage(ChatColor.RED + "That ticket does not exist");
+								p.sendMessage(ChatColor.RED + plugin.Messages.getString("no-ticket","That ticket does not exist"));
 								return true;
 							}
 							else {
@@ -208,11 +251,11 @@ public class ModReqCommandExecutor implements CommandExecutor {
 						try{id = Integer.parseInt(arg[0]);
 						}
 						catch(Exception e) {
-							p.sendMessage(ChatColor.RED + arg[1] + " is not a number");
+							p.sendMessage(ChatColor.RED + arg[0] + " "+ plugin.Messages.getString("no-number", "is not a number"));
 							return true;
 						}
 						if(tickets.getTicketCount() < id) {
-							p.sendMessage(ChatColor.RED + "That ticket does not exist");
+							p.sendMessage(ChatColor.RED + plugin.Messages.getString("no-ticket","That ticket does not exist"));
 							return true;
 						}
 						else {
@@ -223,21 +266,24 @@ public class ModReqCommandExecutor implements CommandExecutor {
 										comment = arg[i];
 									}
 									else {
-										comment = comment + " " + arg[i];	
+										comment = comment + " " + arg[i];
+										
+										logger.info(comment);
 									}
+									logger.info(Integer.toString(i));
 								}
 							}
 							Ticket t = tickets.getTicket(id);
 							
-							String status = "closed";
+							Status status = Status.CLOSED;
 							String staff = sender.getName();
 							
-							String currenstatus = t.getStatus();
+							String currenstatus = t.getStatus().getStatusString();
 							String currentstaff = t.getStaff();
 							
 							if(!currenstatus.equals("open")) {
 								if(!currentstaff.equals(staff)) {
-									p.sendMessage(ChatColor.RED + "You can not close that ticket");
+									p.sendMessage(ChatColor.RED + plugin.Messages.getString("can-not-close","You can not close that ticket"));
 									return true;
 								}
 							}
@@ -251,20 +297,18 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							} catch (SQLException e) {
 								e.printStackTrace();
 							}
-							p.sendMessage(ChatColor.GREEN + "Ticket closed");
+							p.sendMessage(ChatColor.GREEN + plugin.Messages.getString("ticket-closed", "Ticket closed"));
 							if(comment.equals("")) {
-								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " just closed your ModReq");
+								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " "+ plugin.Messages.getString("closed-ticket", "just closed your ModReq"));
 							}
 							else {
-								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " just closed your ModReq with the comment: "+ChatColor.GRAY + comment);
+								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " "+plugin.Messages.getString("closed-ticket-withmessage","just closed your ModReq with the comment: " + comment));
 							}
 							return true;
 						}
 					}
-						
 				}
-			}
-			
+			}	
 		}
 		if(cmd.getName().equalsIgnoreCase("re-open")){//sets the status of a ticket back to open
 			if(sender instanceof Player){
@@ -275,11 +319,11 @@ public class ModReqCommandExecutor implements CommandExecutor {
 						try{id = Integer.parseInt(arg[0]);
 						}
 						catch(Exception e) {
-							p.sendMessage(ChatColor.RED + arg[1] + " is not a number");
+							p.sendMessage(ChatColor.RED + arg[0] +" "+ plugin.Messages.getString("no-number", "is not a number"));
 							return true;
 						}
 						if(tickets.getTicketCount() < id) {
-							p.sendMessage(ChatColor.RED + "That ticket does not exist");
+							p.sendMessage(ChatColor.RED + plugin.Messages.getString("no-ticket","That ticket does not exist"));
 							return true;
 						}
 						else {
@@ -296,7 +340,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							}
 							Ticket t = tickets.getTicket(id);
 							
-							String status = "open";
+							Status status = Status.OPEN;
 							String staff = sender.getName();
 							
 							t.setComment(comment);
@@ -307,12 +351,12 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							} catch (SQLException e) {
 								e.printStackTrace();
 							}
-							p.sendMessage(ChatColor.GREEN + "Ticket re-open");
+							p.sendMessage(ChatColor.GREEN + plugin.Messages.getString("ticket-re-opened","Ticket re-opened"));
 							if(comment.equals("")) {
-								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " just re-opened your ModReq");
+								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " "+plugin.Messages.getString("reopen-ticket","just re-opened your ModReq"));
 							}
 							else {
-								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " just re-opened your ModReq with the comment: "+ChatColor.GRAY + comment);
+								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " "+ plugin.Messages.getString("reopen-with-comment","just re-opened your ModReq with the comment: "+ChatColor.GRAY + comment));
 							}
 							return true;
 						}
@@ -330,19 +374,19 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							id = Integer.parseInt(arg[0]);
 						}
 						catch(Exception e) {
-							p.sendMessage(ChatColor.RED + arg[0] + " is not a number");
+							p.sendMessage(ChatColor.RED + arg[0] +" "+ plugin.Messages.getString("no-number", "is not a number"));
 							return true;
 						}
 						if(tickets.getTicketCount() < id) {
-							p.sendMessage(ChatColor.RED + "That ticket does not exist");
+							p.sendMessage(ChatColor.RED + plugin.Messages.getString("no-ticket","That ticket does not exist"));
 							return true;
 						}
 						else {
 							Ticket t = tickets.getTicket(id);
 							Location loc = t.getLocation();
 							p.teleport(loc);
-							p.sendMessage(ChatColor.GREEN + "You have been teleported");
-							sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " just teleported to your ModReq");
+							p.sendMessage(ChatColor.GREEN + plugin.Messages.getString("ticket-teleport1","You have been teleported"));
+							sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " "+plugin.Messages.getString("ticket-teleport2","just teleported to your ModReq"));
 							return true;
 						}
 					}
@@ -358,23 +402,29 @@ public class ModReqCommandExecutor implements CommandExecutor {
 						try{id = Integer.parseInt(arg[0]);
 						}
 						catch(Exception e) {
-							p.sendMessage(ChatColor.RED + arg[1] + " is not a number");
+							p.sendMessage(ChatColor.RED + arg[0] +" "+ plugin.Messages.getString("no-number", "is not a number"));
 							return true;
 						}
 						if(tickets.getTicketCount() < id) {
-							p.sendMessage(ChatColor.RED + "That ticket does not exist");
+							p.sendMessage(ChatColor.RED + plugin.Messages.getString("no-ticket","That ticket does not exist"));
 							return true;
 						}
 						else {
 							Ticket t = tickets.getTicket(id);
 							
-							String currentstatus = t.getStatus();
+							Status currentstatus = t.getStatus();
 														
-							String status = "claimed";
+							Status status = Status.CLAIMED;
 							String staff = sender.getName();
-							if(!currentstatus.equalsIgnoreCase("open")) {
-								p.sendMessage(ChatColor.RED + "You can not claim that ticket");
+							if(!currentstatus.equals(Status.OPEN)) {
+								p.sendMessage(ChatColor.RED + plugin.Messages.getString("can-not-claim","You can not claim that ticket"));
 								return true;
+							}
+							if(plugin.getConfig().getBoolean("may-claim-multiple", false) == false) {
+								if(tickets.hasClaimed((Player) sender)) {
+									p.sendMessage(ChatColor.RED + plugin.Messages.getString("can-not-claim","You can not claim that ticket"));
+									return true;
+								}
 							}
 							
 							t.setStaff(staff);
@@ -384,8 +434,8 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							} catch (SQLException e) {
 								e.printStackTrace();
 							}
-							p.sendMessage(ChatColor.GREEN + "Ticket claimed");
-							sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " just claimed your ModReq");
+							p.sendMessage(ChatColor.GREEN + plugin.Messages.getString("ticket-claimed","Ticket claimed"));
+							sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " "+plugin.Messages.getString("ticket-claimed2","just claimed your ModReq"));
 							return true;
 						}
 					}
@@ -395,17 +445,24 @@ public class ModReqCommandExecutor implements CommandExecutor {
 		return false;
 	}
 	public void savereq(String message, CommandSender sender, Location loc) {//save a ticket to the database
-		TicketHandler tickets = new TicketHandler();
-		String cal = Calendar.getInstance().getTime().toString();
-		logger.info(cal);
-		cal = cal.split(" ")[0] + " "+ cal.split(" ")[1] + " " + cal.split(" ")[2];
+		String timezone = plugin.getConfig().getString("timezone");
+		DateFormat df = new SimpleDateFormat("EEE MM-dd HH:mm");
+        TimeZone tz = TimeZone.getTimeZone(timezone);
+        
+        
+		Calendar cal = Calendar.getInstance(Calendar.getInstance().getTimeZone(),Locale.ENGLISH);     
+		cal.add(Calendar.MILLISECOND,-(cal.getTimeZone().getRawOffset()));  
+		//cal.add(Calendar.MILLISECOND, - cal.getTimeZone().getDSTSavings());
+		cal.add(Calendar.MILLISECOND, tz.getRawOffset());       
+		Date dt = new Date(cal.getTimeInMillis());  
+		logger.info(df.format(Calendar.getInstance(cal.getTimeZone(), Locale.ENGLISH).getTime()));
+		String call = df.format(dt) + " @" + timezone;
 		String location =  loc.getWorld().getName()+" "+Math.round(loc.getX()) + " "+Math.round(loc.getY())+" "+Math.round(loc.getZ());
 		try {
-			tickets.addTicket( sender.getName(), message, cal, "open", location);
+			tickets.addTicket( sender.getName(), message, call, "open", location);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		plugin.saveYaml();
 	}
 	public void sendMessageToAdmins(String message) {//sends a message to all online players with the modreq.check permission
 		Player[] list = Bukkit.getServer().getOnlinePlayers();
@@ -444,5 +501,30 @@ public class ModReqCommandExecutor implements CommandExecutor {
 		}
 		return;
 	}
+	
+	public void saveUrl(String filename, String urlString) throws MalformedURLException, IOException
+    {
+    	BufferedInputStream in = null;
+    	FileOutputStream fout = null;
+    	try
+    	{
+    		in = new BufferedInputStream(new URL(urlString).openStream());
+    		fout = new FileOutputStream(filename);
+
+    		byte data[] = new byte[1024];
+    		int count;
+    		while ((count = in.read(data, 0, 1024)) != -1)
+    		{
+    			fout.write(data, 0, count);
+    		}
+    	}
+    	finally
+    	{
+    		if (in != null)
+    			in.close();
+    		if (fout != null)
+    			fout.close();
+    	}
+    }
 
 }

@@ -10,17 +10,24 @@ import org.bukkit.entity.Player;
 
 public class Ticket
 {
-	public int id;
-	public String submitter;
-	public String message;
-	public String date;
-	public String status;
-	public String comment;
-	public String location;
-	public String staff;
-	public TicketHandler tickets = new TicketHandler();
+	private int id;
+	private String submitter;
+	private String message;
+	private String date;
+	private Status status;
+	private String comment;
+	private String location;
+	private String staff;
+	private String sub;
+	private String dt;
+	private String sta;
+	private String com;
+	private String loc;
+	private String staf;
+	private String request;
+	private TicketHandler tickets;
 	
-	public Ticket(int idp, String submitt, String messa, String date, String status, String comm, String loc, String sta)	{
+	public Ticket(modreq plugin,int idp, String submitt, String messa, String date, Status status, String comm, String loc, String sta)	{
 		submitter = submitt;
 		id = idp;
 		staff = sta;
@@ -29,6 +36,14 @@ public class Ticket
 		this.status = status;
 		location = loc;
 		comment = comm;
+		
+		tickets = new TicketHandler();
+		this.sub = plugin.Messages.getString("ticket.submitter", "Submitter");
+		this.dt = plugin.Messages.getString("ticket.date", "Date of Request");
+		this.sta = plugin.Messages.getString("ticket.status", "Status");
+		this.com = plugin.Messages.getString("ticket.comment", "Comment");
+		this.request = plugin.Messages.getString("ticket.request", "Request");
+		this.staf = plugin.Messages.getString("ticket.staff", "Staff member");
 		
 	}
 	/**
@@ -70,7 +85,7 @@ public class Ticket
 	 * This is used to get the current status of the ticket
 	 * @return
 	 */
-	public String getStatus() {
+	public Status getStatus() {
 		return status;
 	}
 	/**
@@ -121,7 +136,12 @@ public class Ticket
 			summessage = summessage.substring(0,15);
 		}
 		String summary;
-		if(status.equalsIgnoreCase("claimed")) {
+		if((( modreq )Bukkit.getPluginManager().getPlugin("ModReq")).getConfig().getString("use-nickname").equalsIgnoreCase("true")){	
+			if(playerIsOnline()) {
+				submitter = Bukkit.getPlayer(submitter).getDisplayName();
+			}
+		}
+		if(status == Status.CLAIMED) {
 			summary = ChatColor.GOLD + "#"+id+ ChatColor.AQUA+date+" "+namecolor+submitter+" "+ChatColor.GRAY+summessage+"..." + ChatColor.RED + " [Claimed]";
 		}
 		else {
@@ -149,16 +169,30 @@ public class Ticket
 	 * @return
 	 */
 	public void sendMessageToPlayer(Player p) {
+		if((( modreq )Bukkit.getPluginManager().getPlugin("ModReq")).getConfig().getString("use-nickname").equalsIgnoreCase("true")){	
+			if(playerIsOnline()) {
+				submitter = Bukkit.getPlayer(submitter).getDisplayName();
+			}
+		}
 		p.sendMessage(ChatColor.GOLD + "---Info-about-ticket-#"+id+"---");
-		p.sendMessage(ChatColor.AQUA + "status: " + ChatColor.GRAY + status);
-		p.sendMessage(ChatColor.AQUA + "sender: " + ChatColor.GRAY + submitter);
-		p.sendMessage(ChatColor.AQUA + "staff member: " + ChatColor.GRAY + staff);
-		p.sendMessage(ChatColor.AQUA + "location: " + ChatColor.GRAY + location);
-		p.sendMessage(ChatColor.AQUA + "date of request: " + ChatColor.GRAY + date);
-		p.sendMessage(ChatColor.AQUA + "request: " + ChatColor.GRAY + message);
-		p.sendMessage(ChatColor.AQUA + "comment: " + ChatColor.GRAY + comment);
+		p.sendMessage(ChatColor.AQUA + this.sta + ": " + ChatColor.GRAY + status);
+		p.sendMessage(ChatColor.AQUA + this.sub+": " + ChatColor.GRAY + submitter);
+		p.sendMessage(ChatColor.AQUA + this.loc+": " + ChatColor.GRAY + location);
+		p.sendMessage(ChatColor.AQUA + this.staf+": " + ChatColor.GRAY + staff);
+		p.sendMessage(ChatColor.AQUA + this.dt+": " + ChatColor.GRAY + date);
+		p.sendMessage(ChatColor.AQUA + this.request+": " + ChatColor.GRAY + message);
+		p.sendMessage(ChatColor.AQUA + this.com+": " + ChatColor.GRAY + comment);
 	}
 	
+	private boolean playerIsOnline() {
+		for(Player p: Bukkit.getOnlinePlayers()) {
+			if(p.getName().equalsIgnoreCase(submitter)) {
+				return true;
+			}
+		}
+			
+		return false;
+	}
 	//the set methods start here
 	/**
 	 * This is used to set a new comment
@@ -181,7 +215,7 @@ public class Ticket
 	 * The ticket must be updated for any changes to apply
 	 * @return
 	 */
-	public void setStatus(String newstatus) {
+	public void setStatus(Status newstatus) {
 		status = newstatus;
 		
 	}
@@ -193,16 +227,6 @@ public class Ticket
 	public void update() throws SQLException {
 		tickets.updateTicket(this);
 	}
-	/**
-	 * @author Sgt_Tailor
-	 * @since 2.0
-	 * @param name
-	 * @param achternaam
-	 * @return
-	 */
-	public String ditIsVoorJul(String name, String achternaam) {
-		//deze functie doet niets
-		return name + achternaam;
-	}
+	
 	
 }

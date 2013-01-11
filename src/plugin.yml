@@ -1,10 +1,15 @@
 name: ModReq
 main: modreq.modreq
+config-version: 2.1.1
 author: Sgt_Tailor
 dev-url: http://dev.bukkit.org/server-mods/modreq/
 description: A Moderator Request plugin
-version: 2.0.3
+version: 2.2 ALFA
 commands:
+    updatemodreq:
+        description: Downloads the latest version of ModReq
+        usage: /updatemodreq
+        permission: modreq.update
     modreq:
         description: Request a mod command
         usage: /modreq <message>
@@ -37,10 +42,16 @@ commands:
         description: returns a list of online mods
         usage: /mods
         permission: modreq.mods
+    modhelp:
+        description: shows the help message
+        usage: /modhelp
 permissions:
+    modreq.update:
+        default: OP
+        description: allows a person to do /updatemodreq
     modreq.mods:
         default: TRUE
-        description: allos a person to do /mods
+        description: allows a person to do /mods
     modreq.check:
         description: allows a person to to /check
         default: OP
