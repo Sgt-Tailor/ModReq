@@ -29,29 +29,49 @@ public class ModReqCommandExecutor implements CommandExecutor {
 	public TicketHandler tickets;
 	public static modreq plugin;
 	public final Logger logger = Logger.getLogger("Minecraft");
+	
 	public ModReqCommandExecutor(modreq instance) {
 	plugin = instance;
-	tickets = new TicketHandler();
 	}
 	
 	
 	@Override
 	public boolean onCommand(final CommandSender sender, Command cmd, String arg2, final String[] arg) {
+		tickets = plugin.getTicketHandler();
+		if(cmd.getName().equals("cleartickets")) {
+			if(sender.hasPermission("modreq.cleartickets")) {
+				tickets.clearTickets();
+				sender.sendMessage(ChatColor.GREEN + "All tickets have been removed");
+				return true;
+			}
+		}
 		if(cmd.getName().equals("updatemodreq")) {
 			if(sender instanceof Player) {
-				Player p = (Player) sender;
-				File Jar = new File(plugin.getDataFolder().getAbsolutePath()+  "/" + plugin.latestVersion, "modreq.jar");
-				File ChangeLog = new File(plugin.getDataFolder().getAbsolutePath()+  "/" + plugin.latestVersion, "Changelog.txt");
-				if(!ChangeLog.exists() || ! Jar.exists()) {
-					ChangeLog.getParentFile().mkdir();
-					try {
-						saveUrl(Jar.getAbsolutePath(), "http://www.curse.com/server-mods/minecraft/modreq/download");
-						saveUrl(plugin.getDataFolder().getAbsolutePath()+ "/" + plugin.latestVersion + "/Changelog.txt", "http://www.wampiedriessen.eu/sven/modreqchangelog.txt");
-						p.sendMessage(ChatColor.GOLD + "[ModReq]" + ChatColor.GREEN + "version " + plugin.latestVersion + " has been download to the plugin folder");
+				if(sender.hasPermission("modreq.update")) {	
+					if(plugin.getConfig().getBoolean("check-updates", true)) {
+						File Jar = new File(plugin.getDataFolder().getAbsolutePath()+  "/" + plugin.latestVersion, "modreq.jar");
+						File ChangeLog = new File(plugin.getDataFolder().getAbsolutePath()+  "/" + plugin.latestVersion, "Changelog.txt");
+						if(!ChangeLog.exists()) {
+							
+						}
+						if(!Jar.exists()) {
+						
+							Jar.getParentFile().mkdir();
+							try {
+								String link = "http://dev.bukkit.org/media/files/" + plugin.DownloadLink.split("/files/")[1];
+								saveUrl(Jar.getAbsolutePath(), link);
+								saveUrl(ChangeLog.getAbsolutePath(), "http://website.shadowblox.com/plugins/modreqchangelog.txt");
+								sender.sendMessage(ChatColor.GOLD + "[ModReq]" + ChatColor.GREEN + "version " + plugin.latestVersion + " has been download to the plugin folder");
+								return true;
+							} catch (Exception e) {
+								sender.sendMessage(ChatColor.RED + "Could not download the latest version of ModReq");
+								return true;
+							}
+						}
+					}
+					else {
+						sender.sendMessage(ChatColor.RED + "This feature is not enabled in the config");
 						return true;
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
 					}
 				}
 			}
@@ -113,7 +133,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							if(plugin.getConfig().getInt("maximum-open-tickets") > ticketfromplayer) {
 								String message = argToString(arg);
 								savereq(message, sender, ((Player) sender).getLocation());
-								sendMessageToAdmins(ChatColor.GREEN + sender.getName() + ChatColor.AQUA + plugin.Messages.getString("submitted-mod", "submitted a moderator request"));
+								sendMessageToAdmins(ChatColor.GREEN + sender.getName() + " " + ChatColor.AQUA + plugin.Messages.getString("submitted-mod", "submitted a moderator request"));
 								p.sendMessage(ChatColor.GREEN + plugin.Messages.getString("submitted-player", "You successfully submitted a help ticket, a moderator will help you soon"));
 								return true;
 							}
@@ -192,8 +212,13 @@ public class ModReqCommandExecutor implements CommandExecutor {
 							return true;
 							}
 						else {
-							int page = Integer.parseInt(arg[0]);//command must be /check <id>
+							try {
+							int page = Integer.parseInt(arg[0]);//command must be /check <page>
 							tickets.sendPlayerPage(page, "open", p);
+							}
+							catch(Exception e) {
+								p.sendMessage(ChatColor.RED + arg[0] + " "+ plugin.Messages.getString("no-number", "is not a number"));
+							}
 							return true;
 						}
 					}
@@ -302,7 +327,8 @@ public class ModReqCommandExecutor implements CommandExecutor {
 								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " "+ plugin.Messages.getString("closed-ticket", "just closed your ModReq"));
 							}
 							else {
-								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " "+plugin.Messages.getString("closed-ticket-withmessage","just closed your ModReq with the comment: " + comment));
+								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GREEN + p.getName() + " "+plugin.Messages.getString("closed-ticket-withmessage","just closed your ModReq with the comment") + ": ");
+								sendMessageToSubmitter(t.getSubmitter(), ChatColor.GRAY + comment);
 							}
 							return true;
 						}
@@ -446,7 +472,7 @@ public class ModReqCommandExecutor implements CommandExecutor {
 	}
 	public void savereq(String message, CommandSender sender, Location loc) {//save a ticket to the database
 		String timezone = plugin.getConfig().getString("timezone");
-		DateFormat df = new SimpleDateFormat("EEE MM-dd HH:mm");
+		DateFormat df = new SimpleDateFormat(plugin.getConfig().getString("timeformat","YY-MM-dd HH:mm:ss"));
         TimeZone tz = TimeZone.getTimeZone(timezone);
         
         
@@ -455,13 +481,12 @@ public class ModReqCommandExecutor implements CommandExecutor {
 		//cal.add(Calendar.MILLISECOND, - cal.getTimeZone().getDSTSavings());
 		cal.add(Calendar.MILLISECOND, tz.getRawOffset());       
 		Date dt = new Date(cal.getTimeInMillis());  
-		logger.info(df.format(Calendar.getInstance(cal.getTimeZone(), Locale.ENGLISH).getTime()));
 		String call = df.format(dt) + " @" + timezone;
 		String location =  loc.getWorld().getName()+" "+Math.round(loc.getX()) + " "+Math.round(loc.getY())+" "+Math.round(loc.getZ());
 		try {
 			tickets.addTicket( sender.getName(), message, call, "open", location);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.severe("[modreq] A ticket could not be saved. Cause: " + e.getMessage());
 		}
 	}
 	public void sendMessageToAdmins(String message) {//sends a message to all online players with the modreq.check permission

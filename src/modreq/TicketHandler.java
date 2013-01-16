@@ -1,9 +1,11 @@
 package modreq;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -12,12 +14,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class TicketHandler {
-	private java.sql.Connection conn;
-	private java.sql.Statement stat;
 	public static modreq plugin = (modreq) Bukkit.getPluginManager().getPlugin("ModReq");
 	public final Logger logger = Logger.getLogger("Minecraft");
-
-	public TicketHandler(){//create database if it does not yet exist
+	
+	private Connection getConnection() {
 		try {
 			Class.forName("org.sqlite.JDBC");
 			if(plugin.getConfig().getBoolean("use-mysql")) {
@@ -25,22 +25,39 @@ public class TicketHandler {
 				String user = plugin.getConfig().getString("mysql.user"); 
 				String pass = plugin.getConfig().getString("mysql.pass");
 				
-				conn = DriverManager.getConnection("jdbc:mysql://"+ip, user, pass);
-				stat = conn.createStatement();
+				Connection conn = DriverManager.getConnection("jdbc:mysql://"+ip, user, pass);
+				Statement stat = conn.createStatement();
 				stat.execute("CREATE TABLE IF NOT EXISTS requests (id INT, submitter TEXT, message TEXT, date TEXT, status TEXT, comment TEXT, location TEXT, staff TEXT)");
+				return conn;
 			}
 			else {
-			conn = DriverManager.getConnection("jdbc:sqlite:plugins/ModReq/DataBase.sql");
-			stat = conn.createStatement();
-			stat.execute("CREATE TABLE IF NOT EXISTS requests (id int, submitter String, message String, date String, status String, comment String, location String, staff String)");
+				Connection conn = DriverManager.getConnection("jdbc:sqlite:plugins/ModReq/DataBase.sql");
+				Statement stat = conn.createStatement();
+				stat.execute("CREATE TABLE IF NOT EXISTS requests (id int, submitter String, message String, date String, status String, comment String, location String, staff String)");
+				return conn;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.severe("[ModReq] no connection could be made with the database. Shutting down plugin D:");
 			plugin.getServer().getPluginManager().disablePlugin(plugin);
+			return null;
+		}
+	}
+	public void clearTickets() {
+		try {
+			Connection conn = getConnection();
+			Statement stat = conn.createStatement();
+			stat.execute("DROP TABLE requests");
+		}
+		catch(Exception e) {
+			
 		}
 	}
 	public int getTicketsFromPlayer(Player p, String target, String status) throws SQLException {//returns the amount of tickets send by a player
+		
+		Connection conn = getConnection();
+		Statement stat = conn.createStatement();
+		
 		ArrayList<Integer> tickets = new ArrayList<Integer>();
 		ResultSet result = stat.executeQuery("SELECT * FROM requests WHERE submitter = '"+target+"' AND status = '"+status+"' limit 5");
 		while(result.next()) {
@@ -52,9 +69,12 @@ public class TicketHandler {
 		for(; i<tickets.size(); i++) {
 			
 		}
+		conn.close();
 		return i;
 	}
 	public ArrayList<Ticket> getTicketsByPlayer(Player p, String target) throws SQLException{//returns an arraylist containing all the tickets that a player has submitted
+		Connection conn = getConnection();
+		Statement stat = conn.createStatement();		
 		ArrayList<Integer> tickets = new ArrayList<Integer>();
 		ArrayList<Ticket> value = new ArrayList<Ticket>();
 		ResultSet result = stat.executeQuery("SELECT * FROM requests WHERE submitter = '"+target+"'");
@@ -74,21 +94,30 @@ public class TicketHandler {
 		for(; i<tickets.size(); i++) {
 			value.add(getTicket(tickets.get(i)));
 		}
+		conn.close();
 		return value;
 	}
 	public boolean hasClaimed(Player p) {
 		try {
+		Connection conn = getConnection();
+		Statement stat = conn.createStatement();
+		
+		
 		ResultSet result = stat.executeQuery("SELECT * FROM requests WHERE staff = '"+p.getName()+"' AND status = '"+Status.CLAIMED.getStatusString()+"' limit 5");
 		
 			if(result.next()) {
 				return true;
 			}
+		conn.close();
 		} catch (SQLException e) {
 		}
+
 		return false;
 	}
 	public void sendPlayerPage(int page, String status, Player p) {//send the -----List-of-STATUS-Requests----- 
 		try {
+			Connection conn = getConnection();
+			Statement stat = conn.createStatement();
 			ArrayList<Integer> tickets = new ArrayList<Integer>();
 			int nmbr = page *10;
 			ResultSet result;
@@ -113,9 +142,9 @@ public class TicketHandler {
 				getTicket(tickets.get(i)).sendSummarytoPlayer(p);
 			}
 			p.sendMessage(ChatColor.GOLD + "do /check <page> to see more");
+			conn.close();
 			return;
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		
 		
@@ -124,12 +153,15 @@ public class TicketHandler {
 	}    
     public int getTicketCount() {//get the total amount of tickets
 		try {
+			Connection conn = getConnection();
+			Statement stat = conn.createStatement();
 			ResultSet rs = stat.executeQuery("SELECT id FROM requests ");
 			int i = 0;
 			while(rs.next()) {
 			 i++;
 			}
 			rs.close();
+			conn.close();
 			return i;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -141,12 +173,15 @@ public class TicketHandler {
     public int getTicketAmount(Status status) {
     	String statusString = status.getStatusString();
     	try {
+    		Connection conn = getConnection();
+    		Statement stat = conn.createStatement();
 			ResultSet rs = stat.executeQuery("SELECT id FROM requests WHERE status = '"+statusString+"'");
 			int i = 0;
 			while(rs.next()) {
 			 i++;
 			}
 			rs.close();
+			conn.close();
 			return i;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -156,6 +191,8 @@ public class TicketHandler {
     	
     }
 	public void addTicket(String submitter, String message, String date, String status, String location) throws SQLException {//add a new ticket to the database
+		Connection conn = getConnection();
+		
 		PreparedStatement prep = conn.prepareStatement("INSERT INTO requests VALUES (?, ?, ?, ?, ?, ?,?,?)");
 		prep.setInt(1, getTicketCount() +1);
 		prep.setString(2, submitter);
@@ -170,10 +207,14 @@ public class TicketHandler {
 		//conn.setAutoCommit(false); 
         prep.executeBatch(); 
         //conn.setAutoCommit(true); 
+        conn.close();
 		
 	}
 	public Ticket getTicket(int i) {//returns the Ticket WHERE id=i
 			try {
+				Connection conn = getConnection();
+				Statement stat = conn.createStatement();
+				
 				ResultSet result = stat.executeQuery("SELECT * FROM requests WHERE id = '"+i+"'");
 				result.next();
 				String status = result.getString(5);
@@ -185,6 +226,7 @@ public class TicketHandler {
 				String staff = result.getString(8);
 				Ticket ticket = new Ticket(plugin,i, submitter, message, date, Status.getByString(status), comment,location,staff);
 				result.close();
+				conn.close();
 				return ticket;
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
@@ -197,6 +239,8 @@ public class TicketHandler {
 		
 	}
 	public void updateTicket(Ticket t) throws SQLException {//updates the status, staff AND comment of tickt t
+		Connection conn = getConnection();
+		
 		int id = t.getId();
 		PreparedStatement prep = conn.prepareStatement("UPDATE requests SET status = ?, staff = ?, comment = ? WHERE id = "+id+"");
 		
@@ -209,14 +253,18 @@ public class TicketHandler {
 		prep.setString(3, comment);
 		prep.addBatch();
 		prep.executeBatch();
+		conn.close();
 	}
 	public int getOpenTicketsAmount() {
 		int i = 0;
 			try {
+				Connection conn = getConnection();
+				Statement stat = conn.createStatement();
 				ResultSet result = stat.executeQuery("SELECT id FROM requests WHERE status = 'open'");
 				while(result.next()) {
 					i++;
 				}
+				conn.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

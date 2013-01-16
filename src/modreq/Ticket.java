@@ -37,7 +37,8 @@ public class Ticket
 		location = loc;
 		comment = comm;
 		
-		tickets = new TicketHandler();
+		tickets = plugin.getTicketHandler();
+		this.loc = plugin.Messages.getString("ticket.location", "Location");
 		this.sub = plugin.Messages.getString("ticket.submitter", "Submitter");
 		this.dt = plugin.Messages.getString("ticket.date", "Date of Request");
 		this.sta = plugin.Messages.getString("ticket.status", "Status");
@@ -142,10 +143,10 @@ public class Ticket
 			}
 		}
 		if(status == Status.CLAIMED) {
-			summary = ChatColor.GOLD + "#"+id+ ChatColor.AQUA+date+" "+namecolor+submitter+" "+ChatColor.GRAY+summessage+"..." + ChatColor.RED + " [Claimed]";
+			summary = ChatColor.GOLD + "#"+id+ ChatColor.AQUA+ " " + date+" "+namecolor+submitter+" "+ChatColor.GRAY+summessage+"..." + ChatColor.RED + " [Claimed]";
 		}
 		else {
-			summary = ChatColor.GOLD + "#"+id+ ChatColor.AQUA+date+" "+namecolor+submitter+" "+ChatColor.GRAY+summessage+"...";
+			summary = ChatColor.GOLD + "#"+id+ ChatColor.AQUA+ " " + date+" "+namecolor+submitter+" "+ChatColor.GRAY+summessage+"...";
 		}
 		
 		p.sendMessage(summary);

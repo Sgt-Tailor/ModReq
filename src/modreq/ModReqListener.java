@@ -33,10 +33,12 @@ public class ModReqListener implements Listener{
 				   }
 			}, 60L);		
 		}
-		if(p.isOp()) {
-			String currentVersion = plugin.getDescription().getVersion();
-			if(!plugin.latestVersion.equals(currentVersion)) {
-				p.sendMessage(ChatColor.GOLD+"[ModReq]" + ChatColor.DARK_PURPLE + "A newer version of ModReq is available. If you wish to download this file to the modreq folder do /updatemodreq");
+		if(p.hasPermission("modreq.update")) {
+			if(plugin.getConfig().getBoolean("check-updates",true)) {
+				String currentVersion = plugin.getDescription().getVersion();
+				if(!plugin.latestVersion.equals(currentVersion)) {
+					p.sendMessage(ChatColor.GOLD+"[ModReq]" + ChatColor.DARK_PURPLE + "A newer version of ModReq is available. If you wish to download this file to the modreq folder do /updatemodreq");
+				}
 			}
 		}
 	}

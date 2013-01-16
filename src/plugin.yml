@@ -4,8 +4,12 @@ config-version: 2.1.1
 author: Sgt_Tailor
 dev-url: http://dev.bukkit.org/server-mods/modreq/
 description: A Moderator Request plugin
-version: 2.2 ALFA
+version: 2.2
 commands:
+    cleartickets:
+        description: deletes ALL tickets
+        usage: /cleartickets
+        permission: modreq.cleartickets
     updatemodreq:
         description: Downloads the latest version of ModReq
         usage: /updatemodreq
@@ -46,6 +50,9 @@ commands:
         description: shows the help message
         usage: /modhelp
 permissions:
+    modreq.cleartickets:
+        default: OP
+        description: allows a people to do /cleartickets
     modreq.update:
         default: OP
         description: allows a person to do /updatemodreq

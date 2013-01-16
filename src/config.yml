@@ -22,7 +22,7 @@
 #                            DO NOT EDIT                           #
 ####################################################################
 #The config File version. DO NOT CHANGE YOURSELF
-version: 2.1.1                                                    
+version: 2.2                                                    
 
 ####################################################################
 #                           Configurations                         #
@@ -30,6 +30,17 @@ version: 2.1.1
 #Use this to specify the maximum amount of open/closed tickets a 
 #player may have.
 maximum-open-tickets: 5
+
+#The Update feature
+
+#Change this to false if you do not want modreq
+#to check for updates. The host of the jar file is bukkit dev. I
+#however host a cache on http://website.shadowblox.com/ to reduce
+#trafic to the bukkit servers. The files downloaded checked every
+#hour are: Version number of modreq, Latest download link. Once you
+#do /updatemodreq the jar file and the changelog are downloaded to
+#a folder inside the plugin folder.
+check-updates: true
 
 #use metrics. This sends anonymous data to mcstats.org to analize. This is NO HARM for your server
 metrics: true
@@ -46,6 +57,12 @@ show-claimed-tickets-in-open-list: false
 
 #Specify the TimeZone used for the Date here
 timezone: GMT+0
+
+#Use this to change the time format using SimpleDateFormat. If you
+#don't know how SimpleDateFormat is used you can check out this link:
+#http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html
+timeformat: YY-MM-dd HH:mm:ss
+
 
 #Change this to true if you want the staff to be notified about
 #open tickets uppon login

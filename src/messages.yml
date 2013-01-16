@@ -19,7 +19,7 @@ not-your: That is not your ticket
 too-many-tickets: You have too many open requests
 
 submitted-mod: submitted a moderator request
-submitted-player: You successfully submitted a Help Ticket, when a Moderator sees it he will reply.
+submitted-player: You successfully submitted a mod request, when a Moderator sees it he will reply.
 
 status-header: -----List-of-Your-Last-5-Requests-----
 status-footer: do /status <id> for more info
@@ -34,7 +34,7 @@ closed-ticket-withmessage: just closed your ModReq with the comment
 reopen-with-comment: just re-opened your modreq with the comment
 
 ticket-teleport: You have been teleported
-ticket-teleport2: just teleported to you modreq
+ticket-teleport2: just teleported to your modreq
 
 info-modreq: submit a help ticket
 info-check: returns a list of all tickets
@@ -49,6 +49,7 @@ info-modhelp: shows this message
 ticket:
     submitter: Submitter
     date: Date of request
+    location: Location
     status: Status
     comment: Comment
     staff: Staff member

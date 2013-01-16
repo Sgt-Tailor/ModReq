@@ -16,16 +16,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 
 public class modreq extends JavaPlugin  {
+	
 	public YamlConfiguration Messages;
 	public static modreq plugin;
-	public TicketHandler tickets;
 	public final Logger logger = Logger.getLogger("Minecraft");
 	public ModReqCommandExecutor myExecutor;
 	public File configFile;
 	private File messages;
 	private Metrics metrics;
+	private String currentVersion;
 	public String latestVersion;
 	public String DownloadLink;
+	private TicketHandler ticketHandler;
 	
 	
 
@@ -43,7 +45,17 @@ public class modreq extends JavaPlugin  {
 			logger.info("[ModReq] You plugin version does not match the config version. Please visit the bukkitdev page for more information");
 		}
 		loadMessages();
-		
+		ticketHandler = new TicketHandler();
+		if(modreq.plugin.getConfig().getBoolean("metrics")) {	
+			try {
+				metrics = new Metrics(modreq.plugin);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			startNotify();
+			startGraphs();
+			logger.info("[ModReq] Using metrics");
+		}
 		myExecutor = new ModReqCommandExecutor(this);
 		getCommand("modreq").setExecutor(myExecutor);
 		getCommand("check").setExecutor(myExecutor);
@@ -55,28 +67,34 @@ public class modreq extends JavaPlugin  {
 		getCommand("mods").setExecutor(myExecutor);
 		getCommand("modhelp").setExecutor(myExecutor);
 		getCommand("updatemodreq").setExecutor(myExecutor);
+		getCommand("cleartickets").setExecutor(myExecutor);
 		
 		PluginManager pm = this.getServer().getPluginManager();
 		pm.registerEvents(new ModReqListener(this), this);
 		
 		PluginDescriptionFile pdfFile = this.getDescription();
-		tickets = new TicketHandler();
-		startVersionChecker();
-		if(this.getConfig().getBoolean("metrics")) {	
-			try {
-				metrics = new Metrics(this);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			startNotify();
-			startGraphs();
-			logger.info("[ModReq] Using metrics");
+			
+		currentVersion = pdfFile.getVersion();
+		
+		if(plugin.getConfig().getBoolean("check-updates", true)) {
+			startVersionChecker();
 		}
+		else {
+			logger.info("[ModReq] Not using update feature");
+		}
+		
+		
 		this.logger.info(pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled.");
 	}
 	
+	public String getCurrentVersion() {
+		return currentVersion;
+	}
+	public TicketHandler getTicketHandler() {
+		return ticketHandler;
+	}
 	private void startVersionChecker() {
-		Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, new VersionChecker(this), 60, 36000);		
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new VersionChecker(this), 60L, 72000L);		
 	}
 	private void startGraphs() {
 		metrics.start();
@@ -91,7 +109,7 @@ public class modreq extends JavaPlugin  {
 
 		            @Override
 		            public int getValue() {
-		                    return tickets.getTicketAmount(Status.OPEN); // Number of players who used a diamond sword
+		                    return ticketHandler.getTicketAmount(Status.OPEN); // Number of players who used a diamond sword
 		            }
 
 		    });
@@ -99,7 +117,7 @@ public class modreq extends JavaPlugin  {
 
 	            @Override
 	            public int getValue() {
-	                    return tickets.getTicketAmount(Status.CLAIMED); // Number of players who used a diamond sword
+	                    return ticketHandler.getTicketAmount(Status.CLAIMED); // Number of players who used a diamond sword
 	            }
 
 		    });
@@ -107,7 +125,7 @@ public class modreq extends JavaPlugin  {
 
 	            @Override
 	            public int getValue() {
-	                    return tickets.getTicketAmount(Status.CLOSED); // Number of players who used a diamond sword
+	                    return ticketHandler.getTicketAmount(Status.CLOSED); // Number of players who used a diamond sword
 	            }
 
 	    });
@@ -149,6 +167,7 @@ public class modreq extends JavaPlugin  {
 		YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this.getResource("messages.yml"));	
 		return pluginYML;
 	}
+	@SuppressWarnings("deprecation")
 	private void startNotify() {
 		if(this.getConfig().getBoolean("notify-on-time")){
 			logger.info("[ModReq] Notifying on time enabled");
