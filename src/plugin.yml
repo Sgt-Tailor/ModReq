@@ -1,11 +1,19 @@
 name: ModReq
 main: modreq.modreq
-config-version: 2.1.1
+config-version: 2.2.1
 author: Sgt_Tailor
 dev-url: http://dev.bukkit.org/server-mods/modreq/
 description: A Moderator Request plugin
-version: 2.2
+version: 2.2.1 
 commands:
+    modreload:
+        description: reload modreq
+        usage: /modreqreload
+        permission: modreq.reload
+    ticket:
+        description: An alternative for /check id <id>
+        usage: /ticket <id>
+        permission: modreq.check
     cleartickets:
         description: deletes ALL tickets
         usage: /cleartickets
@@ -50,6 +58,9 @@ commands:
         description: shows the help message
         usage: /modhelp
 permissions:
+    mod.reload:
+        default: OP
+        description: allows a people to do /modreqreload
     modreq.cleartickets:
         default: OP
         description: allows a people to do /cleartickets

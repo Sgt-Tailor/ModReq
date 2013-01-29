@@ -2,6 +2,8 @@ package modreq;
 
 import java.sql.SQLException;
 
+import managers.TicketHandler;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -102,10 +104,11 @@ public class Ticket
 	 * @return
 	 */
 	public Location getLocation() {
-		String world = location.split(" ")[0];
-		String x = location.split(" ")[1];
-		String y = location.split(" ")[2];
-		String z = location.split(" ")[3];
+		String world = location.split(" @ ")[0];
+		String rest = location.split(" @ ")[1];
+		String x = rest.split(" ")[0];
+		String y = rest.split(" ")[1];
+		String z = rest.split(" ")[2];
 		World w = Bukkit.getServer().getWorld(world);
 		double xx = Integer.parseInt(x);
 		double yy = Integer.parseInt(y);
@@ -228,6 +231,17 @@ public class Ticket
 	public void update() throws SQLException {
 		tickets.updateTicket(this);
 	}
-	
+	public void sendMessageToSubmitter(String message) {//sends a message to the submitter of a ticket if he is online
+		Player[] op = Bukkit.getOnlinePlayers();
+		for(int i = 0; i<op.length; i++) {
+			if(op[i].getName().equals(submitter)) {
+				if(op[i].isOnline()) {
+					op[i].sendMessage(message);
+					return;
+				}
+			}
+		}
+		return;
+	}
 	
 }

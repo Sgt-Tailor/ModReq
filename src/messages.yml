@@ -7,6 +7,8 @@ no-message: You have not typed a message. Please do so.
 no-ticket: That ticket does not exist
 no-number: is not a number
 
+command-syntax: 'That is not the right usage. It should be:'
+
 notification: open tickets are waiting for you
 
 ticket-closed: Ticket closed

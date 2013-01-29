@@ -1,5 +1,7 @@
 package modreq;
 
+import managers.TicketHandler;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -36,8 +38,10 @@ public class ModReqListener implements Listener{
 		if(p.hasPermission("modreq.update")) {
 			if(plugin.getConfig().getBoolean("check-updates",true)) {
 				String currentVersion = plugin.getDescription().getVersion();
-				if(!plugin.latestVersion.equals(currentVersion)) {
-					p.sendMessage(ChatColor.GOLD+"[ModReq]" + ChatColor.DARK_PURPLE + "A newer version of ModReq is available. If you wish to download this file to the modreq folder do /updatemodreq");
+				if(plugin.latestVersion != null && currentVersion != null) {
+					if(!plugin.latestVersion.equals(currentVersion)) {
+						p.sendMessage(ChatColor.GOLD+"[ModReq]" + ChatColor.DARK_PURPLE + "A newer version of ModReq is available. If you wish to download this file to the modreq folder do /updatemodreq");
+					}
 				}
 			}
 		}

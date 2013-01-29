@@ -56,21 +56,21 @@ use-nickname: false
 show-claimed-tickets-in-open-list: false
 
 #Specify the TimeZone used for the Date here
-timezone: GMT+0
+timezone: GMT
 
 #Use this to change the time format using SimpleDateFormat. If you
 #don't know how SimpleDateFormat is used you can check out this link:
 #http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html
-timeformat: YY-MM-dd HH:mm:ss
+timeformat: 'YY-MM-dd HH:mm:ss'
 
 
 #Change this to true if you want the staff to be notified about
 #open tickets uppon login
-notify-on-login: false
+notify-on-login: true
 
 #change this to true if you want the staff to be notified every
 #few minutes about open tickets and specify the time in minutes
-notify-on-time: false
+notify-on-time: true
 time-period: 5
 
 #change this to use mySQL or not

@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import managers.CommandManager;
+import managers.TicketHandler;
 import modreq.Metrics.Graph;
 
 import org.bukkit.Bukkit;
@@ -17,10 +19,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class modreq extends JavaPlugin  {
 	
+	public CommandManager cmdManager;
 	public YamlConfiguration Messages;
 	public static modreq plugin;
 	public final Logger logger = Logger.getLogger("Minecraft");
-	public ModReqCommandExecutor myExecutor;
 	public File configFile;
 	private File messages;
 	private Metrics metrics;
@@ -35,6 +37,8 @@ public class modreq extends JavaPlugin  {
 	@Override
 	public void onEnable() {
 		plugin = this;
+		cmdManager = new CommandManager(this);
+		
 		messages = new File(getDataFolder().getAbsolutePath()+ "/messages.yml");
 		configFile = new File(getDataFolder().getAbsolutePath()+ "/config.yml");
 		if(!configFile.exists()) {
@@ -42,10 +46,11 @@ public class modreq extends JavaPlugin  {
 		}
 		YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this.getResource("plugin.yml"));
 		if(!pluginYML.getString("config-version").equals(getConfig().getString("version"))) {
-			logger.info("[ModReq] You plugin version does not match the config version. Please visit the bukkitdev page for more information");
+			logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
 		}
 		loadMessages();
 		ticketHandler = new TicketHandler();
+		
 		if(modreq.plugin.getConfig().getBoolean("metrics")) {	
 			try {
 				metrics = new Metrics(modreq.plugin);
@@ -56,19 +61,7 @@ public class modreq extends JavaPlugin  {
 			startGraphs();
 			logger.info("[ModReq] Using metrics");
 		}
-		myExecutor = new ModReqCommandExecutor(this);
-		getCommand("modreq").setExecutor(myExecutor);
-		getCommand("check").setExecutor(myExecutor);
-		getCommand("tp-id").setExecutor(myExecutor);
-		getCommand("claim").setExecutor(myExecutor);
-		getCommand("re-open").setExecutor(myExecutor);
-		getCommand("status").setExecutor(myExecutor);
-		getCommand("done").setExecutor(myExecutor);
-		getCommand("mods").setExecutor(myExecutor);
-		getCommand("modhelp").setExecutor(myExecutor);
-		getCommand("updatemodreq").setExecutor(myExecutor);
-		getCommand("cleartickets").setExecutor(myExecutor);
-		
+		cmdManager.initCommands();
 		PluginManager pm = this.getServer().getPluginManager();
 		pm.registerEvents(new ModReqListener(this), this);
 		
@@ -86,7 +79,21 @@ public class modreq extends JavaPlugin  {
 		
 		this.logger.info(pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled.");
 	}
-	
+	public void reload() {
+	    messages = new File(getDataFolder().getAbsolutePath()+ "/messages.yml");
+		configFile = new File(getDataFolder().getAbsolutePath()+ "/config.yml");
+		if(!configFile.exists()) {
+			firstrun();
+		}
+		YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this.getResource("plugin.yml"));
+		if(!pluginYML.getString("config-version").equals(getConfig().getString("version"))) {
+			logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
+		}
+		loadMessages();
+		ticketHandler = new TicketHandler();
+		plugin.reloadConfig();
+	    
+	}
 	public String getCurrentVersion() {
 		return currentVersion;
 	}
@@ -94,7 +101,7 @@ public class modreq extends JavaPlugin  {
 		return ticketHandler;
 	}
 	private void startVersionChecker() {
-		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new VersionChecker(this), 60L, 72000L);		
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new VersionChecker(this), 60L, 72000);		
 	}
 	private void startGraphs() {
 		metrics.start();
@@ -182,7 +189,7 @@ public class modreq extends JavaPlugin  {
 						   Player[] online = Bukkit.getOnlinePlayers();
 						   for(int i=0; i<online.length;i++) {
 							   if(online[i].hasPermission("modreq.check")) {
-								   online[i].sendMessage(ChatColor.GOLD+"[ModReq]" + ChatColor.GREEN + Integer.toString(opentickets) + plugin.Messages.getString("notification", "open tickets are waiting for you"));
+								   online[i].sendMessage(ChatColor.GOLD+"[ModReq]" + ChatColor.GREEN + Integer.toString(opentickets) + " " + plugin.Messages.getString("notification", "open tickets are waiting for you"));
 							   }
 						   }
 					   }
