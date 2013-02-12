@@ -1,20 +1,20 @@
-package commands;
+package modreq.commands;
 
-import korik.SubCommandExecutor;
-import korik.Utils;
-import managers.TicketHandler;
+import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
-import modreq.modreq;
+import modreq.korik.SubCommandExecutor;
+import modreq.korik.Utils;
+import modreq.managers.TicketHandler;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class CheckCommand extends SubCommandExecutor{
-	private modreq plugin;
+	private ModReq plugin;
 	private TicketHandler tickets;
-	public CheckCommand(modreq instance) {
+	public CheckCommand(ModReq instance) {
 		plugin = instance;
 		
 	}
@@ -55,7 +55,8 @@ public class CheckCommand extends SubCommandExecutor{
         		t.sendMessageToPlayer((Player) sender);
         	    }
         	}catch(Exception e) {
-        	    sender.sendMessage(ChatColor.RED + args[1] + " is not a number");
+        	    e.printStackTrace();
+        	    sender.sendMessage(ChatColor.RED + args[0] + " is not a number");
         	}
 	    }
 	    else {

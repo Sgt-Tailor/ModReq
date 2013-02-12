@@ -1,4 +1,4 @@
-package commands;
+package modreq.commands;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -7,17 +7,17 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import modreq.ModReq;
+import modreq.korik.SubCommandExecutor;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import modreq.modreq;
-import korik.SubCommandExecutor;
-
 public class UpdatemodreqCommand extends SubCommandExecutor{
-    private modreq plugin;
+    private ModReq plugin;
     
-    public UpdatemodreqCommand(modreq instance) {
+    public UpdatemodreqCommand(ModReq instance) {
 	plugin = instance;
     }
     

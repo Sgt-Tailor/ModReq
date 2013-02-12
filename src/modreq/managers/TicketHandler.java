@@ -1,4 +1,4 @@
-package managers;
+package modreq.managers;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,16 +9,17 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import modreq.Comment;
+import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
-import modreq.modreq;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class TicketHandler {
-	public static modreq plugin = (modreq) Bukkit.getPluginManager().getPlugin("ModReq");
+	public static ModReq plugin = (ModReq) Bukkit.getPluginManager().getPlugin("ModReq");
 	public final Logger logger = Logger.getLogger("Minecraft");
 	
 	private Connection getConnection() {
@@ -31,13 +32,15 @@ public class TicketHandler {
 				
 				Connection conn = DriverManager.getConnection("jdbc:mysql://"+ip, user, pass);
 				Statement stat = conn.createStatement();
-				stat.execute("CREATE TABLE IF NOT EXISTS requests (id INT, submitter TEXT, message TEXT, date TEXT, status TEXT, comment TEXT, location TEXT, staff TEXT)");
+				stat.execute("CREATE TABLE IF NOT EXISTS requests (id INT, submitter TEXT, message TEXT, date TEXT, status TEXT, location TEXT, staff TEXT)");
+				stat.execute("CREATE TABLE IF NOT EXISTS comments (id INT, commenter TEXT, message TEXT, date TEXT)");
 				return conn;
 			}
 			else {
 				Connection conn = DriverManager.getConnection("jdbc:sqlite:plugins/ModReq/DataBase.sql");
 				Statement stat = conn.createStatement();
-				stat.execute("CREATE TABLE IF NOT EXISTS requests (id int, submitter String, message String, date String, status String, comment String, location String, staff String)");
+				stat.execute("CREATE TABLE IF NOT EXISTS requests (id int, submitter String, message String, date String, status String, location String, staff String)");
+				stat.execute("CREATE TABLE IF NOT EXISTS comments (id int, commenter String, message String, date String)");
 				return conn;
 			}
 		} catch (Exception e) {
@@ -52,6 +55,7 @@ public class TicketHandler {
 			Connection conn = getConnection();
 			Statement stat = conn.createStatement();
 			stat.execute("DROP TABLE requests");
+			stat.execute("DROP TABLE comments");
 		}
 		catch(Exception e) {
 			
@@ -155,7 +159,7 @@ public class TicketHandler {
 		}	
 	
 	}
-    public int getTicketCount() {//get the total amount of tickets
+	public int getTicketCount() {//get the total amount of tickets
 		try {
 			Connection conn = getConnection();
 			Statement stat = conn.createStatement();
@@ -174,7 +178,7 @@ public class TicketHandler {
 		return 0;
 		
 	}
-    public int getTicketAmount(Status status) {
+	public int getTicketAmount(Status status) {
     	String statusString = status.getStatusString();
     	try {
     		Connection conn = getConnection();
@@ -197,15 +201,14 @@ public class TicketHandler {
 	public void addTicket(String submitter, String message, String date, Status status, String location) throws SQLException {//add a new ticket to the database
 		Connection conn = getConnection();
 		
-		PreparedStatement prep = conn.prepareStatement("INSERT INTO requests VALUES (?, ?, ?, ?, ?, ?,?,?)");
+		PreparedStatement prep = conn.prepareStatement("INSERT INTO requests VALUES (?, ?, ?, ?, ?,?,?)");
 		prep.setInt(1, getTicketCount() +1);
 		prep.setString(2, submitter);
 		prep.setString(3, message);
 		prep.setString(4, date);
 		prep.setString(5, status.getStatusString());
-		prep.setString(6, "no comments yet");
-		prep.setString(7, location);
-		prep.setString(8, "no staff member yet");
+		prep.setString(6, location);
+		prep.setString(7, "no staff member yet");
 		prep.addBatch();
 		
 		
@@ -220,16 +223,18 @@ public class TicketHandler {
 				Statement stat = conn.createStatement();
 				
 				ResultSet result = stat.executeQuery("SELECT * FROM requests WHERE id = '"+i+"'");
+				
 				result.next();
 				String status = result.getString(5);
 				String submitter = result.getString(2);
 				String date = result.getString(4);
-				String location = result.getString(7);
+				String location = result.getString(6);
 				String message = result.getString(3);
-				String comment = result.getString(6);
-				String staff = result.getString(8);
-				Ticket ticket = new Ticket(plugin,i, submitter, message, date, Status.getByString(status), comment,location,staff);
-				result.close();
+				String staff = result.getString(7);
+				Ticket ticket = new Ticket(plugin,i, submitter, message, date, Status.getByString(status),location,staff);
+				
+				stat.close();
+				addCommentsToTicket(conn, ticket);
 				conn.close();
 				return ticket;
 			} catch (SQLException e) {
@@ -246,17 +251,17 @@ public class TicketHandler {
 		Connection conn = getConnection();
 		
 		int id = t.getId();
-		PreparedStatement prep = conn.prepareStatement("UPDATE requests SET status = ?, staff = ?, comment = ? WHERE id = "+id+"");
+		PreparedStatement prep = conn.prepareStatement("UPDATE requests SET status = ?, staff = ? WHERE id = "+id+"");
 		
 		String status = t.getStatus().getStatusString();
-		String comment = t.getComment();
 		String staff = t.getStaff();
 		
 		prep.setString(1, status);
 		prep.setString(2, staff);
-		prep.setString(3, comment);
 		prep.addBatch();
 		prep.executeBatch();
+		
+		updateComments(conn, t);
 		conn.close();
 	}
 	public int getOpenTicketsAmount() {
@@ -276,6 +281,62 @@ public class TicketHandler {
 			
 			}	
 		return i;
+	}
+	private void addCommentsToTicket(Connection conn, Ticket t) throws SQLException {
+	    Statement stat = conn.createStatement();
+	    ResultSet rs = stat.executeQuery("SELECT * FROM comments WHERE id = '"+t.getId()+"'");
+	    while(rs.next()) {
+		String commenter = rs.getString(2);
+		String comment = rs.getString(3);
+		String date = rs.getString(4);
+		
+		Comment c = new Comment(commenter, comment, date);
+		t.addComment(c);
+		
+	    }
+	    rs.close();
+	    stat.close();
+	}
+	private void updateComments(Connection conn, Ticket t) throws SQLException {
+	    if(t.getComments().size() == 0) {
+		return;
+	    }
+	    PreparedStatement prep = conn.prepareStatement("INSERT INTO comments VALUES (?, ?, ?, ?)");
+	    Statement stat = conn.createStatement();
+	    ResultSet rs = stat.executeQuery("SELECT * FROM comments WHERE id = '"+t.getId()+"'");
+	    Comment A = new Comment(null,null,null);
+	    while(rs.next()) {
+		String commenter = rs.getString(2);
+		String comment = rs.getString(3);
+		String date = rs.getString(4);
+		
+		A = new Comment(commenter, comment, date);
+	    }
+	    stat.close();
+	    Comment B = t.getComments().get(t.getComments().size() - 1);
+	    if(A.isValid() == false) {
+		prep.setInt(1, t.getId());
+		prep.setString(2, B.getCommenter());
+		prep.setString(3, B.getComment());
+		prep.setString(4, B.getDate());
+		prep.addBatch();
+		prep.executeBatch();
+
+		return;
+	    }
+	   
+	    if(A.equalsComment(B)) {
+		return;
+	    }
+		prep.setInt(1, t.getId());
+		prep.setString(2, B.getCommenter());
+		prep.setString(3, B.getComment());
+		prep.setString(4, B.getDate());
+		prep.addBatch();
+		prep.executeBatch();
+		return;
+		
+	    
 	}
 
 }

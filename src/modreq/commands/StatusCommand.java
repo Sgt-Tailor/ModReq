@@ -1,22 +1,22 @@
-package commands;
+package modreq.commands;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import modreq.ModReq;
+import modreq.Ticket;
+import modreq.korik.SubCommandExecutor;
+import modreq.managers.TicketHandler;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import managers.TicketHandler;
-import modreq.Ticket;
-import modreq.modreq;
-import korik.SubCommandExecutor;
-
 public class StatusCommand extends SubCommandExecutor{
     
-    private modreq plugin;
+    private ModReq plugin;
     private TicketHandler tickets;
-    public StatusCommand (modreq instance) {
+    public StatusCommand (ModReq instance) {
 	plugin = instance;
     }
     

@@ -1,23 +1,23 @@
-package managers;
+package modreq.managers;
 
-import commands.CheckCommand;
-import commands.ClearticketsCommand;
-import commands.DoneCommand;
-import commands.ModhelpCommand;
-import commands.ModreqCommand;
-import commands.ModsCommand;
-import commands.ReloadCommand;
-import commands.ReopenCommand;
-import commands.StatusCommand;
-import commands.TicketCommand;
-import commands.TpIdCommand;
-import commands.UpdatemodreqCommand;
-import commands.claimCommand;
-
-import modreq.modreq;
+import modreq.ModReq;
+import modreq.commands.CheckCommand;
+import modreq.commands.ClearticketsCommand;
+import modreq.commands.CommentCommand;
+import modreq.commands.DoneCommand;
+import modreq.commands.ModhelpCommand;
+import modreq.commands.ModreqCommand;
+import modreq.commands.ModsCommand;
+import modreq.commands.ReloadCommand;
+import modreq.commands.ReopenCommand;
+import modreq.commands.StatusCommand;
+import modreq.commands.TicketCommand;
+import modreq.commands.TpIdCommand;
+import modreq.commands.UpdatemodreqCommand;
+import modreq.commands.claimCommand;
 
 public class CommandManager {
-	private modreq plugin;
+	private ModReq plugin;
 	
 	private CheckCommand check;
 	private claimCommand claim;
@@ -32,8 +32,9 @@ public class CommandManager {
 	private UpdatemodreqCommand update;
 	private ClearticketsCommand clear;
 	private ReloadCommand reload;
+	private CommentCommand comment;
 	
-	public CommandManager(modreq instance) {
+	public CommandManager(ModReq instance) {
 		plugin = instance;
 		check = new CheckCommand(plugin);
 		claim = new claimCommand(plugin);
@@ -48,6 +49,7 @@ public class CommandManager {
 		update = new UpdatemodreqCommand(plugin);
 		clear = new ClearticketsCommand(plugin);
 		reload = new ReloadCommand(plugin);
+		comment = new CommentCommand();
 		
 	}
 	
@@ -66,6 +68,7 @@ public class CommandManager {
 		plugin.getCommand("updatemodreq").setExecutor(update);
 		plugin.getCommand("cleartickets").setExecutor(clear);
 		plugin.getCommand("modreload").setExecutor(reload);
+		plugin.getCommand("comment").setExecutor(comment);
 	}
 	
 

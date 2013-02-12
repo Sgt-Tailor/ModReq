@@ -1,4 +1,4 @@
-package commands;
+package modreq.commands;
 
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -8,11 +8,10 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import korik.Utils;
-
-import managers.TicketHandler;
+import modreq.ModReq;
 import modreq.Status;
-import modreq.modreq;
+import modreq.korik.Utils;
+import modreq.managers.TicketHandler;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -23,9 +22,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class ModreqCommand implements CommandExecutor{
-    private modreq plugin;
+    private ModReq plugin;
     private TicketHandler tickets;
-    public ModreqCommand(modreq instance) {
+    public ModreqCommand(ModReq instance) {
 	plugin = instance;
     }
 

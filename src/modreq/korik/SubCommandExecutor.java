@@ -1,4 +1,4 @@
-package korik;
+package modreq.korik;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;

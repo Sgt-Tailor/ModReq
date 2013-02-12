@@ -1,6 +1,6 @@
 package modreq;
 
-import managers.TicketHandler;
+import modreq.managers.TicketHandler;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,8 +10,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 public class ModReqListener implements Listener{
-	private modreq plugin;
-	public ModReqListener(modreq instance) {
+	private ModReq plugin;
+	public ModReqListener(ModReq instance) {
 		plugin = instance;
 	}
 	

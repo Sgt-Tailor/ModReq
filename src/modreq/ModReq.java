@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import managers.CommandManager;
-import managers.TicketHandler;
 import modreq.Metrics.Graph;
+import modreq.managers.CommandManager;
+import modreq.managers.TicketHandler;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,11 +17,11 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 
-public class modreq extends JavaPlugin  {
+public class ModReq extends JavaPlugin  {
 	
 	public CommandManager cmdManager;
 	public YamlConfiguration Messages;
-	public static modreq plugin;
+	private static ModReq plugin;
 	public final Logger logger = Logger.getLogger("Minecraft");
 	public File configFile;
 	private File messages;
@@ -51,9 +51,9 @@ public class modreq extends JavaPlugin  {
 		loadMessages();
 		ticketHandler = new TicketHandler();
 		
-		if(modreq.plugin.getConfig().getBoolean("metrics")) {	
+		if(ModReq.plugin.getConfig().getBoolean("metrics")) {	
 			try {
-				metrics = new Metrics(modreq.plugin);
+				metrics = new Metrics(ModReq.plugin);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -101,7 +101,8 @@ public class modreq extends JavaPlugin  {
 		return ticketHandler;
 	}
 	private void startVersionChecker() {
-		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new VersionChecker(this), 60L, 72000);		
+	    	long hour = 60 * 60 * 20;
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new VersionChecker(this), 60L, hour);		
 	}
 	private void startGraphs() {
 		metrics.start();
@@ -174,13 +175,12 @@ public class modreq extends JavaPlugin  {
 		YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this.getResource("messages.yml"));	
 		return pluginYML;
 	}
-	@SuppressWarnings("deprecation")
 	private void startNotify() {
 		if(this.getConfig().getBoolean("notify-on-time")){
 			logger.info("[ModReq] Notifying on time enabled");
 			long time = this.getConfig().getLong("time-period");
 			time = time * 1200;
-			Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, new Runnable() {
+			Bukkit.getScheduler().runTaskTimer(this, new Runnable() {
 				
 				   public void run() {
 					   TicketHandler th = new TicketHandler();
@@ -205,5 +205,7 @@ public class modreq extends JavaPlugin  {
 	private void firstrun() {//create the config.yml
 		this.saveDefaultConfig();
 	}
-
+	public static ModReq getInstance() {
+	    return plugin;
+	}
 }

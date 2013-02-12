@@ -1,13 +1,14 @@
-package commands;
+package modreq.commands;
 
 import java.sql.SQLException;
 
-import korik.SubCommandExecutor;
-import korik.Utils;
-import managers.TicketHandler;
+import modreq.Comment;
+import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
-import modreq.modreq;
+import modreq.korik.SubCommandExecutor;
+import modreq.korik.Utils;
+import modreq.managers.TicketHandler;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -15,9 +16,9 @@ import org.bukkit.entity.Player;
 
 public class DoneCommand extends SubCommandExecutor{
     
-    private modreq plugin;
+    private ModReq plugin;
     private TicketHandler tickets;
-    public DoneCommand(modreq instance) {
+    public DoneCommand(ModReq instance) {
 	plugin = instance;
     }
     @command
@@ -56,7 +57,7 @@ public class DoneCommand extends SubCommandExecutor{
 					}
 					
 					
-					t.setComment(comment);
+					t.addComment(new Comment(sender.getName(), comment, Utils.getTimeString()));
 					t.setStaff(staff);
 					t.setStatus(status);
 					try {

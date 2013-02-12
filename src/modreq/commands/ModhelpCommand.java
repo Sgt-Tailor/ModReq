@@ -1,14 +1,14 @@
-package commands;
+package modreq.commands;
+
+import modreq.ModReq;
+import modreq.korik.SubCommandExecutor;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import korik.SubCommandExecutor;
-import modreq.modreq;
-
 public class ModhelpCommand extends SubCommandExecutor{
-    private modreq plugin;
-    public ModhelpCommand(modreq instance) {
+    private ModReq plugin;
+    public ModhelpCommand(ModReq instance) {
 	plugin = instance;
     }
     

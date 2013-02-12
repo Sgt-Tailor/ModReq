@@ -1,15 +1,15 @@
-package commands;
+package modreq.commands;
+
+import modreq.ModReq;
+import modreq.korik.SubCommandExecutor;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import korik.SubCommandExecutor;
-import modreq.modreq;
-
 public class ReloadCommand extends SubCommandExecutor{
-    private modreq plugin;
+    private ModReq plugin;
     
-    public ReloadCommand(modreq instance) {
+    public ReloadCommand(ModReq instance) {
 	plugin = instance;
     }
     

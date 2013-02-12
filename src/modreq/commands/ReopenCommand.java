@@ -1,23 +1,23 @@
-package commands;
+package modreq.commands;
 
 import java.sql.SQLException;
 
-import managers.TicketHandler;
+import modreq.Comment;
+import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
-import modreq.modreq;
+import modreq.korik.SubCommandExecutor;
+import modreq.korik.Utils;
+import modreq.managers.TicketHandler;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import korik.SubCommandExecutor;
-import korik.Utils;
-
 public class ReopenCommand extends SubCommandExecutor{
-    private modreq plugin;
+    private ModReq plugin;
     private TicketHandler tickets;
-    public ReopenCommand(modreq instance) {
+    public ReopenCommand(ModReq instance) {
 	plugin = instance;
     }
     @command
@@ -45,7 +45,7 @@ public class ReopenCommand extends SubCommandExecutor{
 					Status status = Status.OPEN;
 					String staff = sender.getName();
 					
-					t.setComment(comment);
+					t.addComment(new Comment(sender.getName(), comment, Utils.getTimeString()));
 					t.setStaff(staff);
 					t.setStatus(status);
 					try {

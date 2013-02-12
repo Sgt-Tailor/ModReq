@@ -1,16 +1,16 @@
-package commands;
+package modreq.commands;
+
+import modreq.ModReq;
+import modreq.korik.SubCommandExecutor;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import korik.SubCommandExecutor;
-import modreq.modreq;
-
 public class ModsCommand extends SubCommandExecutor{
-    private modreq plugin;
-    public ModsCommand(modreq instance) {
+    private ModReq plugin;
+    public ModsCommand(ModReq instance) {
 	plugin = instance;
     }
     

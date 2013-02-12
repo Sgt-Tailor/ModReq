@@ -1,15 +1,15 @@
 package modreq;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
-import managers.TicketHandler;
+import modreq.managers.TicketHandler;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-
 public class Ticket
 {
 	private int id;
@@ -17,9 +17,9 @@ public class Ticket
 	private String message;
 	private String date;
 	private Status status;
-	private String comment;
 	private String location;
 	private String staff;
+	
 	private String sub;
 	private String dt;
 	private String sta;
@@ -29,7 +29,9 @@ public class Ticket
 	private String request;
 	private TicketHandler tickets;
 	
-	public Ticket(modreq plugin,int idp, String submitt, String messa, String date, Status status, String comm, String loc, String sta)	{
+	private ArrayList<Comment> comments;
+	
+	public Ticket(ModReq plugin,int idp, String submitt, String messa, String date, Status status, String loc, String sta)	{
 		submitter = submitt;
 		id = idp;
 		staff = sta;
@@ -37,7 +39,6 @@ public class Ticket
 		message = messa;
 		this.status = status;
 		location = loc;
-		comment = comm;
 		
 		tickets = plugin.getTicketHandler();
 		this.loc = plugin.Messages.getString("ticket.location", "Location");
@@ -47,7 +48,7 @@ public class Ticket
 		this.com = plugin.Messages.getString("ticket.comment", "Comment");
 		this.request = plugin.Messages.getString("ticket.request", "Request");
 		this.staf = plugin.Messages.getString("ticket.staff", "Staff member");
-		
+		comments = new ArrayList<Comment>();
 	}
 	/**
 	 * This is used to get the message that the sumbmitter send.
@@ -91,13 +92,7 @@ public class Ticket
 	public Status getStatus() {
 		return status;
 	}
-	/**
-	 * This is used to get the latest comment on the ticket
-	 * @return
-	 */
-	public String getComment() {
-		return comment;
-	}
+	
 	/**
 	 * This is used to get the location of the request.
 	 * The format is worldname x y z
@@ -140,16 +135,16 @@ public class Ticket
 			summessage = summessage.substring(0,15);
 		}
 		String summary;
-		if((( modreq )Bukkit.getPluginManager().getPlugin("ModReq")).getConfig().getString("use-nickname").equalsIgnoreCase("true")){	
+		if((( ModReq )Bukkit.getPluginManager().getPlugin("ModReq")).getConfig().getString("use-nickname").equalsIgnoreCase("true")){	
 			if(playerIsOnline()) {
 				submitter = Bukkit.getPlayer(submitter).getDisplayName();
 			}
 		}
 		if(status == Status.CLAIMED) {
-			summary = ChatColor.GOLD + "#"+id+ ChatColor.AQUA+ " " + date+" "+namecolor+submitter+" "+ChatColor.GRAY+summessage+"..." + ChatColor.RED + " [Claimed]";
+			summary = ChatColor.GOLD + "#"+id+ ChatColor.AQUA+ " " + date+" " + Integer.toString(comments.size()) + " "+namecolor+submitter+" "+ChatColor.GRAY+summessage+"..." + ChatColor.RED + " [Claimed]";
 		}
 		else {
-			summary = ChatColor.GOLD + "#"+id+ ChatColor.AQUA+ " " + date+" "+namecolor+submitter+" "+ChatColor.GRAY+summessage+"...";
+			summary = ChatColor.GOLD + "#"+id+ ChatColor.AQUA+ " " + date+" "+ Integer.toString(comments.size()) + " " +namecolor+submitter+" "+ChatColor.GRAY+summessage+"...";
 		}
 		
 		p.sendMessage(summary);
@@ -164,8 +159,9 @@ public class Ticket
 		if(summessage.length() > 15) {
 			summessage = summessage.substring(0,15);
 		}
-		String summary = ChatColor.GOLD + "#"+id+ ChatColor.AQUA+date+ChatColor.DARK_GREEN+" ["+status+"]"+" "+ChatColor.GRAY+summessage+"...";
+		String summary = ChatColor.GOLD + "#"+id+ ChatColor.AQUA+date+ " "+ Integer.toString(comments.size()) + " "+ChatColor.DARK_GREEN+" ["+status+"]"+" "+ChatColor.GRAY+summessage+"...";
 		p.sendMessage(summary);
+		
 	
 	}
 	/**
@@ -173,7 +169,7 @@ public class Ticket
 	 * @return
 	 */
 	public void sendMessageToPlayer(Player p) {
-		if((( modreq )Bukkit.getPluginManager().getPlugin("ModReq")).getConfig().getString("use-nickname").equalsIgnoreCase("true")){	
+		if((( ModReq )Bukkit.getPluginManager().getPlugin("ModReq")).getConfig().getString("use-nickname").equalsIgnoreCase("true")){	
 			if(playerIsOnline()) {
 				submitter = Bukkit.getPlayer(submitter).getDisplayName();
 			}
@@ -185,9 +181,29 @@ public class Ticket
 		p.sendMessage(ChatColor.AQUA + this.staf+": " + ChatColor.GRAY + staff);
 		p.sendMessage(ChatColor.AQUA + this.dt+": " + ChatColor.GRAY + date);
 		p.sendMessage(ChatColor.AQUA + this.request+": " + ChatColor.GRAY + message);
-		p.sendMessage(ChatColor.AQUA + this.com+": " + ChatColor.GRAY + comment);
+		p.sendMessage(ChatColor.AQUA + this.com + ":");
+		
+		sendLastThreeComments(p);
 	}
 	
+	private void sendLastThreeComments(Player p) {
+	    int i = comments.size() - 1;
+	    if(i == -1) {
+		return;
+	    }
+	    while(i >= comments.size() - 4) {
+		if(i < 0) {
+		    return;
+		}
+		Comment c = comments.get(i);
+		String commenter = c.getCommenter();
+		String date = c.getDate();
+		String comment = c.getComment();
+		p.sendMessage(ChatColor.GOLD +"#"+Integer.toString(i + 1)+" " + ChatColor.AQUA + date + " " + ChatColor.GOLD + commenter + ": " + ChatColor.GRAY + comment);
+		i--;
+	    }
+	    
+	}
 	private boolean playerIsOnline() {
 		for(Player p: Bukkit.getOnlinePlayers()) {
 			if(p.getName().equalsIgnoreCase(submitter)) {
@@ -196,15 +212,6 @@ public class Ticket
 		}
 			
 		return false;
-	}
-	//the set methods start here
-	/**
-	 * This is used to set a new comment
-	 * The ticket must be updated for any changes to apply
-	 * @return
-	 */
-	public void setComment(String newcomment) {
-		comment = newcomment;
 	}
 	/**
 	 * This is used to set a new staff member
@@ -242,6 +249,35 @@ public class Ticket
 			}
 		}
 		return;
+	}
+	
+	public ArrayList<Comment> getComments(){
+	    return comments;
+	}
+	public ArrayList<Comment> getCommentsBy(String name){
+	    ArrayList<Comment> a = new ArrayList<Comment>();
+	    for(Comment c : comments) {
+		if( c.getCommenter().contains(name)) {
+		    a.add(c);
+		}
+	    }
+	    return a;
+	}
+	public Comment getComment(int number) {
+	    if(number < comments.size()) {
+		return comments.get(number - 1);
+	    }
+	    return null;
+	}
+	
+	public void addComment(Comment c) {
+	    comments.add(c);
+	}
+	
+	public void deleteComment(int i) {
+	    if(i < comments.size()) {
+		comments.remove(i - 1);
+	    }
 	}
 	
 }

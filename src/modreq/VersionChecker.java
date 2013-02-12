@@ -8,10 +8,10 @@ import java.util.logging.Logger;
 
 public class VersionChecker implements Runnable {
 	
-	private modreq plugin;
+	private ModReq plugin;
 	private String currentVersion;
 	private Logger logger = Logger.getLogger("Minecraft");
-	public VersionChecker(modreq instance) {
+	public VersionChecker(ModReq instance) {
 		plugin = instance;
 		currentVersion = plugin.getCurrentVersion();
 		logger.info("current version " + currentVersion);
@@ -55,7 +55,7 @@ public class VersionChecker implements Runnable {
 	public void run() {
 		
 		try {
-			logger.info("[modreq] checking for newer version of ModReq");
+			logger.info("[ModReq] checking for newer version of ModReq");
 		
 			String latestVersion = getVersion();
 			String downloadLink = getDownloadLink();
@@ -63,12 +63,13 @@ public class VersionChecker implements Runnable {
 			plugin.latestVersion = latestVersion;
 			plugin.DownloadLink = downloadLink;
 			
-			logger.info("[modreq] Latest version is " + latestVersion + ", comparing to current version");
+			logger.info("[ModReq] Latest version is " + latestVersion + ", comparing to current version");
 			
 			if(!currentVersion.equals(latestVersion)) {
-				logger.info("[modreq] The current and the lastest version do not match, a newer version must be available! (or you are running an Alfa/Beta build)");
+				logger.info("[ModReq] The current and the lastest version do not match, a newer version must be available! (or you are running an Alfa/Beta build)");
 			}
 		} catch (Exception e) {
+		    	e.printStackTrace();
 			logger.info("Failed");
 		}
 		

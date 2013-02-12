@@ -1,17 +1,17 @@
-package commands;
+package modreq.commands;
+
+import modreq.ModReq;
+import modreq.korik.SubCommandExecutor;
+import modreq.managers.TicketHandler;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import managers.TicketHandler;
-import modreq.modreq;
-import korik.SubCommandExecutor;
-
 public class ClearticketsCommand extends SubCommandExecutor{
-    private modreq plugin;
+    private ModReq plugin;
     private TicketHandler tickets;
     
-    public ClearticketsCommand(modreq instance) {
+    public ClearticketsCommand(ModReq instance) {
 	plugin = instance;
     }
     
