@@ -21,7 +21,7 @@ not-your: That is not your ticket
 too-many-tickets: You have too many open requests
 
 submitted-mod: submitted a moderator request
-submitted-player: You successfully submitted a mod request, when a Moderator sees it he will reply.
+submitted-player: You successfully submitted a mod request, when a Moderator sees it they will reply.
 
 status-header: -----List-of-Your-Last-5-Requests-----
 status-footer: do /status <id> for more info
@@ -33,6 +33,10 @@ can-not-claim: you can not claim that ticket
 closed-ticket: just closed your ModReq
 closed-ticket-withmessage: just closed your ModReq with the comment
 
+comment: Comment added
+comment-notify-staff: 'commented on ticket #'
+comment-notify-submitter: just commented on your ticket
+too-many-comments: You may not add this many comments in a row.
 reopen-with-comment: just re-opened your modreq with the comment
 
 ticket-teleport: You have been teleported
@@ -47,6 +51,22 @@ info-status: returns your last 5 tickets
 info-done: closes a ticket
 info-mods: returns a list of all online mods
 info-modhelp: shows this message
+info-comment: adds a comment on a ticket
+info-ticket: shows detailed information of a ticket
+
+#the are the messages used as default comment to a ticket when a
+#certain command is performed
+log:
+    claim:
+        default: I claimed this ticket.
+    close:
+        default: I closed this ticket.
+        suffix: Ticket closed
+    re-open:
+        default: I reopened this ticket.
+        suffix: Ticket reopened
+    tp-id:
+        default: I teleported to this ticket.
 
 ticket:
     submitter: Submitter
