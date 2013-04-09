@@ -1,23 +1,37 @@
 package modreq;
 
 public class Comment {
-    
+
     private String commenter;
     private String date;
     private String comment;
-    
-    /**Used for the comment system
+
+    /**
+     * Used for the comment system
      * 
-     * @param a Ticket id
-     * @param b Commenter name
-     * @param c Comment
-     * @param d Date
+     * @param b
+     *            Commenter name
+     * @param c
+     *            Comment
+     * @param d
+     *            Date
      */
-    public Comment(String b, String c, String d) {
-	setCommenter(b);
-	setComment(c);
-	setDate(d);
+    public Comment(String commenter, String comment, CommentType commenttype) {
+	setCommenter(commenter);
+	setComment(comment + " " + commenttype.getSuffix());
+	setDate(ModReq.getTimeString());
     }
+
+    public Comment(String commenter, String comment, String time) {
+	setCommenter(commenter);
+	setComment(comment);
+	setDate(time);
+    }
+
+    public Comment() {
+
+    }
+
     public String getCommenter() {
 	return commenter;
     }
@@ -41,29 +55,30 @@ public class Comment {
     private void setComment(String comment) {
 	this.comment = comment;
     }
-    
+
     public boolean equalsComment(Comment c) {
-	if(c.getCommenter().equals(commenter)) {
-	    if(c.getComment().equals(comment)) {
-		if(c.getDate().equals(date)) {
+	if (c.getCommenter().equals(commenter)) {
+	    if (c.getComment().equals(comment)) {
+		if (c.getDate().equals(date)) {
 		    return true;
 		}
 	    }
 	}
 	return false;
     }
+
     public boolean isValid() {
-	if(commenter == null) {
+	if (commenter == null) {
 	    return false;
 	}
-	if(comment ==null) {
+	if (comment == null) {
 	    return false;
 	}
-	if(date == null) {
+	if (date == null) {
 	    return false;
 	}
 	return true;
-	    
+
     }
 
 }

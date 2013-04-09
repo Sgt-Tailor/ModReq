@@ -22,7 +22,7 @@
 #                            DO NOT EDIT                           #
 ####################################################################
 #The config File version. DO NOT CHANGE YOURSELF
-version: 2.2                                                    
+version: 2.3                                                    
 
 ####################################################################
 #                           Configurations                         #
@@ -32,7 +32,8 @@ version: 2.2
 maximum-open-tickets: 5
 
 #The Update feature
-
+#NOTE: as of version 2.3 ModReq does no longer spam console saying:
+#checking for updates and comparing to current version :D
 #Change this to false if you do not want modreq
 #to check for updates. The host of the jar file is bukkit dev. I
 #however host a cache on http://website.shadowblox.com/ to reduce
@@ -61,7 +62,7 @@ timezone: GMT
 #Use this to change the time format using SimpleDateFormat. If you
 #don't know how SimpleDateFormat is used you can check out this link:
 #http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html
-timeformat: 'YY-MM-dd HH:mm:ss'
+timeformat: 'yy-MM-dd HH:mm:ss'
 
 
 #Change this to true if you want the staff to be notified about
@@ -73,6 +74,8 @@ notify-on-login: true
 notify-on-time: true
 time-period: 5
 
+#use this to limit the amount of comments someone can add in a row
+comment-limit: 3
 #change this to use mySQL or not
 use-mysql: false
 

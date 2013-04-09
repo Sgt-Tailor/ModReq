@@ -1,6 +1,6 @@
 name: ModReq
 main: modreq.ModReq
-config-version: 2.2.1
+config-version: 2.3
 author: Sgt_Tailor
 dev-url: http://dev.bukkit.org/server-mods/modreq/
 description: A Moderator Request plugin
@@ -49,6 +49,7 @@ commands:
         description: close a ticket
         usage: /done <id> (message)
         permission: modreq.close
+        aliases: close
     status:
         description: checks the status of a ticket
         usage: /status <id>
@@ -61,6 +62,12 @@ commands:
         description: shows the help message
         usage: /modhelp
 permissions:
+    modreq.overwrite.close:
+        default: OP
+        description: allows people to overwrite a ticket
+    modreq.overwrite.commentlimit:
+        default: OP
+        description: allows people to overwrite the comment limit
     mod.reload:
         default: OP
         description: allows a people to do /modreqreload
