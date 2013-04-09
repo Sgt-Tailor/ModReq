@@ -7,7 +7,7 @@
 ####################################################################
 #                           Introduction                           #
 #------------------------------------------------------------------#
-# Welcome to the configuration file of ModReq. This time in a      #test comment
+# Welcome to the configuration file of ModReq. This time in a      #
 # fresh new look. With Every configuration I will try to make sure #
 # that is is easy to follow and hard to understand. Examples will  #
 # be given in this file and they can be rocognised by the # in     #
@@ -17,7 +17,7 @@
 # to my bukkit dev and just ask.                                   #
 # ModReq bukkit dev page: http://dev.bukkit.org/server-mods/modreq #
 ####################################################################
-
+#test commit
 ####################################################################
 #                            DO NOT EDIT                           #
 ####################################################################
