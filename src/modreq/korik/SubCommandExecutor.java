@@ -15,7 +15,7 @@ public abstract class SubCommandExecutor implements CommandExecutor {
 
     /*
      * For passing from other subcommandexecutor classes All credits for
-     * Korikisulda for making this class :D
+     * Korikisulda for making this class :D I just tweaked it a bit.
      */
     public void onCommand(CommandSender sender, String[] args) {
 
