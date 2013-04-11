@@ -90,8 +90,7 @@ public class UpdatemodreqCommand extends SubCommandExecutor {
 
 	    while ((inputLine = in.readLine()) != null) {
 		if (in.readLine() != null) {
-		    if (in.readLine().contains("version 2.3.1")) { // ModReq.getInstance().latestVersion))
-								   // {
+		    if (in.readLine().contains("version " + ModReq.getInstance().latestVersion)) {
 			return true;
 		    }
 		}
