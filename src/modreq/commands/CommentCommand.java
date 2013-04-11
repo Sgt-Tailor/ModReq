@@ -42,16 +42,13 @@ public class CommentCommand extends SubCommandExecutor {
 		t.addComment(c);
 		sender.sendMessage(ChatColor.GREEN
 			+ ModReq.getInstance().Messages.getString("comment"));
-		Bukkit.broadcastMessage(t.getStaff() + " " + sender.getName());
 		if (t.getStaff().equals(sender.getName())) {
-		    Bukkit.broadcastMessage("Notifying submitter");
 		    String notifyString = ModReq.getInstance().Messages
 			    .getString("comment-notify-submitter");
 		    t.sendMessageToSubmitter(ChatColor.AQUA + sender.getName()
 			    + ChatColor.GREEN + " " + notifyString);
 		}
 		// else {
-		Bukkit.broadcastMessage("notifying staff");
 		String notifyString = ModReq.getInstance().Messages
 			.getString("comment-notify-staff");
 		t.notifyStaff(ChatColor.AQUA + sender.getName()
