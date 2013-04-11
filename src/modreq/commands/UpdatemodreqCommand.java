@@ -10,6 +10,7 @@ import java.net.URL;
 import modreq.ModReq;
 import modreq.korik.SubCommandExecutor;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -70,24 +71,36 @@ public class UpdatemodreqCommand extends SubCommandExecutor {
 	}
     }
 
-    public void saveUrl(String filename, String urlString)
+    public void saveUrl(final String filename, final String urlString)
 	    throws MalformedURLException, IOException {
-	BufferedInputStream in = null;
-	FileOutputStream fout = null;
-	try {
-	    in = new BufferedInputStream(new URL(urlString).openStream());
-	    fout = new FileOutputStream(filename);
 
-	    byte data[] = new byte[1024];
-	    int count;
-	    while ((count = in.read(data, 0, 1024)) != -1) {
-		fout.write(data, 0, count);
-	    }
-	} finally {
-	    if (in != null)
-		in.close();
-	    if (fout != null)
-		fout.close();
-	}
+	Bukkit.getScheduler().runTaskAsynchronously(ModReq.getInstance(),
+		new Runnable() {
+
+		    @Override
+		    public void run() {
+
+			BufferedInputStream in = null;
+			FileOutputStream fout = null;
+			try {
+			    in = new BufferedInputStream(new URL(urlString)
+				    .openStream());
+			    fout = new FileOutputStream(filename);
+
+			    byte data[] = new byte[1024];
+			    int count;
+			    while ((count = in.read(data, 0, 1024)) != -1) {
+				fout.write(data, 0, count);
+			    }
+			    if (in != null)
+				in.close();
+			    if (fout != null)
+				fout.close();
+			} catch (Exception e) {
+			    e.printStackTrace();
+			}
+
+		    }
+		});
     }
 }

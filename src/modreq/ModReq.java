@@ -40,21 +40,31 @@ public class ModReq extends JavaPlugin {
     public void onEnable() {
 	plugin = this;
 	cmdManager = new CommandManager(this);
-
 	messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
-	configFile = new File(getDataFolder().getAbsolutePath() + "/config.yml");
-	if (!configFile.exists()) {
-	    firstrun();
-	}
-	YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
-		.getResource("plugin.yml"));
-	if (!pluginYML.getString("config-version").equals(
-		getConfig().getString("version"))) {
-	    logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
-	}
-	loadMessages();
 	ticketHandler = new TicketHandler();
+	
+	checkConfigFile();
+	loadMessages();
+	
+	cmdManager.initCommands();
+	
+	PluginManager pm = this.getServer().getPluginManager();
+	pm.registerEvents(new ModReqListener(this), this);
 
+	PluginDescriptionFile pdfFile = this.getDescription();
+	currentVersion = pdfFile.getVersion();
+
+	if (plugin.getConfig().getBoolean("check-updates", true)) {
+	    startVersionChecker();
+	} else {
+	    logger.info("[ModReq] Not using update feature");
+	}
+	startMetrics();
+	this.logger.info(pdfFile.getName() + " version " + pdfFile.getVersion()
+		+ " is enabled.");
+    }
+
+    private void startMetrics() {
 	if (ModReq.plugin.getConfig().getBoolean("metrics")) {
 	    try {
 		metrics = new Metrics(ModReq.plugin);
@@ -65,22 +75,21 @@ public class ModReq extends JavaPlugin {
 	    startGraphs();
 	    logger.info("[ModReq] Using metrics");
 	}
-	cmdManager.initCommands();
-	PluginManager pm = this.getServer().getPluginManager();
-	pm.registerEvents(new ModReqListener(this), this);
 
-	PluginDescriptionFile pdfFile = this.getDescription();
+    }
 
-	currentVersion = pdfFile.getVersion();
-
-	if (plugin.getConfig().getBoolean("check-updates", true)) {
-	    startVersionChecker();
-	} else {
-	    logger.info("[ModReq] Not using update feature");
+    public void checkConfigFile() {
+	configFile = new File(getDataFolder().getAbsolutePath() + "/config.yml");
+	if (!configFile.exists()) {
+	    firstrun();
 	}
 
-	this.logger.info(pdfFile.getName() + " version " + pdfFile.getVersion()
-		+ " is enabled.");
+	YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
+		.getResource("plugin.yml"));
+	if (!pluginYML.getString("config-version").equals(
+		getConfig().getString("version"))) {
+	    logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
+	}
     }
 
     public void reload() {

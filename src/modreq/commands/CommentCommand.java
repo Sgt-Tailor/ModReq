@@ -1,6 +1,7 @@
 package modreq.commands;
 
 import java.sql.SQLException;
+
 import modreq.Comment;
 import modreq.CommentType;
 import modreq.ModReq;
@@ -8,7 +9,6 @@ import modreq.Ticket;
 import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
