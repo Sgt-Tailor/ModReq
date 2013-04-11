@@ -1,9 +1,11 @@
 package modreq.commands;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -47,12 +49,18 @@ public class UpdatemodreqCommand extends SubCommandExecutor {
 			try {
 			    String link = "http://dev.bukkit.org/media/files/"
 				    + plugin.DownloadLink.split("/files/")[1];
-			    saveUrl(Jar.getAbsolutePath(), link);
-			    sender.sendMessage(ChatColor.GOLD + "[ModReq]"
-				    + ChatColor.GREEN + "version "
-				    + plugin.latestVersion
-				    + " has been download to the plugin folder");
-			    return;
+			    if (fileIsApproved()) {
+				saveUrl(Jar.getAbsolutePath(), link);
+				sender.sendMessage(ChatColor.GOLD
+					+ "[ModReq]"
+					+ ChatColor.GREEN
+					+ "version "
+					+ plugin.latestVersion
+					+ " has been download to the plugin folder");
+				return;
+			    } else {
+				Bukkit.broadcastMessage(ChatColor.RED + "The version of ModReq you are trying to download has not yet been approved, please be patient");
+			    }
 			} catch (Exception e) {
 			    sender.sendMessage(ChatColor.RED
 				    + "Could not download the latest version of ModReq");
@@ -69,6 +77,30 @@ public class UpdatemodreqCommand extends SubCommandExecutor {
 		}
 	    }
 	}
+    }
+
+    private boolean fileIsApproved() {
+	try {
+	    URL file = new URL("http://dev.bukkit.org/server-mods/modreq/files");
+	    BufferedReader in = new BufferedReader(new InputStreamReader(
+		    file.openStream()));
+
+	    @SuppressWarnings("unused")
+	    String inputLine;
+
+	    while ((inputLine = in.readLine()) != null) {
+		if (in.readLine() != null) {
+		    if (in.readLine().contains("version 2.3.1")) { // ModReq.getInstance().latestVersion))
+								   // {
+			return true;
+		    }
+		}
+	    }
+	    in.close();
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
+	return false;
     }
 
     public void saveUrl(final String filename, final String urlString)
