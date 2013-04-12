@@ -209,8 +209,10 @@ public class Ticket {
 		+ status);
 	p.sendMessage(ChatColor.AQUA + this.sub + ": " + ChatColor.GRAY
 		+ submitter);
-	p.sendMessage(ChatColor.AQUA + this.loc + ": " + ChatColor.GRAY
-		+ location);
+	if (p.hasPermission("modreq.tp-id")) {
+	    p.sendMessage(ChatColor.AQUA + this.loc + ": " + ChatColor.GRAY
+		    + location);
+	}
 	p.sendMessage(ChatColor.AQUA + this.staf + ": " + ChatColor.GRAY
 		+ staff);
 	p.sendMessage(ChatColor.AQUA + this.dt + ": " + ChatColor.GRAY + date);
