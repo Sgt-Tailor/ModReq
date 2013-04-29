@@ -1,19 +1,19 @@
 /*
-	Modreq Minecraft/Bukkit server ticket system
-    Copyright (C) 2013 Sven Wiltink
+ Modreq Minecraft/Bukkit server ticket system
+ Copyright (C) 2013 Sven Wiltink
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package modreq;
 
@@ -55,247 +55,239 @@ public class ModReq extends JavaPlugin {
 
     @Override
     public void onEnable() {
-	plugin = this;
-	cmdManager = new CommandManager(this);
-	messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
-	ticketHandler = new TicketHandler();
+        plugin = this;
+        cmdManager = new CommandManager(this);
+        messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
+        ticketHandler = new TicketHandler();
 
-	checkConfigFile();
-	loadMessages();
-	
-	cmdManager.initCommands();
-	
-	PluginManager pm = this.getServer().getPluginManager();
-	pm.registerEvents(new ModReqListener(this), this);
+        checkConfigFile();
+        loadMessages();
 
-	PluginDescriptionFile pdfFile = this.getDescription();
-	currentVersion = pdfFile.getVersion();
+        cmdManager.initCommands();
 
-	if (plugin.getConfig().getBoolean("check-updates", true)) {
-	    startVersionChecker();
-	} else {
-	    logger.info("[ModReq] Not using update feature");
-	}
-	startNotify();
-	startMetrics();
+        PluginManager pm = this.getServer().getPluginManager();
+        pm.registerEvents(new ModReqListener(this), this);
 
-	this.logger.info(pdfFile.getName() + " version " + pdfFile.getVersion()
-		+ " is enabled.");
+        PluginDescriptionFile pdfFile = this.getDescription();
+        currentVersion = pdfFile.getVersion();
+
+        if (plugin.getConfig().getBoolean("check-updates", true)) {
+            startVersionChecker();
+        } else {
+            logger.info("[ModReq] Not using update feature");
+        }
+        startNotify();
+        startMetrics();
+
+        this.logger.info(pdfFile.getName() + " version " + pdfFile.getVersion()
+                + " is enabled.");
     }
 
     private void startMetrics() {
-	if (ModReq.plugin.getConfig().getBoolean("metrics")) {
-	    try {
-		metrics = new Metrics(ModReq.plugin);
-	    } catch (IOException e) {
-		e.printStackTrace();
-	    }
-	    startGraphs();
-	    logger.info("[ModReq] Using metrics");
-	}
+        if (ModReq.plugin.getConfig().getBoolean("metrics")) {
+            try {
+                metrics = new Metrics(ModReq.plugin);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            startGraphs();
+            logger.info("[ModReq] Using metrics");
+        }
 
     }
 
     public void checkConfigFile() {
-	configFile = new File(getDataFolder().getAbsolutePath() + "/config.yml");
-	if (!configFile.exists()) {
-	    firstrun();
-	}
+        configFile = new File(getDataFolder().getAbsolutePath() + "/config.yml");
+        if (!configFile.exists()) {
+            firstrun();
+        }
 
-	YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
-		.getResource("plugin.yml"));
-	if (!pluginYML.getString("config-version").equals(
-		getConfig().getString("version"))) {
-	    logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
-	}
+        YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
+                .getResource("plugin.yml"));
+        if (!pluginYML.getString("config-version").equals(
+                getConfig().getString("version"))) {
+            logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
+        }
     }
 
     public void reload() {
-	messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
-	configFile = new File(getDataFolder().getAbsolutePath() + "/config.yml");
-	if (!configFile.exists()) {
-	    firstrun();
-	}
-	YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
-		.getResource("plugin.yml"));
-	if (!pluginYML.getString("config-version").equals(
-		getConfig().getString("version"))) {
-	    logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
-	}
-	loadMessages();
-	ticketHandler = new TicketHandler();
-	plugin.reloadConfig();
+        messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
+        configFile = new File(getDataFolder().getAbsolutePath() + "/config.yml");
+        if (!configFile.exists()) {
+            firstrun();
+        }
+        YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
+                .getResource("plugin.yml"));
+        if (!pluginYML.getString("config-version").equals(
+                getConfig().getString("version"))) {
+            logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
+        }
+        loadMessages();
+        ticketHandler = new TicketHandler();
+        plugin.reloadConfig();
 
     }
 
     public String getCurrentVersion() {
-	return currentVersion;
+        return currentVersion;
     }
 
     public TicketHandler getTicketHandler() {
-	return ticketHandler;
+        return ticketHandler;
     }
 
     private void startVersionChecker() {
-	long hour = 60 * 60 * 20;
-	Bukkit.getScheduler().scheduleSyncRepeatingTask(this,
-		new VersionChecker(this), 60L, hour);
+        long hour = 60 * 60 * 20;
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this,
+                new VersionChecker(this), 60L, hour);
     }
 
     private void startGraphs() {
-	metrics.start();
-	try {// test chart
-	    Metrics metrics = new Metrics(plugin);
+        metrics.start();
+        try {// test chart
+            Metrics metrics = new Metrics(plugin);
 
-	    // Construct a graph, which can be immediately used and considered
-	    // as valid
-	    Graph graph = metrics.createGraph("Tickets");
+            // Construct a graph, which can be immediately used and considered
+            // as valid
+            Graph graph = metrics.createGraph("Tickets");
 
-	    // total
-	    graph.addPlotter(new Metrics.Plotter("Open") {
+            // total
+            graph.addPlotter(new Metrics.Plotter("Open") {
+                @Override
+                public int getValue() {
+                    return ticketHandler.getTicketAmount(Status.OPEN); // Number
+                    // of
+                    // players
+                    // who
+                    // used a
+                    // diamond
+                    // sword
+                }
+            });
+            graph.addPlotter(new Metrics.Plotter("Claimed") {
+                @Override
+                public int getValue() {
+                    return ticketHandler.getTicketAmount(Status.CLAIMED); // Number
+                    // of
+                    // players
+                    // who
+                    // used
+                    // a
+                    // diamond
+                    // sword
+                }
+            });
+            graph.addPlotter(new Metrics.Plotter("Closed") {
+                @Override
+                public int getValue() {
+                    return ticketHandler.getTicketAmount(Status.CLOSED); // Number
+                    // of
+                    // players
+                    // who
+                    // used
+                    // a
+                    // diamond
+                    // sword
+                }
+            });
 
-		@Override
-		public int getValue() {
-		    return ticketHandler.getTicketAmount(Status.OPEN); // Number
-								       // of
-								       // players
-								       // who
-								       // used a
-								       // diamond
-								       // sword
-		}
-
-	    });
-	    graph.addPlotter(new Metrics.Plotter("Claimed") {
-
-		@Override
-		public int getValue() {
-		    return ticketHandler.getTicketAmount(Status.CLAIMED); // Number
-									  // of
-									  // players
-									  // who
-									  // used
-									  // a
-									  // diamond
-									  // sword
-		}
-
-	    });
-	    graph.addPlotter(new Metrics.Plotter("Closed") {
-
-		@Override
-		public int getValue() {
-		    return ticketHandler.getTicketAmount(Status.CLOSED); // Number
-									 // of
-									 // players
-									 // who
-									 // used
-									 // a
-									 // diamond
-									 // sword
-		}
-
-	    });
-
-	    metrics.start();
-	} catch (IOException e) {
-
-	}
+            metrics.start();
+        } catch (IOException e) {
+        }
 
     }
 
     private boolean checkTranslate() {
-	if (!messages.exists()) {
-	    return false;
-	} else {
-	    return true;
-	}
+        if (!messages.exists()) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     private void loadMessages() {
-	logger.info("[ModReq] Looking for messages.yml");
-	if (checkTranslate()) {
-	    logger.info("[ModReq] messages.yml found. Trying to load messages.yml");
-	    Messages = YamlConfiguration.loadConfiguration(messages);
-	    logger.info("[ModReq] messages.yml loaded!");
-	    return;
-	} else {
-	    logger.info("[ModReq] messages.yml not found, using default messages");
-	    saveDefaultMessages();
-	    Messages = getDefaultMessages();
-	    return;
-	}
+        logger.info("[ModReq] Looking for messages.yml");
+        if (checkTranslate()) {
+            logger.info("[ModReq] messages.yml found. Trying to load messages.yml");
+            Messages = YamlConfiguration.loadConfiguration(messages);
+            logger.info("[ModReq] messages.yml loaded!");
+            return;
+        } else {
+            logger.info("[ModReq] messages.yml not found, using default messages");
+            saveDefaultMessages();
+            Messages = getDefaultMessages();
+            return;
+        }
     }
 
     private void saveDefaultMessages() {
-	plugin.saveResource("messages.yml", true);
+        plugin.saveResource("messages.yml", true);
 
     }
 
     public YamlConfiguration getDefaultMessages() {
-	YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
-		.getResource("messages.yml"));
-	return pluginYML;
+        YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
+                .getResource("messages.yml"));
+        return pluginYML;
     }
 
     private void startNotify() {
-	if (this.getConfig().getBoolean("notify-on-time")) {
-	    logger.info("[ModReq] Notifying on time enabled");
-	    long time = this.getConfig().getLong("time-period");
-	    time = time * 1200;
-	    Bukkit.getScheduler().runTaskTimer(this, new Runnable() {
-
-		@Override
-		public void run() {
-		    TicketHandler th = getTicketHandler();
-		    int opentickets = th.getOpenTicketsAmount();
-		    if (opentickets > 0) {
-			Player[] online = Bukkit.getOnlinePlayers();
-			for (int i = 0; i < online.length; i++) {
-			    if (online[i].hasPermission("modreq.check")) {
-				online[i].sendMessage(ChatColor.GOLD
-					+ "[ModReq]"
-					+ ChatColor.GREEN
-					+ Integer.toString(opentickets)
-					+ " "
-					+ plugin.Messages
-						.getString("notification",
-							"open tickets are waiting for you"));
-			    }
-			}
-		    }
-		}
-	    }, 60L, time);
-	}
+        if (this.getConfig().getBoolean("notify-on-time")) {
+            logger.info("[ModReq] Notifying on time enabled");
+            long time = this.getConfig().getLong("time-period");
+            time = time * 1200;
+            Bukkit.getScheduler().runTaskTimer(this, new Runnable() {
+                @Override
+                public void run() {
+                    TicketHandler th = getTicketHandler();
+                    int opentickets = th.getOpenTicketsAmount();
+                    if (opentickets > 0) {
+                        Player[] online = Bukkit.getOnlinePlayers();
+                        for (int i = 0; i < online.length; i++) {
+                            if (online[i].hasPermission("modreq.check")) {
+                                online[i].sendMessage(ChatColor.GOLD
+                                        + "[ModReq]"
+                                        + ChatColor.GREEN
+                                        + Integer.toString(opentickets)
+                                        + " "
+                                        + plugin.Messages
+                                        .getString("notification",
+                                        "open tickets are waiting for you"));
+                            }
+                        }
+                    }
+                }
+            }, 60L, time);
+        }
     }
 
     @Override
     public void onDisable() {
-	PluginDescriptionFile pdfFile = this.getDescription();
-	this.logger.info(pdfFile.getName() + " is now disabled ");
+        PluginDescriptionFile pdfFile = this.getDescription();
+        this.logger.info(pdfFile.getName() + " is now disabled ");
     }
 
     private void firstrun() {// create the config.yml
-	this.saveDefaultConfig();
+        this.saveDefaultConfig();
     }
 
     public static ModReq getInstance() {
-	return plugin;
+        return plugin;
     }
 
     public static String getTimeString() {
-	String timezone = ModReq.getInstance().getConfig()
-		.getString("timezone");
-	DateFormat df = new SimpleDateFormat(ModReq.getInstance().getConfig()
-		.getString("timeformat", "YY-MM-dd HH:mm:ss"));
-	TimeZone tz = TimeZone.getTimeZone(timezone);
+        String timezone = ModReq.getInstance().getConfig()
+                .getString("timezone");
+        DateFormat df = new SimpleDateFormat(ModReq.getInstance().getConfig()
+                .getString("timeformat", "YY-MM-dd HH:mm:ss"));
+        TimeZone tz = TimeZone.getTimeZone(timezone);
 
-	Calendar cal = Calendar.getInstance(Calendar.getInstance()
-		.getTimeZone(), Locale.ENGLISH);
-	cal.add(Calendar.MILLISECOND, -(cal.getTimeZone().getRawOffset()));
-	cal.add(Calendar.MILLISECOND, tz.getRawOffset());
-	Date dt = new Date(cal.getTimeInMillis());
+        Calendar cal = Calendar.getInstance(Calendar.getInstance()
+                .getTimeZone(), Locale.ENGLISH);
+        cal.add(Calendar.MILLISECOND, -(cal.getTimeZone().getRawOffset()));
+        cal.add(Calendar.MILLISECOND, tz.getRawOffset());
+        Date dt = new Date(cal.getTimeInMillis());
 
-	return df.format(dt) + " @" + timezone;
+        return df.format(dt) + " @" + timezone;
     }
 }
