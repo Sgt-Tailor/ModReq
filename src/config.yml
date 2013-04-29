@@ -22,7 +22,7 @@
 #                            DO NOT EDIT                           #
 ####################################################################
 #The config File version. DO NOT CHANGE YOURSELF
-version: 2.3                                                    
+version: 2.4                                                    
 
 ####################################################################
 #                           Configurations                         #
@@ -43,8 +43,10 @@ maximum-open-tickets: 5
 #a folder inside the plugin folder.
 check-updates: true
 
-#use metrics. This sends anonymous data to mcstats.org to analize. This is NO HARM for your server
+#use metrics. This sends anonymous data to mcstats.org to analize. 
+#This is NO HARM for your server
 metrics: true
+
 #If you change this to true, a staff member can claim multiple
 #tickets at the same time
 may-claim-multiple: false
@@ -53,8 +55,9 @@ may-claim-multiple: false
 #online
 use-nickname: false
 #Change this to true if you want claimed ticket to appear in the
-#/check list
+#/check list. Same goes for the show pending setting.
 show-claimed-tickets-in-open-list: false
+show-pending-tickets-in-open-list: false
 
 #Specify the TimeZone used for the Date here
 timezone: GMT
@@ -84,8 +87,6 @@ mysql:
     ip: example.com/sgt_tailor
     user: Sgt_Tailor
     pass: Walrus
-
-#To change the language used in the messages, replace the messages.yml with the messages you would like to be used
 
 
 

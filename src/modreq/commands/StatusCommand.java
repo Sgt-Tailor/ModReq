@@ -54,6 +54,7 @@ public class StatusCommand extends SubCommandExecutor {
 
     @command
     public void Integer(CommandSender sender, String[] args) {
+	tickets = plugin.getTicketHandler();
 	if (sender instanceof Player) {
 	    Player p = (Player) sender;
 	    if (args.length == 1) {// the command must me /status <id>

@@ -85,5 +85,18 @@ public class CheckCommand extends SubCommandExecutor {
 	    sender.sendMessage("This command can only be ran as a player");
 	}
     }
+    @command(minimumArgsLength = 0, maximumArgsLength = 1, usage = "/check claimed <page>")
+    public void pending(CommandSender sender, String[] args) {
+	tickets = plugin.getTicketHandler();
+	int page = 1;
+	if (args.length == 1) {
+	    page = java.lang.Integer.parseInt(args[0]);
+	}
+	if (sender instanceof Player) {
+	    tickets.sendPlayerPage(page, Status.PENDING, (Player) sender);
+	} else {
+	    sender.sendMessage("This command can only be ran as a player");
+	}
+    }
 
 }

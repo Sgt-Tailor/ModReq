@@ -42,7 +42,7 @@ public class ModReq extends JavaPlugin {
 	cmdManager = new CommandManager(this);
 	messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
 	ticketHandler = new TicketHandler();
-	
+
 	checkConfigFile();
 	loadMessages();
 	
@@ -59,7 +59,9 @@ public class ModReq extends JavaPlugin {
 	} else {
 	    logger.info("[ModReq] Not using update feature");
 	}
+	startNotify();
 	startMetrics();
+
 	this.logger.info(pdfFile.getName() + " version " + pdfFile.getVersion()
 		+ " is enabled.");
     }
@@ -71,7 +73,6 @@ public class ModReq extends JavaPlugin {
 	    } catch (IOException e) {
 		e.printStackTrace();
 	    }
-	    startNotify();
 	    startGraphs();
 	    logger.info("[ModReq] Using metrics");
 	}
@@ -229,7 +230,7 @@ public class ModReq extends JavaPlugin {
 
 		@Override
 		public void run() {
-		    TicketHandler th = new TicketHandler();
+		    TicketHandler th = getTicketHandler();
 		    int opentickets = th.getOpenTicketsAmount();
 		    if (opentickets > 0) {
 			Player[] online = Bukkit.getOnlinePlayers();

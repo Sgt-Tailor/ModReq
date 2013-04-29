@@ -158,16 +158,15 @@ public class Ticket {
 		submitter = Bukkit.getPlayer(submitter).getDisplayName();
 	    }
 	}
-	if (status == Status.CLAIMED) {
-	    summary = ChatColor.GOLD + "#" + id + ChatColor.AQUA + " " + date
-		    + " [" + Integer.toString(comments.size()) + "] "
-		    + namecolor + submitter + " " + ChatColor.GRAY + summessage
-		    + "..." + ChatColor.RED + " [Claimed]";
-	} else {
-	    summary = ChatColor.GOLD + "#" + id + ChatColor.AQUA + " " + date
+	summary = ChatColor.GOLD + "#" + id + ChatColor.AQUA + " " + date
 		    + " [" + Integer.toString(comments.size()) + "] "
 		    + namecolor + submitter + " " + ChatColor.GRAY + summessage
 		    + "...";
+	if(status.equals(Status.CLAIMED)) {
+	    summary = summary +" "+ ChatColor.RED + " [Claimed]";
+	}
+	if(status.equals(Status.PENDING)) {
+	    summary = summary +" "+ ChatColor.RED + " [Pending]";
 	}
 
 	p.sendMessage(summary);
@@ -209,7 +208,7 @@ public class Ticket {
 		+ status);
 	p.sendMessage(ChatColor.AQUA + this.sub + ": " + ChatColor.GRAY
 		+ submitter);
-	if (p.hasPermission("modreq.tp-id")) {
+	if (p.hasPermission("modreq.tp-id") || p.getName().equals(submitter)) {
 	    p.sendMessage(ChatColor.AQUA + this.loc + ": " + ChatColor.GRAY
 		    + location);
 	}

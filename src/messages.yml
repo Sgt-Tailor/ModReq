@@ -7,8 +7,6 @@ no-message: You have not typed a message. Please do so.
 no-ticket: That ticket does not exist
 no-number: is not a number
 
-command-syntax: 'That is not the right usage. It should be:'
-
 notification: open tickets are waiting for you
 
 ticket-closed: Ticket closed
@@ -43,6 +41,7 @@ ticket-teleport: You have been teleported
 ticket-teleport2: just teleported to your modreq
 
 info-modreq: submit a help ticket
+info-pending: set the status of a ticket to pending
 info-check: returns a list of all tickets
 info-tp-id: teleports you to the location of the ticket
 info-claim: claims a ticket
@@ -57,6 +56,9 @@ info-ticket: shows detailed information of a ticket
 #the are the messages used as default comment to a ticket when a
 #certain command is performed
 log:
+    pending: 
+        default: I set the status to pending
+        suffix: Ticket now pending
     claim:
         default: I claimed this ticket.
     close:

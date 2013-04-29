@@ -20,10 +20,12 @@ public class ModhelpCommand extends SubCommandExecutor{
 		}if(sender.hasPermission("modreq.check")) {sender.sendMessage(ChatColor.GOLD + "/check <page> " + ChatColor.WHITE + plugin.Messages.getString("info-check"));
 		}if(sender.hasPermission("modreq.check")) {sender.sendMessage(ChatColor.GOLD + "/check claimed <page> " + ChatColor.WHITE + plugin.Messages.getString("info-check"));
 		}if(sender.hasPermission("modreq.check")) {sender.sendMessage(ChatColor.GOLD + "/check closed <page> " + ChatColor.WHITE + plugin.Messages.getString("info-check"));
+		}if(sender.hasPermission("modreq.check.pending")) {sender.sendMessage(ChatColor.GOLD + "/check pending <page> " + ChatColor.WHITE + plugin.Messages.getString("info-check"));
 		}if(sender.hasPermission("modreq.check")) {sender.sendMessage(ChatColor.GOLD + "/check id <id> " + ChatColor.WHITE + plugin.Messages.getString("info-ticket"));
 		}if(sender.hasPermission("modreq.check")) {sender.sendMessage(ChatColor.GOLD + "/ticket " + ChatColor.WHITE + plugin.Messages.getString("info-ticket"));
-		}if(sender.hasPermission("modreq.tp-id")) {sender.sendMessage(ChatColor.GOLD + "/tp-id <number> " + ChatColor.WHITE + plugin.Messages.getString("info-tp-id"));
-		}if(sender.hasPermission("modreq.claim")) {sender.sendMessage(ChatColor.GOLD + "/claim <number> " + ChatColor.WHITE + plugin.Messages.getString("info-claim"));
+		}if(sender.hasPermission("modreq.check")) {sender.sendMessage(ChatColor.GOLD + "/ticket setpending <id>" + ChatColor.WHITE + plugin.Messages.getString("info-pending"));
+		}if(sender.hasPermission("modreq.tp-id")) {sender.sendMessage(ChatColor.GOLD + "/tp-id <id> " + ChatColor.WHITE + plugin.Messages.getString("info-tp-id"));
+		}if(sender.hasPermission("modreq.claim")) {sender.sendMessage(ChatColor.GOLD + "/claim <id> " + ChatColor.WHITE + plugin.Messages.getString("info-claim"));
 		}if(sender.hasPermission("modreq.check")) {sender.sendMessage(ChatColor.GOLD + "/comment <id> <comment> " + ChatColor.WHITE + plugin.Messages.getString("info-comment"));
 		}if(sender.hasPermission("modreq.reopen")) {sender.sendMessage(ChatColor.GOLD + "/re-open <number> (message) " + ChatColor.WHITE + plugin.Messages.getString("info-re-open"));
 		}if(sender.hasPermission("modreq.status")) {sender.sendMessage(ChatColor.GOLD + "/status (number) " + ChatColor.WHITE + plugin.Messages.getString("info-status"));

@@ -19,38 +19,66 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class TicketHandler {
-    public static ModReq plugin = (ModReq) Bukkit.getPluginManager().getPlugin(
-	    "ModReq");
+    public static ModReq plugin = ModReq.getInstance();
     public final Logger logger = Logger.getLogger("Minecraft");
+    private Connection connection;
 
     private Connection getConnection() {
 	try {
-	    Class.forName("org.sqlite.JDBC");
-	    if (plugin.getConfig().getBoolean("use-mysql")) {
-		String ip = plugin.getConfig().getString("mysql.ip");
-		String user = plugin.getConfig().getString("mysql.user");
-		String pass = plugin.getConfig().getString("mysql.pass");
+	   	if(connection != null) {
+	   	    
+	   	    if(connection.isClosed() == false) {
+	   		logger.info("reusing old connection");
+	   		return connection;
+	   	    }
+	   	}
+	   	logger.info("creating new connection");
+		Class.forName("org.sqlite.JDBC");
+		if (plugin.getConfig().getBoolean("use-mysql")) {
+		    String ip = plugin.getConfig().getString("mysql.ip");
+		    String user = plugin.getConfig().getString("mysql.user");
+		    String pass = plugin.getConfig().getString("mysql.pass");
 
-		Connection conn = DriverManager.getConnection("jdbc:mysql://"
-			+ ip, user, pass);
-		Statement stat = conn.createStatement();
-		stat.execute("CREATE TABLE IF NOT EXISTS requests (id INT, submitter TEXT, message TEXT, date TEXT, status TEXT, location TEXT, staff TEXT)");
-		stat.execute("CREATE TABLE IF NOT EXISTS comments (id INT, commenter TEXT, message TEXT, date TEXT)");
-		return conn;
-	    } else {
-		Connection conn = DriverManager
-			.getConnection("jdbc:sqlite:plugins/ModReq/DataBase.sql");
-		Statement stat = conn.createStatement();
-		stat.execute("CREATE TABLE IF NOT EXISTS requests (id int, submitter String, message String, date String, status String, location String, staff String)");
-		stat.execute("CREATE TABLE IF NOT EXISTS comments (id int, commenter String, message String, date String)");
-		return conn;
-	    }
+		    connection = DriverManager.getConnection("jdbc:mysql://"
+			    + ip, user, pass);
+		    Statement stat = connection.createStatement();
+		    stat.execute("CREATE TABLE IF NOT EXISTS requests (id INT, submitter TEXT, message TEXT, date TEXT, status TEXT, location TEXT, staff TEXT)");
+		    stat.execute("CREATE TABLE IF NOT EXISTS comments (id INT, commenter TEXT, message TEXT, date TEXT)");
+		    KillConnection();
+		    return connection;
+		} else {
+		    connection = DriverManager
+			    .getConnection("jdbc:sqlite:plugins/ModReq/DataBase.sql");
+		    Statement stat = connection.createStatement();
+		    stat.execute("CREATE TABLE IF NOT EXISTS requests (id int, submitter String, message String, date String, status String, location String, staff String)");
+		    stat.execute("CREATE TABLE IF NOT EXISTS comments (id int, commenter String, message String, date String)");
+		    KillConnection();
+		    return connection;
+		}
+
 	} catch (Exception e) {
 	    e.printStackTrace();
 	    logger.severe("[ModReq] no connection could be made with the database. Shutting down plugin D:");
 	    plugin.getServer().getPluginManager().disablePlugin(plugin);
 	    return null;
 	}
+
+    }
+
+    private void KillConnection() {
+	Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+
+	    @Override
+	    public void run() {
+		try {
+		    logger.info("Killing connection");
+		    connection.close();
+		} catch (SQLException e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	}, 2L);
     }
 
     public void clearTickets() {
@@ -85,7 +113,6 @@ public class TicketHandler {
 	for (; i < tickets.size(); i++) {
 
 	}
-	conn.close();
 	return i;
     }
 
@@ -113,7 +140,6 @@ public class TicketHandler {
 	for (; i < tickets.size(); i++) {
 	    value.add(getTicketById(tickets.get(i)));
 	}
-	conn.close();
 	return value;
     }
 
@@ -130,7 +156,6 @@ public class TicketHandler {
 	    if (result.next()) {
 		return true;
 	    }
-	    conn.close();
 	} catch (SQLException e) {
 	}
 
@@ -146,16 +171,18 @@ public class TicketHandler {
 	    int nmbr = page * 10;
 	    ResultSet result;
 	    if (status.getStatusString().equals("open")) {
+		String a = "status = 'open'";
 		if (plugin.getConfig().getBoolean(
-			"show-claimed-tickets-in-open-list") == true) {
-		    result = stat
-			    .executeQuery("SELECT * FROM requests WHERE status = 'open' or status = 'claimed' limit "
-				    + nmbr);
-		} else {
-		    result = stat
-			    .executeQuery("SELECT * FROM requests WHERE status = 'open' limit "
-				    + nmbr);
+			"show-claimed-tickets-in-open-list")) {
+		    a = a + " or status = 'claimed'";
 		}
+		if (plugin.getConfig().getBoolean(
+			"show-pending-tickets-in-open-list")) {
+		    a = a + " or status = 'pending'";
+		}
+		result = stat.executeQuery("SELECT * FROM requests WHERE " + a
+			+ " limit " + nmbr);
+
 	    } else {
 		result = stat
 			.executeQuery("SELECT * FROM requests WHERE status = '"
@@ -172,7 +199,6 @@ public class TicketHandler {
 		getTicketById(tickets.get(i)).sendSummarytoPlayer(p);
 	    }
 	    p.sendMessage(ChatColor.GOLD + "do /check <page> to see more");
-	    conn.close();
 	    return;
 	} catch (SQLException e) {
 	    e.printStackTrace();
@@ -191,10 +217,8 @@ public class TicketHandler {
 		i++;
 	    }
 	    rs.close();
-	    conn.close();
 	    return i;
 	} catch (SQLException e) {
-	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
 	return 0;
@@ -214,10 +238,8 @@ public class TicketHandler {
 		i++;
 	    }
 	    rs.close();
-	    conn.close();
 	    return i;
 	} catch (SQLException e) {
-	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
 	return 0;
@@ -243,8 +265,6 @@ public class TicketHandler {
 
 	prep.executeBatch();
 
-	conn.close();
-
     }
 
     public Ticket getTicketById(int i) {// returns the Ticket WHERE id=i
@@ -268,7 +288,6 @@ public class TicketHandler {
 
 	    stat.close();
 	    addCommentsToTicket(conn, ticket);
-	    conn.close();
 	    return ticket;
 	} catch (SQLException e) {
 	    // TODO Auto-generated catch block
@@ -300,7 +319,6 @@ public class TicketHandler {
 	prep.executeBatch();
 
 	updateComments(conn, t);
-	conn.close();
     }
 
     public int getOpenTicketsAmount() {
@@ -313,7 +331,6 @@ public class TicketHandler {
 	    while (result.next()) {
 		i++;
 	    }
-	    conn.close();
 	} catch (SQLException e) {
 	    e.printStackTrace();
 

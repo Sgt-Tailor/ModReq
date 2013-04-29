@@ -33,6 +33,7 @@ commands:
         description: Returns a list of requests
         usage: /check <pagenumber>
         permission: modreq.check 
+        aliases: tickets
     tp-id:
         description: Teleports you to the location of the request.
         usage: /tp-id <id>
@@ -62,12 +63,11 @@ commands:
         description: shows the help message
         usage: /modhelp
 permissions:
-    modreq.overwrite.close:
-        default: OP
-        description: allows people to overwrite a ticket
-    modreq.overwrite.commentlimit:
-        default: OP
-        description: allows people to overwrite the comment limit
+    modreq.comment:
+        default: TRUE
+        description: allows people to comment on their own tickets. If a staff member has modreq.check permissions they can comment on all tickets
+        children:
+            overwritelimit: FALSE
     mod.reload:
         default: OP
         description: allows a people to do /modreqreload
@@ -83,12 +83,19 @@ permissions:
     modreq.check:
         description: allows a person to to /check
         default: OP
+        children:
+            pending: TRUE
+    modreq.setpending:
+        description: allows a person to set the status of a ticket to pending
+        default: OP
     modreq.tp-id:
         description: allows a person to use /tp-id
         default: OP
     modreq.claim: 
         description: allows a person to claim a ticked
         default: OP
+        children:
+            pending: TRUE
     modreq.request:
         description: allows a person to submit a ticked
         default: TRUE

@@ -1,18 +1,19 @@
 package modreq;
 
 public enum Status {
-    OPEN, CLAIMED, CLOSED;
+    OPEN("open"), 
+    CLAIMED("claimed"), 
+    CLOSED("claimed"),
+    PENDING("pending");
+
+    String status;
+
+    private Status(String status) {
+	this.status = status;
+    }
 
     public String getStatusString() {
-	switch (this) {
-	case OPEN:
-	    return "open";
-	case CLAIMED:
-	    return "claimed";
-	case CLOSED:
-	    return "closed";
-	}
-	return null;
+	return status;
     }
 
     public static Status getByString(String string) {
@@ -24,6 +25,9 @@ public enum Status {
 	}
 	if (string.equals("closed")) {
 	    return CLOSED;
+	}
+	if(string.equals("pending")) {
+	    return PENDING;
 	}
 	return null;
     }
