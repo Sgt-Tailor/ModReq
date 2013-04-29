@@ -94,8 +94,8 @@ public class TicketCommand extends SubCommandExecutor {
                     } else {
                         Ticket t = tickets.getTicketById(id);
                         t.setStatus(Status.PENDING);
-
                         t.addDefaultComment(p, CommentType.PENDING);
+                        t.setStaff("no staff member");
                         try {
                             t.update();
                         } catch (SQLException e) {

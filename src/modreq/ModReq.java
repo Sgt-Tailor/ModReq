@@ -25,6 +25,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import modreq.Metrics.Graph;
@@ -44,7 +45,7 @@ public class ModReq extends JavaPlugin {
     public CommandManager cmdManager;
     public YamlConfiguration Messages;
     private static ModReq plugin;
-    public final Logger logger = Logger.getLogger("Minecraft");
+    public static final Logger logger = Logger.getLogger("Minecraft");
     public File configFile;
     private File messages;
     private Metrics metrics;
@@ -79,8 +80,7 @@ public class ModReq extends JavaPlugin {
         startNotify();
         startMetrics();
 
-        this.logger.info(pdfFile.getName() + " version " + pdfFile.getVersion()
-                + " is enabled.");
+        logger.log(Level.INFO, "{0} version {1} is enabled.", new Object[]{pdfFile.getName(), currentVersion});
     }
 
     private void startMetrics() {
@@ -146,51 +146,25 @@ public class ModReq extends JavaPlugin {
         metrics.start();
         try {// test chart
             Metrics metrics = new Metrics(plugin);
-
-            // Construct a graph, which can be immediately used and considered
-            // as valid
             Graph graph = metrics.createGraph("Tickets");
-
-            // total
             graph.addPlotter(new Metrics.Plotter("Open") {
                 @Override
                 public int getValue() {
-                    return ticketHandler.getTicketAmount(Status.OPEN); // Number
-                    // of
-                    // players
-                    // who
-                    // used a
-                    // diamond
-                    // sword
+                    return ticketHandler.getTicketAmount(Status.OPEN);
                 }
             });
             graph.addPlotter(new Metrics.Plotter("Claimed") {
                 @Override
                 public int getValue() {
-                    return ticketHandler.getTicketAmount(Status.CLAIMED); // Number
-                    // of
-                    // players
-                    // who
-                    // used
-                    // a
-                    // diamond
-                    // sword
+                    return ticketHandler.getTicketAmount(Status.CLAIMED);
                 }
             });
             graph.addPlotter(new Metrics.Plotter("Closed") {
                 @Override
                 public int getValue() {
-                    return ticketHandler.getTicketAmount(Status.CLOSED); // Number
-                    // of
-                    // players
-                    // who
-                    // used
-                    // a
-                    // diamond
-                    // sword
+                    return ticketHandler.getTicketAmount(Status.CLOSED);
                 }
             });
-
             metrics.start();
         } catch (IOException e) {
         }
@@ -211,18 +185,15 @@ public class ModReq extends JavaPlugin {
             logger.info("[ModReq] messages.yml found. Trying to load messages.yml");
             Messages = YamlConfiguration.loadConfiguration(messages);
             logger.info("[ModReq] messages.yml loaded!");
-            return;
         } else {
             logger.info("[ModReq] messages.yml not found, using default messages");
             saveDefaultMessages();
             Messages = getDefaultMessages();
-            return;
         }
     }
 
     private void saveDefaultMessages() {
         plugin.saveResource("messages.yml", true);
-
     }
 
     public YamlConfiguration getDefaultMessages() {
@@ -264,10 +235,10 @@ public class ModReq extends JavaPlugin {
     @Override
     public void onDisable() {
         PluginDescriptionFile pdfFile = this.getDescription();
-        this.logger.info(pdfFile.getName() + " is now disabled ");
+        logger.log(Level.INFO, "{0} is now disabled ", pdfFile.getName());
     }
 
-    private void firstrun() {// create the config.yml
+    private void firstrun() {
         this.saveDefaultConfig();
     }
 

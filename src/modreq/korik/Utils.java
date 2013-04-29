@@ -17,25 +17,17 @@
  */
 package modreq.korik;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Iterator;
-import java.util.Locale;
-import java.util.TimeZone;
-
-import modreq.ModReq;
 
 public class Utils {
 
     public static String join(String[] a, String delimiter, Integer startIndex) {
         try {
             Collection<String> s = Arrays.asList(a);
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             Iterator<String> iter = s.iterator();
 
             while (iter.hasNext()) {
@@ -74,7 +66,6 @@ public class Utils {
         buffer[0] = b;
         int i = 0;
         while (i < a.length) {
-
             buffer[i + 1] = a[i];
             i++;
         }
@@ -85,22 +76,6 @@ public class Utils {
     public static String[] add(String[] a, String b) {
         a[a.length] = b;
         return a;
-    }
-
-    public static String getTimeString() {
-        String timezone = ModReq.getInstance().getConfig()
-                .getString("timezone");
-        DateFormat df = new SimpleDateFormat(ModReq.getInstance().getConfig()
-                .getString("timeformat", "YY-MM-dd HH:mm:ss"));
-        TimeZone tz = TimeZone.getTimeZone(timezone);
-
-        Calendar cal = Calendar.getInstance(Calendar.getInstance()
-                .getTimeZone(), Locale.ENGLISH);
-        cal.add(Calendar.MILLISECOND, -(cal.getTimeZone().getRawOffset()));
-        cal.add(Calendar.MILLISECOND, tz.getRawOffset());
-        Date dt = new Date(cal.getTimeInMillis());
-
-        return df.format(dt) + " @" + timezone;
     }
 
     public static String[] stripArray(String[] array) {

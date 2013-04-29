@@ -58,8 +58,8 @@ public class TicketHandler {
                 connection = DriverManager.getConnection("jdbc:mysql://"
                         + ip, user, pass);
                 Statement stat = connection.createStatement();
-                stat.execute("CREATE TABLE IF NOT EXISTS "+table1+" (id INT, submitter TEXT, message TEXT, date TEXT, status TEXT, location TEXT, staff TEXT)");
-                stat.execute("CREATE TABLE IF NOT EXISTS "+table2+" (id INT, commenter TEXT, message TEXT, date TEXT)");
+                stat.execute("CREATE TABLE IF NOT EXISTS " + table1 + " (id INT, submitter TEXT, message TEXT, date TEXT, status TEXT, location TEXT, staff TEXT)");
+                stat.execute("CREATE TABLE IF NOT EXISTS " + table2 + " (id INT, commenter TEXT, message TEXT, date TEXT)");
                 KillConnection();
                 return connection;
             } else {
@@ -167,8 +167,7 @@ public class TicketHandler {
         return false;
     }
 
-    public void sendPlayerPage(int page, Status status, Player p) {// send the
-        // -----List-of-STATUS-Requests-----
+    public void sendPlayerPage(int page, Status status, Player p) {
         try {
             Connection conn = getConnection();
             Statement stat = conn.createStatement();

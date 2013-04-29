@@ -115,29 +115,13 @@ public class ModreqCommand implements CommandExecutor {
     }
 
     public void savereq(String message, CommandSender sender, Location loc) {// save
-        // a
-        // ticket
-        // to
-        // the
-        // database
-        String timezone = plugin.getConfig().getString("timezone");
-        DateFormat df = new SimpleDateFormat(plugin.getConfig().getString(
-                "timeformat", "YY-MM-dd HH:mm:ss"));
-        TimeZone tz = TimeZone.getTimeZone(timezone);
-
-        Calendar cal = Calendar.getInstance(Calendar.getInstance()
-                .getTimeZone(), Locale.ENGLISH);
-        cal.add(Calendar.MILLISECOND, -(cal.getTimeZone().getRawOffset()));
-        cal.add(Calendar.MILLISECOND, tz.getRawOffset());
-        Date dt = new Date(cal.getTimeInMillis());
-
-        String call = df.format(dt) + " @" + timezone;
+        String time = ModReq.getTimeString();
         String location = loc.getWorld().getName() + " @ "
                 + Math.round(loc.getX()) + " " + Math.round(loc.getY()) + " "
                 + Math.round(loc.getZ());
 
         try {
-            tickets.addTicket(sender.getName(), message, call, Status.OPEN,
+            tickets.addTicket(sender.getName(), message, time, Status.OPEN,
                     location);
         } catch (SQLException e) {
         }
