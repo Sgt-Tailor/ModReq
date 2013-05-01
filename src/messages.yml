@@ -1,75 +1,88 @@
 #these are the default messages. Colours are not yet supported. 
 #because of that it will use the default colours
+#Since version 2.4 you can use colourtags in the messages. A colour is
+#represented by the &, followed by the numbers 0-9 and the letters a-f, k-n
+#other tags can be found in the default messages, as well as in the comments
+#The tags used are &player, &number and &comment
+error:
+    permission: "&cYou do not have permissions to do this"
+    number: "&c&number is not a number"
+    message: "&cYou have not typed a message, please do so"
+    nomods: "&7There are no mods online."
+    comment: "&cYou may not submit that many tickets in a row."
+    ticket:
+        exist: "&cThat ticket does not exist"
+        your: "&cThat is not your ticket"
+        close: "&cYou may not close that ticket"
+        claim: "&cYou may not claim that ticket"
+        toomany: "&aYou have too many open tickets"        
+player:
+    submit: "&aYou have succesfully submitted a ticket, a staff member will help you soon"
+    teleport: "&a&player just teleported to the location of your ticket (&6#&number&a)"
+    claim: "&b&player &ajust claimed your ticket (&6#&number&a)"
+    pending: "&b&player &ajust set your ticket to pending (&6#&number&a), please be patient"
+    reopen: "&b&player &ajust reopened your ticket (&6#&number&a)"
+    close:
+        withcomment: "&b&player &ajust closed your ticket (&6#&number&a) &awith the comment: &7&comment "
+        withoutcomment: "&b&player &ajust closed your ticket (&6#&number&a)"
+    comment: "&b&player&ajust commented on your ticket (&6#&number&a)"
+staff:
+    executor:
+        ticket:
+            closed: "&aTicket closed"
+            claimed: "&aTicket claimed"
+            pending: "&aTicket set to pending"
+            re-opened: "&aTicket reopened"
+            teleport: "&aYou have been teleported"
+            comment: "&aComment added"
+    all:
+        comment: "&b&player &ajust commented on ticket (&6#&number&a)"
+        notification: "&b&number &aopen tickets are waiting for you!"
+        ticket-submitted: "&b&player &ajust submitted ticket &6#&number."
+headers-footers:
+    status: 
+        header: "&6----List-of-your-last-5-tickets----"
+        footer: "&6---do /status <id> for more info---"
+    mods:
+        header: "&6----List-of-online-staffmembers----"
+    check:
+        header: "&6--List-of-[status]-tickets--"
+        footer: "&6Do /check <page> for more tickets"
+    ticket:
+        header: "&6---Info-about-ticket-#&number---"
+#Colour nodes do not work from here on!
 
-no-mods: There are no mods online
-no-permission: You don't have permissions to do this
-no-message: You have not typed a message. Please do so.
-no-ticket: That ticket does not exist
-no-number: is not a number
-
-notification: open tickets are waiting for you
-
-ticket-closed: Ticket closed
-ticket-re-opened: Ticket re-opened
-reopen-ticket: just re-openend your ModReq
-ticket-claimed: Ticket claimed
-ticket-claimed2: just claimed your ticket
-
-not-your: That is not your ticket
-too-many-tickets: You have too many open requests
-
-submitted-mod: submitted a moderator request
-submitted-player: You successfully submitted a mod request, when a Moderator sees it they will reply.
-
-status-header: -----List-of-Your-Last-5-Requests-----
-status-footer: do /status <id> for more info
-list-of-mods: -------List-of-Online-Mods-------
-
-can-not-close: you can not close that ticket
-can-not-claim: you can not claim that ticket
-
-closed-ticket: just closed your ModReq
-closed-ticket-withmessage: just closed your ModReq with the comment
-
-comment: Comment added
-comment-notify-staff: 'commented on ticket #'
-comment-notify-submitter: just commented on your ticket
-too-many-comments: You may not add this many comments in a row.
-reopen-with-comment: just re-opened your modreq with the comment
-
-ticket-teleport: You have been teleported
-ticket-teleport2: just teleported to your modreq
-
-info-modreq: submit a help ticket
-info-pending: set the status of a ticket to pending
-info-check: returns a list of all tickets
-info-tp-id: teleports you to the location of the ticket
-info-claim: claims a ticket
-info-re-open: re-opens a ticket
-info-status: returns your last 5 tickets
-info-done: closes a ticket
-info-mods: returns a list of all online mods
-info-modhelp: shows this message
-info-comment: adds a comment on a ticket
-info-ticket: shows detailed information of a ticket
-
-#the are the messages used as default comment to a ticket when a
+    
+#These are the messages used as default comment to a ticket when a
 #certain command is performed
 log:
     pending: 
-        default: I set the status to pending
-        suffix: Ticket now pending
+        default: "I set the status to pending"
     claim:
-        default: I claimed this ticket.
+        default: "I claimed this ticket."
     close:
-        default: I closed this ticket.
-        suffix: Ticket closed
+        default: "I closed this ticket."
+        suffix: "&c[Ticket closed]"
     re-open:
-        default: I reopened this ticket.
-        suffix: Ticket reopened
+        default: "I reopened this ticket."
+        suffix: "&c[Ticket reopened]"
     tp-id:
-        default: I teleported to this ticket.
-
+        default: "I teleported to this ticket."
+        
+#ColourNodes do NOT work from here one!!!
+info:
+    modreq: submit a help ticket
+    pending: set the status of a ticket to pending
+    check: returns a list of all tickets
+    tp-id: teleports you to the location of the ticket
+    claim: claims a ticket
+    re-open: re-opens a ticket
+    status: returns your last 5 tickets
+    done: closes a ticket
+    mods: returns a list of all online mods
+    modhelp: shows this message
+    comment: adds a comment on a ticket
+    ticket: shows detailed information of a ticket
 ticket:
     submitter: Submitter
     date: Date of request

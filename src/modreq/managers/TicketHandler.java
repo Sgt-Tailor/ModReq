@@ -85,7 +85,6 @@ public class TicketHandler {
             @Override
             public void run() {
                 try {
-                    logger.info("Killing connection");
                     connection.close();
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -173,28 +172,31 @@ public class TicketHandler {
             Statement stat = conn.createStatement();
             ArrayList<Integer> tickets = new ArrayList<Integer>();
             int nmbr = page * 10;
-            ResultSet result;
+            ResultSet resultOC;//Result of open and closed tickets
+            ResultSet resultP;//Result of pending tickets
             if (status.getStatusString().equals("open")) {
                 String a = "status = 'open'";
-                if (plugin.getConfig().getBoolean(
-                        "show-claimed-tickets-in-open-list")) {
+                if (plugin.getConfig().getBoolean("show-claimed-tickets-in-open-list")) {
                     a = a + " or status = 'claimed'";
                 }
-                if (plugin.getConfig().getBoolean(
-                        "show-pending-tickets-in-open-list")) {
-                    a = a + " or status = 'pending'";
+                if (plugin.getConfig().getBoolean("show-pending-tickets-in-open-list") && p.hasPermission("modreq.claim.pending")) {
+                    resultP = stat.executeQuery("SELECT * FROM requests WHERE status = 'pending' limit " + nmbr);
+                    while(resultP.next()) {
+                	if(tickets.size() <=9) {
+                	    tickets.add(resultP.getInt(1));
+                	}
+                    }
                 }
-                result = stat.executeQuery("SELECT * FROM requests WHERE " + a
-                        + " limit " + nmbr);
+                resultOC = stat.executeQuery("SELECT * FROM requests WHERE " + a + " limit " + nmbr);
 
             } else {
-                result = stat
+                resultOC = stat
                         .executeQuery("SELECT * FROM requests WHERE status = '"
                         + status.getStatusString() + "' limit " + nmbr);
             }
-            while (result.next()) {
-                if (result.getRow() > nmbr - 10) {
-                    tickets.add(result.getInt(1));
+            while (resultOC.next()) {
+                if (resultOC.getRow() > nmbr - 10 && tickets.size() < 10) {
+                    tickets.add(resultOC.getInt(1));
                 }
             }
             p.sendMessage(ChatColor.GOLD + "-----List-of-"
@@ -247,7 +249,7 @@ public class TicketHandler {
 
     }
 
-    public void addTicket(String submitter, String message, String date,
+    public int addTicket(String submitter, String message, String date,
             Status status, String location) throws SQLException {// add a new
         // ticket to
         // the database
@@ -255,7 +257,8 @@ public class TicketHandler {
 
         PreparedStatement prep = conn
                 .prepareStatement("INSERT INTO requests VALUES (?, ?, ?, ?, ?,?,?)");
-        prep.setInt(1, getTicketCount() + 1);
+        int id = getTicketCount() + 1;
+        prep.setInt(1, id);
         prep.setString(2, submitter);
         prep.setString(3, message);
         prep.setString(4, date);
@@ -265,7 +268,7 @@ public class TicketHandler {
         prep.addBatch();
 
         prep.executeBatch();
-
+        return id;
     }
 
     public Ticket getTicketById(int i) {// returns the Ticket WHERE id=i
@@ -282,7 +285,7 @@ public class TicketHandler {
             String location = result.getString(6);
             String message = result.getString(3);
             String staff = result.getString(7);
-            Ticket ticket = new Ticket(plugin, i, submitter, message, date,
+            Ticket ticket = new Ticket( i, submitter, message, date,
                     Status.getByString(status), location, staff);
             stat.close();
             addCommentsToTicket(conn, ticket);
@@ -303,7 +306,6 @@ public class TicketHandler {
         PreparedStatement prep = conn
                 .prepareStatement("UPDATE requests SET status = ?, staff = ? WHERE id = "
                 + id + "");
-
         String status = t.getStatus().getStatusString();
         String staff = t.getStaff();
 

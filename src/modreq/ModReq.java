@@ -58,9 +58,9 @@ public class ModReq extends JavaPlugin {
     public void onEnable() {
         plugin = this;
         cmdManager = new CommandManager(this);
-        messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
         ticketHandler = new TicketHandler();
-
+        messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
+        
         checkConfigFile();
         loadMessages();
 
@@ -82,7 +82,11 @@ public class ModReq extends JavaPlugin {
 
         logger.log(Level.INFO, "{0} version {1} is enabled.", new Object[]{pdfFile.getName(), currentVersion});
     }
-
+    @Override
+    public void onDisable() {
+        PluginDescriptionFile pdfFile = this.getDescription();
+        logger.log(Level.INFO, "{0} is now disabled ", pdfFile.getName());
+    }
     private void startMetrics() {
         if (ModReq.plugin.getConfig().getBoolean("metrics")) {
             try {
@@ -95,7 +99,6 @@ public class ModReq extends JavaPlugin {
         }
 
     }
-
     public void checkConfigFile() {
         configFile = new File(getDataFolder().getAbsolutePath() + "/config.yml");
         if (!configFile.exists()) {
@@ -109,7 +112,6 @@ public class ModReq extends JavaPlugin {
             logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
         }
     }
-
     public void reload() {
         messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
         configFile = new File(getDataFolder().getAbsolutePath() + "/config.yml");
@@ -127,21 +129,17 @@ public class ModReq extends JavaPlugin {
         plugin.reloadConfig();
 
     }
-
     public String getCurrentVersion() {
         return currentVersion;
     }
-
     public TicketHandler getTicketHandler() {
         return ticketHandler;
     }
-
     private void startVersionChecker() {
         long hour = 60 * 60 * 20;
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this,
                 new VersionChecker(this), 60L, hour);
     }
-
     private void startGraphs() {
         metrics.start();
         try {// test chart
@@ -170,7 +168,6 @@ public class ModReq extends JavaPlugin {
         }
 
     }
-
     private boolean checkTranslate() {
         if (!messages.exists()) {
             return false;
@@ -178,7 +175,6 @@ public class ModReq extends JavaPlugin {
             return true;
         }
     }
-
     private void loadMessages() {
         logger.info("[ModReq] Looking for messages.yml");
         if (checkTranslate()) {
@@ -191,17 +187,14 @@ public class ModReq extends JavaPlugin {
             Messages = getDefaultMessages();
         }
     }
-
     private void saveDefaultMessages() {
         plugin.saveResource("messages.yml", true);
     }
-
     public YamlConfiguration getDefaultMessages() {
         YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
                 .getResource("messages.yml"));
         return pluginYML;
     }
-
     private void startNotify() {
         if (this.getConfig().getBoolean("notify-on-time")) {
             logger.info("[ModReq] Notifying on time enabled");
@@ -231,21 +224,12 @@ public class ModReq extends JavaPlugin {
             }, 60L, time);
         }
     }
-
-    @Override
-    public void onDisable() {
-        PluginDescriptionFile pdfFile = this.getDescription();
-        logger.log(Level.INFO, "{0} is now disabled ", pdfFile.getName());
-    }
-
     private void firstrun() {
         this.saveDefaultConfig();
     }
-
     public static ModReq getInstance() {
         return plugin;
     }
-
     public static String getTimeString() {
         String timezone = ModReq.getInstance().getConfig()
                 .getString("timezone");
@@ -260,5 +244,12 @@ public class ModReq extends JavaPlugin {
         Date dt = new Date(cal.getTimeInMillis());
 
         return df.format(dt) + " @" + timezone;
+    }
+    public static String format(String input, String player, String number, String comment){
+        input = input.replace("&player", player);
+        input = input.replace("&number", number);
+        input = input.replace("&comment", comment);
+	input = ChatColor.translateAlternateColorCodes('&', input);
+        return input;    
     }
 }

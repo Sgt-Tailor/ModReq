@@ -28,7 +28,6 @@ import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
 import modreq.managers.TicketHandler;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -52,23 +51,14 @@ public class DoneCommand extends SubCommandExecutor {
                     try {
                         id = Integer.parseInt(args[0]);
                     } catch (Exception e) {
-                        p.sendMessage(ChatColor.RED
-                                + args[0]
-                                + " "
-                                + plugin.Messages.getString("no-number",
-                                "is not a number"));
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "", args[0],""));
                         return;
                     }
                     if (tickets.getTicketCount() < id) {
-                        p.sendMessage(ChatColor.RED
-                                + plugin.Messages.getString("no-ticket",
-                                "That ticket does not exist"));
-                        return;
+                        sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "", args[0],""));
                     } else {
                         String comment = Utils.join(args, " ", 1);
                         Ticket t = tickets.getTicketById(id);
-
-                        Status status = Status.CLOSED;
                         String staff = sender.getName();
 
                         String currenstatus = t.getStatus().getStatusString();
@@ -78,10 +68,7 @@ public class DoneCommand extends SubCommandExecutor {
                             if (!currentstaff.equals(staff)
                                     && !sender
                                     .hasPermission("modreq.overwrite.close")) {
-                                p.sendMessage(ChatColor.RED
-                                        + plugin.Messages
-                                        .getString("can-not-close",
-                                        "You can not close that ticket"));
+                                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.close"), "", "",""));
                                 return;
                             }
                         }
@@ -89,36 +76,18 @@ public class DoneCommand extends SubCommandExecutor {
                         t.addComment(new Comment(sender.getName(), comment,
                                 CommentType.CLOSE));
                         t.setStaff(staff);
-                        t.setStatus(status);
+                        t.setStatus(Status.CLOSED);
                         try {
                             t.update();
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
-                        p.sendMessage(ChatColor.GREEN
-                                + plugin.Messages.getString("ticket-closed",
-                                "Ticket closed"));
+                        sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.closed"), "", args[0],""));
                         if (comment == null || comment.equals("")) {
-                            t.sendMessageToSubmitter(ChatColor.AQUA
-                                    + p.getName()
-                                    + ChatColor.GREEN
-                                    + " "
-                                    + plugin.Messages.getString(
-                                    "closed-ticket",
-                                    "just closed your ModReq"));
+                            t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.close.withoutcomment"), sender.getName(), args[0],""));
                         } else {
-                            t.sendMessageToSubmitter(ChatColor.AQUA
-                                    + p.getName()
-                                    + ChatColor.GREEN
-                                    + " "
-                                    + plugin.Messages
-                                    .getString(
-                                    "closed-ticket-withmessage",
-                                    "just closed your ModReq with the comment")
-                                    + ": ");
-                            t.sendMessageToSubmitter(ChatColor.GRAY + comment);
+                            t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.close.withcomment"), sender.getName(), args[0],comment));
                         }
-                        return;
                     }
                 }
             }

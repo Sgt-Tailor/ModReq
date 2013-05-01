@@ -18,12 +18,6 @@
 package modreq.commands;
 
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 
 import modreq.ModReq;
 import modreq.Status;
@@ -31,7 +25,6 @@ import modreq.korik.Utils;
 import modreq.managers.TicketHandler;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -55,10 +48,7 @@ public class ModreqCommand implements CommandExecutor {
             Player p = (Player) sender;
             if (p.hasPermission("modreq.request")) {
                 if (args.length == 0) {
-                    p.sendMessage(ChatColor.RED
-                            + plugin.Messages
-                            .getString("no-message",
-                            "You have not typed a message, please do so"));
+                    sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.message"), "", "",""));
                     return true;
                 } else {
                     int ticketsfromplayer;
@@ -67,25 +57,12 @@ public class ModreqCommand implements CommandExecutor {
                                 sender.getName(), Status.OPEN);
                         if (plugin.getConfig().getInt("maximum-open-tickets") > ticketsfromplayer) {
                             String message = Utils.join(args, " ", 0);
-                            savereq(message, sender,
-                                    ((Player) sender).getLocation());
-                            sendMessageToAdmins(ChatColor.GREEN
-                                    + sender.getName()
-                                    + " "
-                                    + ChatColor.AQUA
-                                    + plugin.Messages.getString(
-                                    "submitted-mod",
-                                    "submitted a moderator request"));
-                            p.sendMessage(ChatColor.GREEN
-                                    + plugin.Messages
-                                    .getString("submitted-player",
-                                    "You successfully submitted a help ticket, a moderator will help you soon"));
+                            int id = savereq(message, sender,((Player) sender).getLocation());
+                            sendMessageToAdmins(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.ticket-submitted"), sender.getName(), Integer.toString(id),""));
+                            p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("player.submit"), "", "",""));
                             return true;
                         } else {
-                            p.sendMessage(ChatColor.RED
-                                    + plugin.Messages.getString(
-                                    "too-many-tickets",
-                                    "You have too many open requests"));
+                            p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.toomany"), "", "",""));
                             return true;
                         }
                     } catch (SQLException e) {
@@ -114,16 +91,17 @@ public class ModreqCommand implements CommandExecutor {
 
     }
 
-    public void savereq(String message, CommandSender sender, Location loc) {// save
+    private int savereq(String message, CommandSender sender, Location loc) {// save
         String time = ModReq.getTimeString();
         String location = loc.getWorld().getName() + " @ "
                 + Math.round(loc.getX()) + " " + Math.round(loc.getY()) + " "
                 + Math.round(loc.getZ());
 
         try {
-            tickets.addTicket(sender.getName(), message, time, Status.OPEN,
-                    location);
+            int id = tickets.addTicket(sender.getName(), message, time, Status.OPEN, location);
+            return id;
         } catch (SQLException e) {
         }
+        return 0;
     }
 }

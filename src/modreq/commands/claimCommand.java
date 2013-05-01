@@ -26,7 +26,6 @@ import modreq.Ticket;
 import modreq.korik.SubCommandExecutor;
 import modreq.managers.TicketHandler;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -49,45 +48,37 @@ public class claimCommand extends SubCommandExecutor {
         tickets = plugin.getTicketHandler();
         if (sender instanceof Player) {
             Player p = (Player) sender;
-            if (p.hasPermission("modreq.claim")) {
+            if (p.hasPermission("modreq.claim.normal")) {
                 if (args.length > 0) {
                     int id;
                     try {
                         id = Integer.parseInt(args[0]);
                     } catch (Exception e) {
-                        p.sendMessage(ChatColor.RED
-                                + args[0]
-                                + " "
-                                + plugin.Messages.getString("no-number",
-                                "is not a number"));
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "",args[0],""));
                         return;
                     }
                     if (tickets.getTicketCount() < id) {
-                        p.sendMessage(ChatColor.RED
-                                + plugin.Messages.getString("no-ticket",
-                                "That ticket does not exist"));
-                        return;
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "","",""));
                     } else {
                         Ticket t = tickets.getTicketById(id);
-
                         Status currentstatus = t.getStatus();
-
                         Status status = Status.CLAIMED;
                         String staff = sender.getName();
                         if (!currentstatus.equals(Status.OPEN)) {
-                            p.sendMessage(ChatColor.RED
-                                    + plugin.Messages.getString(
-                                    "can-not-claim",
-                                    "You can not claim that ticket"));
-                            return;
+                            if(!currentstatus.equals(Status.PENDING) && !sender.hasPermission("modreq.overwrite.claim")) {
+                        	p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.claim"), "","",""));
+                        	return;
+                            }
+                            else {
+                        	if(!sender.hasPermission("modreq.claim.pending")) {
+                        	    p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.claim"), "","",""));
+                        	    return;
+                        	}
+                            }
                         }
-                        if (plugin.getConfig().getBoolean("may-claim-multiple",
-                                false) == false) {
+                        if (plugin.getConfig().getBoolean("may-claim-multiple",false) == false) {
                             if (tickets.hasClaimed((Player) sender)) {
-                                p.sendMessage(ChatColor.RED
-                                        + plugin.Messages
-                                        .getString("can-not-claim",
-                                        "You can not claim that ticket"));
+                                p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.claim"), "","",""));
                                 return;
                             }
                         }
@@ -100,15 +91,8 @@ public class claimCommand extends SubCommandExecutor {
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
-                        p.sendMessage(ChatColor.GREEN
-                                + plugin.Messages.getString("ticket-claimed",
-                                "Ticket claimed"));
-                        t.sendMessageToSubmitter(ChatColor.GREEN
-                                + p.getName()
-                                + " "
-                                + plugin.Messages.getString("ticket-claimed2",
-                                "just claimed your ModReq"));
-                        return;
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.claimed"), "","",""));
+                        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.claim"), sender.getName(),args[0],""));
                     }
                 }
             }

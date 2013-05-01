@@ -37,17 +37,10 @@ public class Ticket {
     private Status status;
     private String location;
     private String staff;
-    private String sub;
-    private String dt;
-    private String sta;
-    private String com;
-    private String loc;
-    private String staf;
-    private String request;
     private TicketHandler tickets;
     private ArrayList<Comment> comments;
 
-    public Ticket(ModReq plugin, int idp, String submitt, String messa,
+    public Ticket(int idp, String submitt, String messa,
             String date, Status status, String loc, String sta) {
         submitter = submitt;
         id = idp;
@@ -57,19 +50,12 @@ public class Ticket {
         this.status = status;
         location = loc;
 
-        tickets = plugin.getTicketHandler();
-        this.loc = plugin.Messages.getString("ticket.location", "Location");
-        this.sub = plugin.Messages.getString("ticket.submitter", "Submitter");
-        this.dt = plugin.Messages.getString("ticket.date", "Date of Request");
-        this.sta = plugin.Messages.getString("ticket.status", "Status");
-        this.com = plugin.Messages.getString("ticket.comment", "Comment");
-        this.request = plugin.Messages.getString("ticket.request", "Request");
-        this.staf = plugin.Messages.getString("ticket.staff", "Staff member");
+        tickets = ModReq.getInstance().getTicketHandler();
         comments = new ArrayList<Comment>();
     }
 
     /**
-     * This is used to get the message that the sumbmitter send.
+     * This is used to get the message that the submitter send.
      *
      * @return
      */
@@ -219,21 +205,29 @@ public class Ticket {
                 submitter = Bukkit.getPlayer(submitter).getDisplayName();
             }
         }
-        p.sendMessage(ChatColor.GOLD + "---Info-about-ticket-#" + id + "---");
-        p.sendMessage(ChatColor.AQUA + this.sta + ": " + ChatColor.GRAY
+        ModReq plugin = ModReq.getInstance();
+        String a = plugin.Messages.getString("ticket.location", "Location");
+        String b = plugin.Messages.getString("ticket.submitter", "Submitter");
+        String c = plugin.Messages.getString("ticket.date", "Date of Request");
+        String d = plugin.Messages.getString("ticket.status", "Status");
+        String e = plugin.Messages.getString("ticket.comment", "Comment");
+        String f = plugin.Messages.getString("ticket.request", "Request");
+        String g = plugin.Messages.getString("ticket.staff", "Staff member");
+        p.sendMessage(ModReq.format(plugin.Messages.getString("headers-footers.ticket.header"),"",Integer.toString(id),""));
+        p.sendMessage(ChatColor.AQUA + d + ": " + ChatColor.GRAY
                 + status);
-        p.sendMessage(ChatColor.AQUA + this.sub + ": " + ChatColor.GRAY
+        p.sendMessage(ChatColor.AQUA + b + ": " + ChatColor.GRAY
                 + submitter);
         if (p.hasPermission("modreq.tp-id") || p.getName().equals(submitter)) {
-            p.sendMessage(ChatColor.AQUA + this.loc + ": " + ChatColor.GRAY
+            p.sendMessage(ChatColor.AQUA + a + ": " + ChatColor.GRAY
                     + location);
         }
-        p.sendMessage(ChatColor.AQUA + this.staf + ": " + ChatColor.GRAY
+        p.sendMessage(ChatColor.AQUA + g + ": " + ChatColor.GRAY
                 + staff);
-        p.sendMessage(ChatColor.AQUA + this.dt + ": " + ChatColor.GRAY + date);
-        p.sendMessage(ChatColor.AQUA + this.request + ": " + ChatColor.GRAY
+        p.sendMessage(ChatColor.AQUA + c + ": " + ChatColor.GRAY + date);
+        p.sendMessage(ChatColor.AQUA + f + ": " + ChatColor.GRAY
                 + message);
-        p.sendMessage(ChatColor.AQUA + this.com + ":");
+        p.sendMessage(ChatColor.AQUA + e + ":");
 
         sendComments(p);
     }
@@ -248,6 +242,7 @@ public class Ticket {
             String commenter = c.getCommenter();
             String date = c.getDate();
             String comment = c.getComment();
+            comment = ChatColor.translateAlternateColorCodes('&', comment);
             p.sendMessage(ChatColor.GOLD + "#" + Integer.toString(i + 1) + " "
                     + ChatColor.AQUA + date + " " + ChatColor.GOLD + commenter
                     + ": " + ChatColor.GRAY + comment);
@@ -309,7 +304,6 @@ public class Ticket {
                 }
             }
         }
-        return;
     }
 
     public ArrayList<Comment> getComments() {

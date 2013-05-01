@@ -21,26 +21,20 @@ import modreq.ModReq;
 import modreq.korik.SubCommandExecutor;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class ModsCommand extends SubCommandExecutor {
 
-    private ModReq plugin;
+
 
     public ModsCommand(ModReq instance) {
-        plugin = instance;
     }
 
     @command
     public void Null(CommandSender sender, String[] args) {
         if (sender.hasPermission("modreq.mods")) {
-
-            sender.sendMessage(ChatColor.GOLD
-                    + plugin.Messages.getString("list-of-mods",
-                    "-------List-of-Online-Mods-------"));
-
+            sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.mods.header"), "", "",""));
             Player[] op = Bukkit.getOnlinePlayers();
             String online = "";
             for (int i = 0; i < op.length; i++) {
@@ -53,7 +47,6 @@ public class ModsCommand extends SubCommandExecutor {
                                 online = online + " " + op[i].getDisplayName();
                             }
                         }
-
                     } else {
                         if (i == 0) {
                             online = op[i].getDisplayName();
@@ -61,22 +54,13 @@ public class ModsCommand extends SubCommandExecutor {
                             online = online + " " + op[i].getDisplayName();
                         }
                     }
-
                 }
             }
             if (online.equals("")) {
-                sender.sendMessage(ChatColor.GRAY
-                        + plugin.Messages.getString("no-mods",
-                        "There are no mods online"));
+                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.nomods"), "", "",""));
                 return;
             }
             sender.sendMessage(online);
-            return;
-        } else {
-            sender.sendMessage(ChatColor.RED
-                    + plugin.Messages.getString("no-permission",
-                    "You don't have permissions to do this)"));
-            return;
         }
     }
 }

@@ -18,15 +18,14 @@
 package modreq.commands;
 
 import java.sql.SQLException;
-import modreq.CommentType;
 
+import modreq.CommentType;
 import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
 import modreq.korik.SubCommandExecutor;
 import modreq.managers.TicketHandler;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -41,7 +40,7 @@ public class TicketCommand extends SubCommandExecutor {
 
     @command
     public void Integer(CommandSender sender, String[] args) {
-
+        tickets = plugin.getTicketHandler();
         if (sender instanceof Player) {
             if (sender.hasPermission("modreq.check")) {
                 if (args.length == 1) {
@@ -49,17 +48,11 @@ public class TicketCommand extends SubCommandExecutor {
                     try {
                         id = Integer.parseInt(args[0]);
                     } catch (Exception e) {
-                        sender.sendMessage(ChatColor.RED
-                                + args[0]
-                                + " "
-                                + plugin.Messages.getString("no-number",
-                                "is not a number"));
+                        sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "","",""));
                         return;
                     }
                     if (tickets.getTicketCount() < id) {
-                        sender.sendMessage(ChatColor.RED
-                                + plugin.Messages.getString("no-ticket",
-                                "That ticket does not exist"));
+                        sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "","",""));
                     } else {
                         tickets.getTicketById(id).sendMessageToPlayer(
                                 (Player) sender);
@@ -80,22 +73,18 @@ public class TicketCommand extends SubCommandExecutor {
                     try {
                         id = Integer.parseInt(args[0]);
                     } catch (Exception e) {
-                        p.sendMessage(ChatColor.RED
-                                + args[0]
-                                + " "
-                                + plugin.Messages.getString("no-number",
-                                "is not a number"));
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "",args[0],""));
                         return;
                     }
                     if (tickets.getTicketCount() < id) {
-                        p.sendMessage(ChatColor.RED
-                                + plugin.Messages.getString("no-ticket",
-                                "That ticket does not exist"));
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "","",""));;
                     } else {
                         Ticket t = tickets.getTicketById(id);
                         t.setStatus(Status.PENDING);
                         t.addDefaultComment(p, CommentType.PENDING);
                         t.setStaff("no staff member");
+                        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.pending"), sender.getName(),Integer.toString(id),""));
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.pending"), "","",""));
                         try {
                             t.update();
                         } catch (SQLException e) {

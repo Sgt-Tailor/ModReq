@@ -40,7 +40,6 @@ public class ClearticketsCommand extends SubCommandExecutor {
             tickets.clearTickets();
             sender.sendMessage(ChatColor.GREEN
                     + "All tickets have been removed");
-            return;
         }
     }
 }

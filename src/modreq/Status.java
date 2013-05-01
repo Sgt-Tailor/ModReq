@@ -21,7 +21,7 @@ public enum Status {
 
     OPEN(1, "open"),
     CLAIMED(2, "claimed"),
-    CLOSED(3, "claimed"),
+    CLOSED(3, "closed"),
     PENDING(4, "pending");
     String status;
     int type;

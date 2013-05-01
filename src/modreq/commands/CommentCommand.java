@@ -26,6 +26,7 @@ import modreq.Ticket;
 import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -38,8 +39,7 @@ public class CommentCommand extends SubCommandExecutor {
             int id = Integer.parseInt(args[0]);
 
             if (id > ModReq.getInstance().getTicketHandler().getTicketCount()) {
-                sender.sendMessage(ChatColor.RED
-                        + ModReq.getInstance().Messages.getString("no-ticket"));
+                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"),"","",""));
                 return;
             }
             Player p = (Player) sender;
@@ -47,9 +47,7 @@ public class CommentCommand extends SubCommandExecutor {
                     .getTicketById(Integer.parseInt(args[0]));
             if (p.hasPermission("modreq.check") || playerIsSubmitter(p, t)) {
                 if (maxCommentIsExeeded(p, t)) {
-                    p.sendMessage(ChatColor.RED
-                            + ModReq.getInstance().Messages
-                            .getString("too-many-comments"));
+                    sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.comment"),"","",""));
                     return;
                 }
                 String commenter = p.getName();
@@ -57,21 +55,20 @@ public class CommentCommand extends SubCommandExecutor {
                 Comment c = new Comment(commenter, comment, CommentType.COMMENT);
 
                 t.addComment(c);
-                sender.sendMessage(ChatColor.GREEN
-                        + ModReq.getInstance().Messages.getString("comment"));
-                if (t.getStaff().equals(sender.getName())) {
-                    String notifyString = ModReq.getInstance().Messages
-                            .getString("comment-notify-submitter");
-                    t.sendMessageToSubmitter(ChatColor.AQUA + sender.getName()
-                            + ChatColor.GREEN + " " + notifyString);
+                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.comment"), "","",""));
+                for(Player op : Bukkit.getOnlinePlayers()){
+                    if(!op.getName().equals(sender.getName())){//do not send the message to the commandsender
+                        if(t.getSubmitter().equals(op.getName())){//it us the submitter
+                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("player.comment"), sender.getName(), args[0],""));
+                        }
+                        else if(t.getStaff().equals(sender.getName())){//it is the staff member
+                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.comment"), sender.getName(), args[0],""));
+                        }
+                        else if(t.getCommentsBy(op.getName()).isEmpty() == false){//it is someone else that commented earlier
+                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.comment"), sender.getName(), args[0],""));
+                        } 
+                    }
                 }
-                // else {
-                String notifyString = ModReq.getInstance().Messages
-                        .getString("comment-notify-staff");
-                t.notifyStaff(ChatColor.AQUA + sender.getName()
-                        + ChatColor.GREEN + " " + notifyString + " "
-                        + Integer.toString(t.getId()));
-                // }
                 try {
                     t.update();
                 } catch (SQLException e) {// does not happen
@@ -80,7 +77,6 @@ public class CommentCommand extends SubCommandExecutor {
                 p.sendMessage(ChatColor.RED
                         + "You don't have permissions to to this");
             }
-
         }
     }
 

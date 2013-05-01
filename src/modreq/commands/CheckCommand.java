@@ -24,7 +24,6 @@ import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
 import modreq.managers.TicketHandler;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -35,7 +34,6 @@ public class CheckCommand extends SubCommandExecutor {
 
     public CheckCommand(ModReq instance) {
         plugin = instance;
-
     }
 
     @command(maximumArgsLength = 1, permissions = {"modreq.check"}, usage = "/check <page>", description = "shows open tickets")
@@ -54,7 +52,6 @@ public class CheckCommand extends SubCommandExecutor {
     public void Null(CommandSender sender, String[] args) {
         String[] page1 = Utils.addInFront(args, "1");
         Integer(sender, page1);
-        return;
     }
 
     @command(minimumArgsLength = 1, maximumArgsLength = 1, usage = "/check id <id>")
@@ -67,9 +64,12 @@ public class CheckCommand extends SubCommandExecutor {
                     Ticket t = tickets.getTicketById(id);
                     t.sendMessageToPlayer((Player) sender);
                 }
+                else {
+                    sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "", args[0],""));
+                }
             } catch (Exception e) {
-                e.printStackTrace();
-                sender.sendMessage(ChatColor.RED + args[0] + " is not a number");
+        	e.printStackTrace();
+                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "", args[0],""));
             }
         } else {
             sender.sendMessage("This command can only be ran as a player");

@@ -25,7 +25,6 @@ import modreq.Ticket;
 import modreq.korik.SubCommandExecutor;
 import modreq.managers.TicketHandler;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -37,7 +36,6 @@ public class TpIdCommand extends SubCommandExecutor {
 
     public TpIdCommand(ModReq instance) {
         plugin = instance;
-
     }
 
     @command
@@ -51,18 +49,11 @@ public class TpIdCommand extends SubCommandExecutor {
                     try {
                         id = Integer.parseInt(args[0]);
                     } catch (Exception e) {
-                        p.sendMessage(ChatColor.RED
-                                + args[0]
-                                + " "
-                                + plugin.Messages.getString("no-number",
-                                "is not a number"));
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "",args[0],""));
                         return;
                     }
                     if (tickets.getTicketCount() < id) {
-                        p.sendMessage(ChatColor.RED
-                                + plugin.Messages.getString("no-ticket",
-                                "That ticket does not exist"));
-                        return;
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exists"), "","",""));
                     } else {
                         Ticket t = tickets.getTicketById(id);
                         t.addDefaultComment(p, CommentType.TP);
@@ -73,15 +64,8 @@ public class TpIdCommand extends SubCommandExecutor {
                         }
                         Location loc = t.getLocation();
                         p.teleport(loc);
-                        p.sendMessage(ChatColor.GREEN
-                                + plugin.Messages.getString("ticket-teleport1",
-                                "You have been teleported"));
-                        t.sendMessageToSubmitter(ChatColor.GREEN
-                                + p.getName()
-                                + " "
-                                + plugin.Messages.getString("ticket-teleport2",
-                                "just teleported to your ModReq"));
-                        return;
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.teleport"), "","",""));
+                        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.teleport"), sender.getName(),args[0],""));
                     }
                 }
             }

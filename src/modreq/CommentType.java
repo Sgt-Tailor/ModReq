@@ -32,12 +32,11 @@ public enum CommentType {
                         .getString("log.re-open.default");
             case TP:
                 return ModReq.getInstance().Messages.getString("log.tp-id.default");
-            case COMMENT:
-                return "";
             case PENDING:
-                return ModReq.getInstance().Messages.getString("log.pending.default");
+                return ModReq.getInstance().Messages
+                        .getString("log.pending.default");
             default:
-                return null;
+                return "";
 
         }
     }
@@ -49,9 +48,6 @@ public enum CommentType {
             case REOPEN:
                 return ModReq.getInstance().Messages
                         .getString("log.re-open.suffix");
-            case PENDING:
-                return ModReq.getInstance().Messages
-                        .getString("log.pending.suffix");
             default:
                 return "";
         }

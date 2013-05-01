@@ -38,23 +38,14 @@ public class ModReqListener implements Listener {
     public void onLogin(PlayerJoinEvent event) {
         final Player p = event.getPlayer();
         if (p.hasPermission("modreq.check")) {
-
             Bukkit.getScheduler().scheduleSyncDelayedTask(plugin,
-                    new Runnable() {// check for open tickets
+                    new Runnable() {
                 @Override
                 public void run() {
                     TicketHandler th = new TicketHandler();
                     int opentickets = th.getOpenTicketsAmount();
                     if (opentickets > 0) {
-                        p.sendMessage(ChatColor.GOLD
-                                + "[ModReq]"
-                                + ChatColor.GREEN
-                                + Integer.toString(opentickets)
-                                + " "
-                                + plugin.Messages
-                                .getString("notification",
-                                "open tickets are waiting for you"));
-
+                        p.sendMessage(ChatColor.GOLD + "[ModReq]" + ModReq.format(ModReq.getInstance().Messages.getString("staff.all.notification"), "", Integer.toString(opentickets),""));
                     }
 
                 }

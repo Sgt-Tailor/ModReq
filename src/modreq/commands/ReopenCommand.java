@@ -28,7 +28,6 @@ import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
 import modreq.managers.TicketHandler;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -52,18 +51,11 @@ public class ReopenCommand extends SubCommandExecutor {
                     try {
                         id = Integer.parseInt(args[0]);
                     } catch (Exception e) {
-                        p.sendMessage(ChatColor.RED
-                                + args[0]
-                                + " "
-                                + plugin.Messages.getString("no-number",
-                                "is not a number"));
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "", args[0],""));
                         return;
                     }
                     if (tickets.getTicketCount() < id) {
-                        p.sendMessage(ChatColor.RED
-                                + plugin.Messages.getString("no-ticket",
-                                "That ticket does not exist"));
-                        return;
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exists"), "", Integer.toString(id),""));
                     } else {
                         String comment = Utils.join(args, " ", 1);
                         Ticket t = tickets.getTicketById(id);
@@ -71,8 +63,7 @@ public class ReopenCommand extends SubCommandExecutor {
                         Status status = Status.OPEN;
                         String staff = sender.getName();
 
-                        t.addComment(new Comment(sender.getName(), comment,
-                                CommentType.REOPEN));
+                        t.addComment(new Comment(sender.getName(), comment, CommentType.REOPEN));
                         t.setStaff(staff);
                         t.setStatus(status);
                         try {
@@ -80,26 +71,8 @@ public class ReopenCommand extends SubCommandExecutor {
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
-                        p.sendMessage(ChatColor.GREEN
-                                + plugin.Messages.getString("ticket-re-opened",
-                                "Ticket re-opened"));
-                        if (comment.equals("")) {
-                            t.sendMessageToSubmitter(ChatColor.GREEN
-                                    + p.getName()
-                                    + " "
-                                    + plugin.Messages.getString(
-                                    "reopen-ticket",
-                                    "just re-opened your ModReq"));
-                        } else {
-                            t.sendMessageToSubmitter(ChatColor.GREEN
-                                    + p.getName()
-                                    + " "
-                                    + plugin.Messages.getString(
-                                    "reopen-with-comment",
-                                    "just re-opened your ModReq with the comment: "
-                                    + ChatColor.GRAY + comment));
-                        }
-                        return;
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.re-opened"), "", "",""));
+                        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.reopen"), sender.getName(), args[0],""));
                     }
                 }
             }

@@ -25,7 +25,6 @@ import modreq.Ticket;
 import modreq.korik.SubCommandExecutor;
 import modreq.managers.TicketHandler;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -46,20 +45,12 @@ public class StatusCommand extends SubCommandExecutor {
             if (args.length == 0) {
                 if (sender.hasPermission("modreq.status")) {
                     try {
-                        ArrayList<Ticket> t = tickets.getTicketsByPlayer(
-                                sender.getName());// get last tickets (max 5,
-                        // but not always)
-                        p.sendMessage(ChatColor.GOLD
-                                + plugin.Messages
-                                .getString("status-header",
-                                "-----List-of-Your-Last-5-Requests-----"));
-                        for (int i = 0; i < t.size(); i++) {// for each ticket,
-                            // send status
+                        ArrayList<Ticket> t = tickets.getTicketsByPlayer(sender.getName());
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.status.header"), "","",""));
+                        for (int i = 0; i < t.size(); i++) {
                             t.get(i).sendStatus(p);
                         }
-                        p.sendMessage(ChatColor.GOLD
-                                + plugin.Messages.getString("status-footer",
-                                "do /status <id> for more info"));
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.status.footer"), "","",""));
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
@@ -78,25 +69,17 @@ public class StatusCommand extends SubCommandExecutor {
                 try {
                     id = Integer.parseInt(args[0]);
                     if (id > tickets.getTicketCount()) {
-                        p.sendMessage(ChatColor.RED
-                                + plugin.Messages.getString("no-ticket",
-                                "That Ticket does not exist"));
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "","",""));
                         return;
                     }
                     Ticket t = tickets.getTicketById(id);
                     if (t.getSubmitter().equals(p.getName())) {
                         t.sendMessageToPlayer(p);
                     } else {
-                        p.sendMessage(ChatColor.RED
-                                + plugin.Messages.getString("not-your",
-                                "That is not your ticket"));
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.your"), "","",""));
                     }
                 } catch (Exception e) {
-                    p.sendMessage(ChatColor.RED
-                            + args[0]
-                            + " "
-                            + plugin.Messages.getString("no-number",
-                            "is not a number"));
+                    p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "","",""));
                 }
             }
         }
