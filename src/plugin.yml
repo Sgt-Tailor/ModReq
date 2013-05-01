@@ -1,10 +1,10 @@
 name: ModReq
 main: modreq.ModReq
-config-version: 2.3
+config-version: 2.4
 author: Sgt_Tailor
 dev-url: http://dev.bukkit.org/server-mods/modreq/
 description: A Moderator Request plugin
-version: 2.3.1 
+version: 2.4
 commands:
     comment:
         description: lets someone comment on a ticket
@@ -33,6 +33,7 @@ commands:
         description: Returns a list of requests
         usage: /check <pagenumber>
         permission: modreq.check 
+        aliases: tickets
     tp-id:
         description: Teleports you to the location of the request.
         usage: /tp-id <id>
@@ -62,18 +63,40 @@ commands:
         description: shows the help message
         usage: /modhelp
 permissions:
+    modreq.moderator:
+        default: OP
+        description: allows person to claim open tickets, close them and set them to pending. It does not allow them to reopen tickets, or claim pending ones.
+        children:
+            modreq.check: true
+            modreq.tp-id: true
+            modreq.claim.normal: true
+            modreq.close: true
+            modreq.setpending: true
+    modreq.admin:
+        default: OP
+        description: gets everything moderator gets, plus the ability to overwrite claim a ticket, reopen tickets, claim pending ticket, overwrite comment limit.
+        children:
+            modreq.moderator: true
+            modreq.reopen: true
+            modreq.overwrite.claim: true
+            modreq.overwrite.close: true
+            modreq.overwrite.commentlimit: true
+            modreq.claim.pending: true
+    modreq.overwrite.claim:
+        default: OP
+        description: allows a person to overwrite claiming a ticket
     modreq.overwrite.close:
         default: OP
-        description: allows people to overwrite a ticket
+        description: allows a person to overwrite closing a ticket
     modreq.overwrite.commentlimit:
         default: OP
-        description: allows people to overwrite the comment limit
+        description: allows a person to overwrite the comment limit
     mod.reload:
         default: OP
-        description: allows a people to do /modreqreload
+        description: allows a person to do /modreqreload
     modreq.cleartickets:
         default: OP
-        description: allows a people to do /cleartickets
+        description: allows a person to do /cleartickets
     modreq.update:
         default: OP
         description: allows a person to do /updatemodreq
@@ -83,20 +106,26 @@ permissions:
     modreq.check:
         description: allows a person to to /check
         default: OP
+    modreq.setpending:
+        description: allows a person to set the status of a ticket to pending
+        default: OP
     modreq.tp-id:
         description: allows a person to use /tp-id
         default: OP
-    modreq.claim: 
-        description: allows a person to claim a ticked
+    modreq.claim.normal:
         default: OP
+        description: allows a person to claim an open ticket
+    modreq.claim.pending:
+        default: OP
+        description: allows a person to claim pending tickets.
     modreq.request:
-        description: allows a person to submit a ticked
+        description: allows a person to submit a ticket
         default: TRUE
     modreq.close:
-        description: allows a person to close a ticked
+        description: allows a person to close a ticket
         default: OP
     modreq.reopen:
-        description: allows a person to re-open a ticked
+        description: allows a person to re-open a ticket
         default: OP
     modreq.status:
         default: TRUE
