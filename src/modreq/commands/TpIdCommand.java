@@ -64,7 +64,7 @@ public class TpIdCommand extends SubCommandExecutor {
                         }
                         Location loc = t.getLocation();
                         p.teleport(loc);
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.teleport"), "","",""));
+                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.teleport"), "","",""));
                         t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.teleport"), sender.getName(),args[0],""));
                     }
                 }
