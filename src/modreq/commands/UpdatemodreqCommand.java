@@ -99,15 +99,12 @@ public class UpdatemodreqCommand extends SubCommandExecutor {
     private boolean fileIsApproved() {
         try {
             URL file = new URL("http://dev.bukkit.org/server-mods/modreq/files");
-            BufferedReader in = new BufferedReader(new InputStreamReader(
-                    file.openStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(file.openStream()));
 
-            @SuppressWarnings("unused")
             String inputLine;
-
             while ((inputLine = in.readLine()) != null) {
-                if (in.readLine() != null) {
-                    if (in.readLine().contains("version " + ModReq.getInstance().latestVersion)) {
+                if (inputLine != null) {
+                    if (inputLine.contains("version " + ModReq.getInstance().latestVersion)) {
                         return true;
                     }
                 }
