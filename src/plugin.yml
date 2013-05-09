@@ -4,7 +4,7 @@ config-version: 2.4
 author: Sgt_Tailor
 dev-url: http://dev.bukkit.org/server-mods/modreq/
 description: A Moderator Request plugin
-version: 2.4
+version: 2.4.1
 commands:
     comment:
         description: lets someone comment on a ticket
@@ -41,7 +41,7 @@ commands:
     claim:
         description: let a player claim a id
         usage: /claim <id>
-        permission: modreq.claim
+        permission: modreq.claim.normal
     re-open:
         description: re-opens a ticket
         usage: /re-open <id> (message)
