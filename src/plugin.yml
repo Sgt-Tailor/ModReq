@@ -1,10 +1,10 @@
 name: ModReq
 main: modreq.ModReq
-config-version: 2.4
+config-version: 2.5
 author: Sgt_Tailor
 dev-url: http://dev.bukkit.org/server-mods/modreq/
 description: A Moderator Request plugin
-version: 2.4.1
+version: 2.5
 commands:
     comment:
         description: lets someone comment on a ticket

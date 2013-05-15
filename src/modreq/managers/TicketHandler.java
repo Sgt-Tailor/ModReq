@@ -316,7 +316,6 @@ public class TicketHandler {
 
         updateComments(conn, t);
     }
-
     public int getOpenTicketsAmount() {
         int i = 0;
         try {

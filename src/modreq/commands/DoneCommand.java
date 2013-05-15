@@ -51,6 +51,7 @@ public class DoneCommand extends SubCommandExecutor {
                     try {
                         id = Integer.parseInt(args[0]);
                     } catch (Exception e) {
+                	p.com
                         p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "", args[0],""));
                         return;
                     }

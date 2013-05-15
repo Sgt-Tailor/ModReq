@@ -23,6 +23,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -30,10 +31,14 @@ import java.util.logging.Logger;
 
 import modreq.Metrics.Graph;
 import modreq.managers.CommandManager;
+import modreq.managers.PriorityManager;
+import modreq.managers.TabCompleteManager;
 import modreq.managers.TicketHandler;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -53,14 +58,14 @@ public class ModReq extends JavaPlugin {
     public String latestVersion;
     public String DownloadLink;
     private TicketHandler ticketHandler;
-
+    private static PriorityManager priorityManager;
     @Override
     public void onEnable() {
         plugin = this;
         cmdManager = new CommandManager(this);
         ticketHandler = new TicketHandler();
         messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
-        
+        priorityManager = new PriorityManager();
         checkConfigFile();
         loadMessages();
 
@@ -87,6 +92,7 @@ public class ModReq extends JavaPlugin {
         PluginDescriptionFile pdfFile = this.getDescription();
         logger.log(Level.INFO, "{0} is now disabled ", pdfFile.getName());
     }
+    
     private void startMetrics() {
         if (ModReq.plugin.getConfig().getBoolean("metrics")) {
             try {
@@ -252,4 +258,8 @@ public class ModReq extends JavaPlugin {
 	input = ChatColor.translateAlternateColorCodes('&', input);
         return input;    
     }
+    public static PriorityManager getPriorityManager() {
+	return priorityManager;
+    }
+
 }
