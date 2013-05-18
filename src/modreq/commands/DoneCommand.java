@@ -40,7 +40,6 @@ public class DoneCommand extends SubCommandExecutor {
         plugin = instance;
     }
 
-    @command
     public void onInvalidCommand(CommandSender sender, String[] args) {
         tickets = plugin.getTicketHandler();
         if (sender instanceof Player) {
