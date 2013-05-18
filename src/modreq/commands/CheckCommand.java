@@ -24,6 +24,7 @@ import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
 import modreq.managers.TicketHandler;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -36,22 +37,24 @@ public class CheckCommand extends SubCommandExecutor {
         plugin = instance;
     }
 
-    @command(maximumArgsLength = 1, permissions = {"modreq.check"}, usage = "/check <page>", description = "shows open tickets")
-    public void Integer(CommandSender sender, String[] args) {
+    @command(maximumArgsLength = 1, permissions = "modreq.check", usage = "/check <page>", description = "shows open tickets", playerOnly=true)
+    public void onInvalidCommand(CommandSender sender, String[] args,String command) {
         tickets = plugin.getTicketHandler();
-        int page = Integer.parseInt(args[0]);
-        if (sender instanceof Player) {
-            tickets.sendPlayerPage(page, Status.OPEN, (Player) sender);
-        } else {
-            sender.sendMessage("This command can only be ran as a player");
+        int page=1;
+        try{
+        page = Integer.parseInt(command);
+        }catch(Exception e){
+        	sender.sendMessage(ChatColor.RED + "Not a valid number.");
+        	return;
         }
-
+        
+        if(page>plugin.getTicketHandler().getViewablePageCount(sender)) id(sender,new String[]{command}); else
+        tickets.sendPlayerPage(page, Status.OPEN, (Player) sender);
     }
 
     @command
     public void Null(CommandSender sender, String[] args) {
-        String[] page1 = Utils.addInFront(args, "1");
-        Integer(sender, page1);
+        onInvalidCommand(sender, null,"1");
     }
 
     @command(minimumArgsLength = 1, maximumArgsLength = 1, usage = "/check id <id>")

@@ -33,6 +33,7 @@ import modreq.Ticket;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class TicketHandler {
@@ -392,4 +393,17 @@ public class TicketHandler {
         return;
 
     }
+    
+    public int getViewablePageCount(CommandSender sender) {
+    	TicketHandler tickets = ModReq.getInstance().getTicketHandler();
+    	    int Openamount = tickets.getTicketAmount(Status.OPEN);
+    	    if (ModReq.getInstance().getConfig().getBoolean("show-claimed-tickets-in-open-list")) {
+    		Openamount = Openamount + tickets.getTicketAmount(Status.CLAIMED);
+    	    }
+    	    if (ModReq.getInstance().getConfig().getBoolean("show-pending-tickets-in-open-list") && sender.hasPermission("modreq.claim.pending")) {
+    		Openamount += tickets.getTicketAmount(Status.PENDING);
+    	    }
+    	    int pages = (int) Math.ceil(Openamount / 10.0);
+    	    return pages;
+        }
 }

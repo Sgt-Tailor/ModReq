@@ -20,7 +20,7 @@ public class TabCompleteManager {
         	   if(sender.hasPermission("modreq.claim.pending")) {a.add("pending");}
         	   a.add("claimed");
         	   a.add("closed");
-        	    int b = viewablePages(sender);
+        	    int b = ModReq.getInstance().getTicketHandler().getViewablePageCount(sender);
         	   for(int i=1; i<= b; i++) {
         	       a.add(Integer.toString(i));
         	   }
@@ -29,18 +29,6 @@ public class TabCompleteManager {
 	    }
 	}
 	return null;
-    }
-    private static int viewablePages(CommandSender sender) {
-	TicketHandler tickets = ModReq.getInstance().getTicketHandler();
-	    int Openamount = tickets.getTicketAmount(Status.OPEN);
-	    if (ModReq.getInstance().getConfig().getBoolean("show-claimed-tickets-in-open-list")) {
-		Openamount = Openamount + tickets.getTicketAmount(Status.CLAIMED);
-	    }
-	    if (ModReq.getInstance().getConfig().getBoolean("show-pending-tickets-in-open-list") && sender.hasPermission("modreq.claim.pending")) {
-		Openamount += tickets.getTicketAmount(Status.PENDING);
-	    }
-	    int pages = (int) Math.ceil(Openamount / 10.0);
-	    return pages;
     }
 
 }
