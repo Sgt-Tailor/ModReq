@@ -48,7 +48,7 @@ public class CheckCommand extends SubCommandExecutor {
         	return;
         }
         
-        if(page>20) id(sender,new String[]{command}); else
+        if(page>plugin.getTicketHandler().getViewablePageCount(sender)) id(sender,new String[]{command}); else
         tickets.sendPlayerPage(page, Status.OPEN, (Player) sender);
     }
 
