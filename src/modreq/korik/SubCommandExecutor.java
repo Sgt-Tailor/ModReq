@@ -169,8 +169,6 @@ public abstract class SubCommandExecutor implements CommandExecutor {
 			}
 			
 	}
-
-	
 	
 	@Retention(RetentionPolicy.RUNTIME) public @interface command{
 		String[] permissions() default {};
