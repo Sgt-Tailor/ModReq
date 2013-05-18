@@ -39,7 +39,7 @@ public class TicketCommand extends SubCommandExecutor {
     }
 
     @command
-    public void Integer(CommandSender sender, String[] args) {
+    public void onInvalidCommand(CommandSender sender, String[] args) {
         tickets = plugin.getTicketHandler();
         if (sender instanceof Player) {
             if (sender.hasPermission("modreq.check")) {

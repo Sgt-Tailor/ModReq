@@ -44,7 +44,7 @@ public class claimCommand extends SubCommandExecutor {
     }
 
     @command(maximumArgsLength = 1, usage = "/claim <id>")
-    public void Integer(CommandSender sender, String[] args) {
+    public void onInvalidCommand(CommandSender sender, String[] args) {
         tickets = plugin.getTicketHandler();
         if (sender instanceof Player) {
             Player p = (Player) sender;
