@@ -7,7 +7,3 @@ Bukkit Dev link: http://dev.bukkit.org/server-mods/modreq/
 
 Greetings,
 Sgt_Tailor
-
-
-
-Tailor was here :o
