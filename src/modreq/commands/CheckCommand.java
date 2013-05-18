@@ -1,6 +1,6 @@
 /*
  Modreq Minecraft/Bukkit server ticket system
- Copyright (C) 2013 Sven Wiltink
+ Copyright (C) 2013 Sven Wiltink, korikisulda
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@ public class CheckCommand extends SubCommandExecutor {
         plugin = instance;
     }
 
-    @command(maximumArgsLength = 1, permissions = "modreq.check", usage = "/check <page>", description = "shows open tickets", playerOnly=true)
     public void onInvalidCommand(CommandSender sender, String[] args,String command) {
         tickets = plugin.getTicketHandler();
         int page=1;
@@ -47,7 +46,9 @@ public class CheckCommand extends SubCommandExecutor {
         	sender.sendMessage(ChatColor.RED + "Not a valid number.");
         	return;
         }
-        
+
+        if(page>plugin.getTicketHandler().getViewablePageCount(sender)) id(sender,new String[]{command}); else
+        tickets.sendPlayerPage(page, Status.OPEN, (Player) sender); 
     }
 
 

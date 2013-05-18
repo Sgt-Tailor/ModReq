@@ -59,7 +59,6 @@ public class StatusCommand extends SubCommandExecutor {
         }
     }
 
-    @command
     public void onInvalidCommand(CommandSender sender, String[] args) {
         tickets = plugin.getTicketHandler();
         if (sender instanceof Player) {
