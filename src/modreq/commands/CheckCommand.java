@@ -47,7 +47,9 @@ public class CheckCommand extends SubCommandExecutor {
         	sender.sendMessage(ChatColor.RED + "Not a valid number.");
         	return;
         }
-        
+
+        if(page>plugin.getTicketHandler().getViewablePageCount(sender)) id(sender,new String[]{command}); else
+        tickets.sendPlayerPage(page, Status.OPEN, (Player) sender); 
     }
 
 
