@@ -1,6 +1,7 @@
 package modreq;
 
-import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+
 
 public enum MessageType {
     ERROR_PERMISSION(),
@@ -69,6 +70,7 @@ public enum MessageType {
     TICKET_COMMENT(),
     TICKET_STAFF(),
     TICKET_REQUEST();
+    
     private String message;
     private MessageType(String message) {
 	this.message = message;
@@ -76,11 +78,17 @@ public enum MessageType {
     public String getMessage() {
 	return message;
     }
+    public String format(String PlayerName, String TicketNumber, String comment) {
+	message = message.replace("&player", PlayerName);
+        message = message.replace("&number", TicketNumber);
+        message = message.replace("&comment", comment);
+	message = ChatColor.translateAlternateColorCodes('&', message);
+        return message;    
+    }
     private MessageType() {
 	String a = this.name().toLowerCase().replace("_", ".");
-	String b = ModReq.getInstance().getConfig().getString(a, ModReq.getInstance().getDefaultMessages().getString(a));
+	String b = ModReq.getInstance().Messages.getString(a, ModReq.getInstance().getDefaultMessages().getString(a));
 	message = b;
-	Bukkit.broadcastMessage(b);
     }
 
 }

@@ -24,7 +24,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChatTabCompleteEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 public class ModReqListener implements Listener {
@@ -53,7 +52,6 @@ public class ModReqListener implements Listener {
             }, 60L);
         }
         if (p.hasPermission("modreq.update")) {
-            Bukkit.getPluginCommand("derp").getExecutor();
             if (plugin.getConfig().getBoolean("check-updates", true)) {
                 String currentVersion = plugin.getDescription().getVersion();
                 if (plugin.latestVersion != null && currentVersion != null) {

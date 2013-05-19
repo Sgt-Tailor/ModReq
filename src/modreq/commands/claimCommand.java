@@ -20,6 +20,8 @@ package modreq.commands;
 import java.sql.SQLException;
 
 import modreq.CommentType;
+import modreq.Message;
+import modreq.MessageType;
 import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
@@ -53,11 +55,11 @@ public class claimCommand extends SubCommandExecutor {
                     try {
                         id = Integer.parseInt(args[0]);
                     } catch (Exception e) {
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "",args[0],""));
+                	Message.sendToPlayer(MessageType.ERROR_NUMBER, (Player) sender, args[0]);
                         return;
                     }
                     if (tickets.getTicketCount() < id) {
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "","",""));
+                	Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, (Player) sender, args[0]);
                     } else {
                         Ticket t = tickets.getTicketById(id);
                         Status currentstatus = t.getStatus();
@@ -65,19 +67,19 @@ public class claimCommand extends SubCommandExecutor {
                         String staff = sender.getName();
                         if (!currentstatus.equals(Status.OPEN)) {
                             if(!currentstatus.equals(Status.PENDING) && !sender.hasPermission("modreq.overwrite.claim")) {
-                        	p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.claim"), "","",""));
+                        	Message.sendToPlayer(MessageType.ERROR_TICKET_CLAIM, (Player) sender, args[0]);
                         	return;
                             }
                             else {
                         	if(!sender.hasPermission("modreq.claim.pending")) {
-                        	    p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.claim"), "","",""));
+                        	    Message.sendToPlayer(MessageType.ERROR_TICKET_CLAIM, (Player) sender, args[0]);
                         	    return;
                         	}
                             }
                         }
                         if (plugin.getConfig().getBoolean("may-claim-multiple",false) == false) {
                             if (tickets.hasClaimed((Player) sender)) {
-                                p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.claim"), "","",""));
+                        	Message.sendToPlayer(MessageType.ERROR_TICKET_CLAIM, (Player) sender, args[0]);
                                 return;
                             }
                         }
@@ -90,8 +92,8 @@ public class claimCommand extends SubCommandExecutor {
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.claimed"), "","",""));
-                        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.claim"), sender.getName(),args[0],""));
+                        Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_CLAIMED, (Player) sender, args[0]);
+                        t.sendMessageToSubmitter(MessageType.PLAYER_CLAIM.format(p.getName(), args[0], ""));
                     }
                 }
             }

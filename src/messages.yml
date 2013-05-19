@@ -11,11 +11,11 @@ error:
     nomods: "&7There are no mods online."
     comment: "&cYou may not submit that many comments in a row."
     ticket:
-        exist: "&cThat ticket does not exist"
-        your: "&cThat is not your ticket"
-        close: "&cYou may not close that ticket"
-        claim: "&cYou may not claim that ticket"
-        toomany: "&aYou have too many open tickets"        
+        exist: "&cThat ticket does not exist (&6#&number&a)"
+        your: "&cThat is not your ticket (&6#&number&a)"
+        close: "&cYou may not close that ticket (&6#&number&a)"
+        claim: "&cYou may not claim that ticket (&6#&number&a)"
+        toomany: "&aYou have too many open tickets (&6#&number&a)"        
 player:
     submit: "&aYou have succesfully submitted a ticket, a staff member will help you soon"
     teleport: "&a&player just teleported to the location of your ticket (&6#&number&a)"
@@ -32,7 +32,7 @@ staff:
             closed: "&aTicket closed"
             claimed: "&aTicket claimed"
             pending: "&aTicket set to pending"
-            re-opened: "&aTicket reopened"
+            reopened: "&aTicket reopened"
             teleport: "&aYou have been teleported"
             comment: "&aComment added"
     all:
@@ -63,10 +63,10 @@ log:
     close:
         default: "I closed this ticket."
         suffix: "&c[Ticket closed]"
-    re-open:
+    reopen:
         default: "I reopened this ticket."
         suffix: "&c[Ticket reopened]"
-    tp-id:
+    tpid:
         default: "I teleported to this ticket."
         
 #ColourNodes do NOT work from here one!!!
@@ -74,9 +74,9 @@ info:
     modreq: submit a help ticket
     pending: set the status of a ticket to pending
     check: returns a list of all tickets
-    tp-id: teleports you to the location of the ticket
+    tpid: teleports you to the location of the ticket
     claim: claims a ticket
-    re-open: re-opens a ticket
+    reopen: re-opens a ticket
     status: returns your last 5 tickets
     done: closes a ticket
     mods: returns a list of all online mods
