@@ -37,8 +37,8 @@ public class TpIdCommand extends SubCommandExecutor {
     public TpIdCommand(ModReq instance) {
         plugin = instance;
     }
-
-    public void onInvalidCommand(CommandSender sender, String[] args) {
+    @Override
+    public void onInvalidCommand(CommandSender sender, String[] args, String command) {
         tickets = plugin.getTicketHandler();
         if (sender instanceof Player) {
             Player p = (Player) sender;

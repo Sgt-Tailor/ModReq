@@ -32,8 +32,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class CommentCommand extends SubCommandExecutor {
-
-    public void onInvalidCommand(CommandSender sender, String[] args) {
+    @Override
+    public void onInvalidCommand(CommandSender sender, String[] args, String command) {
         if (sender instanceof Player) {
             int id = Integer.parseInt(args[0]);
 
