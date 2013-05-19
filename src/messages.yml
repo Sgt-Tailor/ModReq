@@ -5,10 +5,10 @@
 #other tags can be found in the default messages, as well as in the comments
 #The tags used are &player, &number and &comment
 error:
-    permission: "&cYou do not have permissions to do this"
+    permission: "&cYou do not have permissions to use this command."
     number: "&c&number is not a number"
     message: "&cYou have not typed a message, please do so"
-    nomods: "&7There are no mods online."
+    nomods: "&7There are no mods online at this time.."
     comment: "&cYou may not submit that many comments in a row."
     ticket:
         exist: "&cThat ticket does not exist (&6#&number&a)"
