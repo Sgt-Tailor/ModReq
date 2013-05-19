@@ -38,13 +38,14 @@ public class CheckCommand extends SubCommandExecutor {
     public CheckCommand(ModReq instance) {
 	plugin = instance;
     }
-    public void onInvalidCommand(Player sender, String[] args, String command) {
+    @Override
+    public void onInvalidCommand(CommandSender sender, String[] args, String command) {
 	tickets = plugin.getTicketHandler();
 	int page = 1;
 	try {
 	    page = Integer.parseInt(command);
 	} catch (Exception e) {
-	    Message.sendToPlayer(MessageType.ERROR_NUMBER, sender);
+	    Message.sendToPlayer(MessageType.ERROR_NUMBER, (Player)sender);
 	    return;
 	}
 	if (page > plugin.getTicketHandler().getViewablePageCount(sender))

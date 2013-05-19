@@ -39,8 +39,8 @@ public class DoneCommand extends SubCommandExecutor {
     public DoneCommand(ModReq instance) {
         plugin = instance;
     }
-
-    public void onInvalidCommand(CommandSender sender, String[] args) {
+    @Override
+    public void onInvalidCommand(CommandSender sender, String[] args, String command) {
         tickets = plugin.getTicketHandler();
         if (sender instanceof Player) {
             Player p = (Player) sender;
