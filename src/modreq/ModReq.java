@@ -50,8 +50,6 @@ public class ModReq extends JavaPlugin {
     public File configFile;
     private File messages;
     private Metrics metrics;
-    private String currentVersion;
-    private PluginDescriptionFile pdfFile;
     public String latestVersion;
     public String DownloadLink;
     private TicketHandler ticketHandler;
@@ -71,10 +69,6 @@ public class ModReq extends JavaPlugin {
         PluginManager pm = this.getServer().getPluginManager();
         pm.registerEvents(new ModReqListener(this), this);
 
-        pdfFile = this.getDescription();
-        currentVersion = pdfFile.getVersion();
-        String name = pdfFile.getName();
-
         if (plugin.getConfig().getBoolean("check-updates", true)) {
             startVersionChecker();
         } else {
@@ -83,11 +77,11 @@ public class ModReq extends JavaPlugin {
         startNotify();
         startMetrics();
 
-        logger.log(Level.INFO, "{0} version {1} is enabled.", new Object[]{name, currentVersion});
+        logger.log(Level.INFO, "{0} version {1} is enabled.", new Object[]{this.getDescription().getName(), getCurrentVersion()});
     }
     @Override
     public void onDisable() {
-        logger.log(Level.INFO, "{0} is now disabled ", pdfFile.getName());
+        logger.log(Level.INFO, "{0} is now disabled ", this.getDescription().getName());
     }
     
     private void startMetrics() {
@@ -133,7 +127,7 @@ public class ModReq extends JavaPlugin {
 
     }
     public String getCurrentVersion() {
-        return currentVersion;
+        return this.getDescription().getVersion();
     }
     public TicketHandler getTicketHandler() {
         return ticketHandler;
