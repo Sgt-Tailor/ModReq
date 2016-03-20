@@ -203,7 +203,7 @@ public class ModReq extends JavaPlugin {
                     TicketHandler th = getTicketHandler();
                     int opentickets = th.getOpenTicketsAmount();
                     if (opentickets > 0) {
-                        Player[] online = Bukkit.getOnlinePlayers();
+                        Player[] online = Bukkit.getOnlinePlayers().toArray(new Player[Bukkit.getOnlinePlayers().size()]);
                         for (int i = 0; i < online.length; i++) {
                             if (online[i].hasPermission("modreq.check")) {
                                 online[i].sendMessage(ChatColor.GOLD

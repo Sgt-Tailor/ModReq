@@ -78,7 +78,7 @@ public class ModreqCommand implements CommandExecutor {
     public void sendMessageToAdmins(String message) {// sends a message to all
         // online players with the
         // modreq.check permission
-        Player[] list = Bukkit.getServer().getOnlinePlayers();
+        Player[] list = Bukkit.getServer().getOnlinePlayers().toArray(new Player[Bukkit.getServer().getOnlinePlayers().size()]);
         int l = list.length;
         int n = 0;
         while (n < l) {

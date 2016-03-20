@@ -35,7 +35,7 @@ public class ModsCommand extends SubCommandExecutor {
     public void Null(CommandSender sender, String[] args) {
         if (sender.hasPermission("modreq.mods")) {
             sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.mods.header"), "", "",""));
-            Player[] op = Bukkit.getOnlinePlayers();
+            Player[] op = Bukkit.getOnlinePlayers().toArray(new Player[Bukkit.getOnlinePlayers().size()]);
             String online = "";
             for (int i = 0; i < op.length; i++) {
                 if (op[i].hasPermission("modreq.check")) {

@@ -137,7 +137,7 @@ public class Ticket {
      */
     public void sendSummarytoPlayer(Player p) {
         ChatColor namecolor = ChatColor.RED;
-        Player[] list = Bukkit.getServer().getOnlinePlayers();
+        Player[] list = Bukkit.getServer().getOnlinePlayers().toArray(new Player[Bukkit.getServer().getOnlinePlayers().size()]);
         int l = list.length;
         int n = 0;
         while (n < l) {
@@ -295,7 +295,7 @@ public class Ticket {
         // the submitter of a
         // ticket if he is
         // online
-        Player[] op = Bukkit.getOnlinePlayers();
+        Player[] op = Bukkit.getOnlinePlayers().toArray(new Player[Bukkit.getOnlinePlayers().size()]);
         for (int i = 0; i < op.length; i++) {
             if (op[i].getName().equals(submitter)) {
                 if (op[i].isOnline()) {
@@ -343,7 +343,7 @@ public class Ticket {
     }
 
     public void notifyStaff(String notification) {
-        Player[] op = Bukkit.getOnlinePlayers();
+        Player[] op = Bukkit.getOnlinePlayers().toArray(new Player[Bukkit.getOnlinePlayers().size()]);
         for (int i = 0; i < op.length; i++) {
             if (op[i].getName().equals(staff)) {
                 op[i].sendMessage(notification);
