@@ -75,7 +75,10 @@ public abstract class SubCommandExecutor implements CommandExecutor {
 		String c="";
 		try{
 		c=args[0];
-		boolean b=false;
+		boolean b=true;
+		if (command == "comment") {
+			b=false;
+		}
 		for(String s:args){
 			if(!b){b=true;continue;}
 			arguments.add(s);
