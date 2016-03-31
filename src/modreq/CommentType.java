@@ -35,6 +35,12 @@ public enum CommentType {
             case PENDING:
                 return ModReq.getInstance().Messages
                         .getString("log.pending.default");
+            case GUILTY:
+            	return ModReq.getInstance().Messages
+            			.getString("log.punishment.guilty");
+            case PUNISHED:
+            	return ModReq.getInstance().Messages
+            			.getString("log.punishment.punished");
             default:
                 return "";
 
