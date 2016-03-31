@@ -31,6 +31,7 @@ import modreq.commands.StatusCommand;
 import modreq.commands.TicketCommand;
 import modreq.commands.TpIdCommand;
 import modreq.commands.UpdatemodreqCommand;
+import modreq.commands.GuiltyCommand;
 import modreq.commands.claimCommand;
 
 public class CommandManager {
@@ -49,6 +50,7 @@ public class CommandManager {
     private UpdatemodreqCommand update;
     private ClearticketsCommand clear;
     private ReloadCommand reload;
+    private GuiltyCommand guilty;
     private CommentCommand comment;
 
     public CommandManager(ModReq instance) {
@@ -66,6 +68,7 @@ public class CommandManager {
         update = new UpdatemodreqCommand(plugin);
         clear = new ClearticketsCommand(plugin);
         reload = new ReloadCommand(plugin);
+        guilty = new GuiltyCommands(plugin);
         comment = new CommentCommand();
 
     }
@@ -84,6 +87,7 @@ public class CommandManager {
         plugin.getCommand("updatemodreq").setExecutor(update);
         plugin.getCommand("cleartickets").setExecutor(clear);
         plugin.getCommand("modreload").setExecutor(reload);
+        plugin.getCommand("markguilty").setExecutor(guilty);
         plugin.getCommand("comment").setExecutor(comment);
     }
 }
