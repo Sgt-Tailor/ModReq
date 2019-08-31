@@ -19,55 +19,69 @@ package modreq.commands;
 
 import java.sql.SQLException;
 
-import modreq.CommentType;
-import modreq.ModReq;
-import modreq.Ticket;
-import modreq.korik.SubCommandExecutor;
+import modreq.*;
 import modreq.managers.TicketHandler;
 
 import org.bukkit.Location;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class TpIdCommand extends SubCommandExecutor {
+public class TpIdCommand implements CommandExecutor {
 
     private ModReq plugin;
-    private TicketHandler tickets;
 
     public TpIdCommand(ModReq instance) {
         plugin = instance;
     }
+
     @Override
-    public void onInvalidCommand(CommandSender sender, String[] args, String command) {
-        tickets = plugin.getTicketHandler();
-        if (sender instanceof Player) {
-            Player p = (Player) sender;
-            if (p.hasPermission("modreq.tp-id")) {
-                if (args.length == 1) {
-                    int id;
-                    try {
-                        id = Integer.parseInt(args[0]);
-                    } catch (Exception e) {
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "",args[0],""));
-                        return;
-                    }
-                    if (tickets.getTicketCount() < id) {
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exists"), "","",""));
-                    } else {
-                        Ticket t = tickets.getTicketById(id);
-                        t.addDefaultComment(p, CommentType.TP);
-                        try {
-                            t.update();
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                        Location loc = t.getLocation();
-                        p.teleport(loc);
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.teleport"), "","",""));
-                        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.teleport"), sender.getName(),args[0],""));
-                    }
-                }
-            }
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        TicketHandler tickets = plugin.getTicketHandler();
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("You can only run this command as a player");
+            return true;
         }
+
+        Player p = (Player) sender;
+        if (!p.hasPermission("modreq.tp-id")) {
+            Message.sendToPlayer(MessageType.ERROR_PERMISSION, p);
+            return true;
+        }
+
+        if (args.length != 1) {
+            p.sendMessage("/" + label + " <id>");
+            return true;
+        }
+
+        int id;
+        try {
+            id = Integer.parseInt(args[0]);
+        } catch (Exception e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, p, args[0]);
+            return true;
+        }
+
+        Ticket t = tickets.getTicketById(id);
+        if (t == null) {
+            Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
+            return true;
+        }
+
+        t.addDefaultComment(p, CommentType.TP);
+        try {
+            t.update();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+        }
+
+        Location loc = t.getLocation();
+        p.teleport(loc);
+
+        Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_TELEPORT, p);
+        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.teleport"), sender.getName(), args[0], ""));
+        return true;
     }
 }

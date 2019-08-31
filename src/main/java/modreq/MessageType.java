@@ -17,7 +17,7 @@ public enum MessageType {
     ERROR_CLAIM_MULTIPLE(),
 
     ERROR_TICKET_EXIST(),
-    ERROR_TICKET_YOURS(),
+    ERROR_TICKET_YOUR(),
     ERROR_TICKET_CLOSE(),
     ERROR_TICKET_CLAIM(),
     ERROR_TICKET_TOOMANY(),
@@ -35,7 +35,7 @@ public enum MessageType {
     STAFF_EXECUTOR_TICKET_CLAIMED(),
     STAFF_EXECUTOR_TICKET_PENDING(),
     STAFF_EXECUTOR_TICKET_REOPENED(),
-    STAFF_EXECUTOR_TICKET_TELEPORTED(),
+    STAFF_EXECUTOR_TICKET_TELEPORT(),
     STAFF_EXECUTOR_TICKET_COMMENT(),
 
     STAFF_ALL_COMMENT(),
@@ -105,9 +105,8 @@ public enum MessageType {
         return message;
     }
 
-    private MessageType() {
-        String a = this.name().toLowerCase().replace("_", ".");
-        String b = ModReq.getInstance().Messages.getString(a, ModReq.getInstance().getDefaultMessages().getString(a));
-        message = b;
+    MessageType() {
+        message = this.name().toLowerCase().replace("_", ".");
+        message = ModReq.getInstance().Messages.getString(message, ModReq.getInstance().getDefaultMessages().getString(message));
     }
 }

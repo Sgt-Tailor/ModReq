@@ -19,10 +19,7 @@ package modreq.commands;
 
 import java.sql.SQLException;
 
-import modreq.CommentType;
-import modreq.ModReq;
-import modreq.Status;
-import modreq.Ticket;
+import modreq.*;
 import modreq.korik.SubCommandExecutor;
 import modreq.managers.TicketHandler;
 
@@ -37,60 +34,78 @@ public class TicketCommand extends SubCommandExecutor {
     public TicketCommand(ModReq instance) {
         plugin = instance;
     }
+
     @Override
     public void onInvalidCommand(CommandSender sender, String[] args, String command) {
         tickets = plugin.getTicketHandler();
-        if (sender instanceof Player) {
-            if (sender.hasPermission("modreq.check")) {
-                if (args.length == 1) {
-                    int id;
-                    try {
-                        id = Integer.parseInt(args[0]);
-                    } catch (Exception e) {
-                        sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "","",""));
-                        return;
-                    }
-                    if (tickets.getTicketCount() < id) {
-                        sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "","",""));
-                    } else {
-                        tickets.getTicketById(id).sendMessageToPlayer(
-                                (Player) sender);
-                    }
-                }
-            }
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("You can only run this command as a player");
+            return;
         }
+        Player player = (Player) sender;
+        if (sender.hasPermission("modreq.check")) {
+            Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
+            return;
+        }
+
+        if (args.length != 1) {
+            sender.sendMessage("/ticket <id>");
+            return;
+        }
+
+        int id;
+        try {
+            id = Integer.parseInt(args[0]);
+        } catch (Exception e) {
+            sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "", "", ""));
+            return;
+        }
+
+        Ticket ticket = tickets.getTicketById(id);
+        if (ticket == null) {
+            Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, player);
+            return;
+        }
+
+        ticket.sendMessageToPlayer(player);
     }
 
-    @command
+    @command(
+            permissions = "modreq.setpending",
+            maximumArgsLength = 1,
+            minimumArgsLength = 1,
+            playerOnly = true,
+            usage = "/ticket setpending <id>"
+    )
     public void setpending(CommandSender sender, String[] args) {
         tickets = plugin.getTicketHandler();
-        if (sender instanceof Player) {
-            Player p = (Player) sender;
-            if (p.hasPermission("modreq.setpending")) {
-                if (args.length == 1) {
-                    int id;
-                    try {
-                        id = Integer.parseInt(args[0]);
-                    } catch (Exception e) {
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "",args[0],""));
-                        return;
-                    }
-                    if (tickets.getTicketCount() < id) {
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "","",""));;
-                    } else {
-                        Ticket t = tickets.getTicketById(id);
-                        t.setStatus(Status.PENDING);
-                        t.addDefaultComment(p, CommentType.PENDING);
-                        t.setStaff("no staff member");
-                        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.pending"), sender.getName(),Integer.toString(id),""));
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.pending"), "","",""));
-                        try {
-                            t.update();
-                        } catch (SQLException e) {
-                        }
-                    }
-                }
-            }
+        Player p = (Player) sender;
+        int id;
+        try {
+            id = Integer.parseInt(args[0]);
+        } catch (Exception e) {
+            p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "", args[0], ""));
+            return;
+        }
+
+        Ticket t = tickets.getTicketById(id);
+        if (t == null) {
+            Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
+            return;
+        }
+
+        t.setStatus(Status.PENDING);
+        t.addDefaultComment(p, CommentType.PENDING);
+        t.setStaff("no staff member");
+        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.pending"), sender.getName(), Integer.toString(id), ""));
+
+        Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_PENDING, p);
+        try {
+            t.update();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
         }
     }
 }
+

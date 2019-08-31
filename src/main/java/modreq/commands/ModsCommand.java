@@ -17,52 +17,58 @@
  */
 package modreq.commands;
 
+import modreq.Message;
+import modreq.MessageType;
 import modreq.ModReq;
-import modreq.korik.SubCommandExecutor;
-
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class ModsCommand extends SubCommandExecutor {
+public class ModsCommand implements CommandExecutor {
 
 
     public ModsCommand(ModReq instance) {
     }
 
-    @command
-    public void Null(CommandSender sender, String[] args) {
-        if (sender.hasPermission("modreq.mods")) {
-            sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.mods.header"), "", "", ""));
-            boolean first = true;
-            StringBuilder online = new StringBuilder();
-            for (Player op : Bukkit.getOnlinePlayers()) {
-                if (op.hasPermission("modreq.check")) {
-                    if (sender instanceof Player) {
-                        if (((Player) sender).canSee(op)) {
-                            if (first) {
-                                online = new StringBuilder(op.getDisplayName());
-                                first = false;
-                            } else {
-                                online.append(" ").append(op.getDisplayName());
-                            }
-                        }
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        boolean isPlayer = sender instanceof Player;
+        if (!sender.hasPermission("modreq.mods")) {
+            if (isPlayer) {
+                Message.sendToPlayer(MessageType.ERROR_PERMISSION, (Player) sender);
+            } else {
+                sender.sendMessage("You don't have permissions to do this");
+            }
+            return true;
+        }
+
+        sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.mods.header"), "", "", ""));
+        boolean first = true;
+        StringBuilder online = new StringBuilder();
+
+        Player player = null;
+        if (isPlayer) {
+            player = (Player) sender;
+        }
+        for (Player op : Bukkit.getOnlinePlayers()) {
+            if (op.hasPermission("modreq.check")) {
+                if (!isPlayer || player.canSee(op)) {
+                    if (first) {
+                        online = new StringBuilder(op.getDisplayName());
+                        first = false;
                     } else {
-                        if (first) {
-                            online = new StringBuilder(op.getDisplayName());
-                            first = false;
-                        } else {
-                            online.append(" ").append(op.getDisplayName());
-                        }
+                        online.append(" ").append(op.getDisplayName());
                     }
                 }
             }
-            String onlineString = online.toString();
-            if (onlineString.equals("")) {
-                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.nomods"), "", "", ""));
-                return;
-            }
-            sender.sendMessage(onlineString);
         }
+        String onlineString = online.toString();
+        if (onlineString.equals("")) {
+            sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.nomods"), "", "", ""));
+            return true;
+        }
+        sender.sendMessage(onlineString);
+        return true;
     }
 }
