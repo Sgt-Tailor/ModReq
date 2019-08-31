@@ -96,27 +96,28 @@ public class ModReq extends JavaPlugin {
         }
 
     }
+
     public void checkConfigFile() {
         configFile = new File(getDataFolder().getAbsolutePath() + "/config.yml");
         if (!configFile.exists()) {
             firstrun();
         }
 
-        YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
-                .getResource("plugin.yml"));
+        YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(getTextResource("plugin.yml"));
         if (!pluginYML.getString("config-version").equals(
                 getConfig().getString("version"))) {
             logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
         }
     }
+
     public void reload() {
         messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
         configFile = new File(getDataFolder().getAbsolutePath() + "/config.yml");
         if (!configFile.exists()) {
             firstrun();
         }
-        YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
-                .getResource("plugin.yml"));
+
+        YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(getTextResource("plugin.yml"));
         if (!pluginYML.getString("config-version").equals(
                 getConfig().getString("version"))) {
             logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
@@ -184,14 +185,17 @@ public class ModReq extends JavaPlugin {
             Messages = getDefaultMessages();
         }
     }
+
     private void saveDefaultMessages() {
         plugin.saveResource("messages.yml", true);
     }
+
     public YamlConfiguration getDefaultMessages() {
-        YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(this
-                .getResource("messages.yml"));
+        File messagesYaml = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
+        YamlConfiguration pluginYML = YamlConfiguration.loadConfiguration(messagesYaml);
         return pluginYML;
     }
+
     private void startNotify() {
         if (this.getConfig().getBoolean("notify-on-time")) {
             logger.info("[ModReq] Notifying on time enabled");
@@ -203,7 +207,7 @@ public class ModReq extends JavaPlugin {
                     TicketHandler th = getTicketHandler();
                     int opentickets = th.getOpenTicketsAmount();
                     if (opentickets > 0) {
-                        Player[] online = Bukkit.getOnlinePlayers();
+                        Player[] online = Bukkit.getOnlinePlayers().toArray(new Player[Bukkit.getOnlinePlayers().size()]);
                         for (int i = 0; i < online.length; i++) {
                             if (online[i].hasPermission("modreq.check")) {
                                 online[i].sendMessage(ChatColor.GOLD
