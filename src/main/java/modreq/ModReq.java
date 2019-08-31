@@ -17,6 +17,16 @@
  */
 package modreq;
 
+import modreq.Metrics.Graph;
+import modreq.managers.CommandManager;
+import modreq.managers.TicketHandler;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -27,19 +37,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import modreq.Metrics.Graph;
-import modreq.managers.CommandManager;
-import modreq.managers.PriorityManager;
-import modreq.managers.TicketHandler;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public class ModReq extends JavaPlugin {
 
@@ -53,7 +50,6 @@ public class ModReq extends JavaPlugin {
     public String latestVersion;
     public String DownloadLink;
     private TicketHandler ticketHandler;
-    private static PriorityManager priorityManager;
 
     @Override
     public void onEnable() {
@@ -61,7 +57,6 @@ public class ModReq extends JavaPlugin {
         cmdManager = new CommandManager(this);
         ticketHandler = new TicketHandler();
         messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
-        priorityManager = new PriorityManager();
         checkConfigFile();
         loadMessages();
 
@@ -265,9 +260,4 @@ public class ModReq extends JavaPlugin {
         input = ChatColor.translateAlternateColorCodes('&', input);
         return input;
     }
-
-    public static PriorityManager getPriorityManager() {
-        return priorityManager;
-    }
-
 }

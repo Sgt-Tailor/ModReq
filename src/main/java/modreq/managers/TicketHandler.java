@@ -17,25 +17,18 @@
  */
 package modreq.managers;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.logging.Logger;
-
 import modreq.Comment;
 import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class TicketHandler {
 
@@ -235,7 +228,7 @@ public class TicketHandler {
 
     }
 
-    public int getTicketAmount(@NotNull Status status) {
+    public int getTicketAmount(Status status) {
         try {
             Connection conn = getConnection();
             PreparedStatement stat = conn.prepareStatement("SELECT count(1) FROM requests WHERE status = ?");
