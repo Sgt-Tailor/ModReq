@@ -13,6 +13,9 @@ error:
     comment:
         toomany: "&cYou may not submit that many comments in a row."
         empty: "&cComment may not be empty"
+    claim:
+        pending: "&cYou may not claim pending ticket (&6#&number&a)"
+        multiple: "&cYou care not allowed to claim multiple tickets"
     ticket:
         exist: "&cThat ticket does not exist (&6#&number&a)"
         your: "&cThat is not your ticket (&6#&number&a)"

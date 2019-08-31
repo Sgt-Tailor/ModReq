@@ -52,10 +52,12 @@ public class ClaimCommand implements CommandExecutor {
         Player p = (Player) sender;
         if (!p.hasPermission("modreq.claim.normal")) {
             Message.sendToPlayer(MessageType.ERROR_PERMISSION, p);
+            return true;
         }
 
         if (args.length == 0) {
-            Message.sendToPlayer(MessageType.ERROR_PERMISSION, p);
+            p.sendMessage("/" + label + " <id>");
+            return true;
         }
 
         int ticketId;
@@ -82,13 +84,13 @@ public class ClaimCommand implements CommandExecutor {
         }
 
         if (currentstatus.equals(Status.PENDING) && !sender.hasPermission("modreq.claim.pending")) {
-            Message.sendToPlayer(MessageType.ERROR_TICKET_CLAIM, (Player) sender, args[0]);
+            Message.sendToPlayer(MessageType.ERROR_CLAIM_PENDING, (Player) sender, args[0]);
             return true;
         }
 
         if (!plugin.getConfig().getBoolean("may-claim-multiple", false)) {
             if (tickets.hasClaimed(p)) {
-                Message.sendToPlayer(MessageType.ERROR_TICKET_CLAIM, (Player) sender, args[0]);
+                Message.sendToPlayer(MessageType.ERROR_CLAIM_MULTIPLE, (Player) sender, args[0]);
                 return true;
             }
         }

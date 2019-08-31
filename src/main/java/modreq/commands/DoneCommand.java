@@ -19,77 +19,88 @@ package modreq.commands;
 
 import java.sql.SQLException;
 
-import modreq.Comment;
-import modreq.CommentType;
-import modreq.ModReq;
-import modreq.Status;
-import modreq.Ticket;
+import modreq.*;
 import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
 import modreq.managers.TicketHandler;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class DoneCommand extends SubCommandExecutor {
+public class DoneCommand implements CommandExecutor {
 
     private ModReq plugin;
-    private TicketHandler tickets;
 
     public DoneCommand(ModReq instance) {
         plugin = instance;
     }
+
     @Override
-    public void onInvalidCommand(CommandSender sender, String[] args, String command) {
-        tickets = plugin.getTicketHandler();
-        if (sender instanceof Player) {
-            Player p = (Player) sender;
-            if (p.hasPermission("modreq.close")) {
-                if (args.length > 0) {
-                    int id;
-                    try {
-                        id = Integer.parseInt(args[0]);
-                    } catch (Exception e) {
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "", args[0],""));
-                        return;
-                    }
-                    if (tickets.getTicketCount() < id) {
-                        sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "", args[0],""));
-                    } else {
-                        String comment = Utils.join(args, " ", 1);
-                        Ticket t = tickets.getTicketById(id);
-                        String staff = sender.getName();
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        TicketHandler tickets = plugin.getTicketHandler();
 
-                        String currenstatus = t.getStatus().getStatusString();
-                        String currentstaff = t.getStaff();
-
-                        if (!currenstatus.equals("open")) {
-                            if (!currentstaff.equals(staff)
-                                    && !sender
-                                    .hasPermission("modreq.overwrite.close")) {
-                                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.close"), "", "",""));
-                                return;
-                            }
-                        }
-
-                        t.addComment(new Comment(sender.getName(), comment,
-                                CommentType.CLOSE));
-                        t.setStaff(staff);
-                        t.setStatus(Status.CLOSED);
-                        try {
-                            t.update();
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                        sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.closed"), "", args[0],""));
-                        if (comment == null || comment.equals("")) {
-                            t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.close.withoutcomment"), sender.getName(), args[0],""));
-                        } else {
-                            t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.close.withcomment"), sender.getName(), args[0],comment));
-                        }
-                    }
-                }
-            }
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("This command can only be run by a player");
+            return true;
         }
+        Player p = (Player) sender;
+        if (!p.hasPermission("modreq.close")) {
+            Message.sendToPlayer(MessageType.ERROR_PERMISSION, p);
+            return true;
+        }
+
+        if (args.length == 0) {
+            p.sendMessage("/" + label + " <id> (message)");
+            return true;
+        }
+
+        int id;
+        String idString = args[0];
+        try {
+            id = Integer.parseInt(idString);
+        } catch (Exception e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, p, idString);
+            return true;
+        }
+
+        Ticket t = tickets.getTicketById(id);
+        if (t == null) {
+            Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
+            return true;
+        }
+
+        String comment = Utils.join(args, " ", 1);
+        String staff = sender.getName();
+
+        String currenstatus = t.getStatus().getStatusString();
+        String currentstaff = t.getStaff();
+
+        if (!currenstatus.equals(Status.OPEN.getStatusString())
+                && !currentstaff.equals(staff)
+                && !sender.hasPermission("modreq.overwrite.close")) {
+            sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.close"), "", "", ""));
+            return true;
+        }
+
+        t.addComment(new Comment(sender.getName(), comment, CommentType.CLOSE));
+        t.setStaff(staff);
+        t.setStatus(Status.CLOSED);
+        try {
+            t.update();
+        } catch (SQLException e) {
+            Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+            e.printStackTrace();
+        }
+
+        Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_CLOSED, p, idString);
+        if (comment.equals("")) {
+            Message.sendToPlayer(MessageType.PLAYER_CLOSE_WITHOUTCOMMENT, p, idString);
+        } else {
+            Message.sendToPlayer(MessageType.PLAYER_CLOSE_WITHCOMMENT, p, id, comment);
+        }
+
+        return true;
     }
 }
