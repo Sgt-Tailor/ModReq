@@ -27,40 +27,42 @@ import org.bukkit.entity.Player;
 public class ModsCommand extends SubCommandExecutor {
 
 
-
     public ModsCommand(ModReq instance) {
     }
 
     @command
     public void Null(CommandSender sender, String[] args) {
         if (sender.hasPermission("modreq.mods")) {
-            sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.mods.header"), "", "",""));
-            Player[] op = Bukkit.getOnlinePlayers();
-            String online = "";
-            for (int i = 0; i < op.length; i++) {
-                if (op[i].hasPermission("modreq.check")) {
+            sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.mods.header"), "", "", ""));
+            boolean first = true;
+            StringBuilder online = new StringBuilder();
+            for (Player op : Bukkit.getOnlinePlayers()) {
+                if (op.hasPermission("modreq.check")) {
                     if (sender instanceof Player) {
-                        if (((Player) sender).canSee(op[i])) {
-                            if (i == 0) {
-                                online = op[i].getDisplayName();
+                        if (((Player) sender).canSee(op)) {
+                            if (first) {
+                                online = new StringBuilder(op.getDisplayName());
+                                first = false;
                             } else {
-                                online = online + " " + op[i].getDisplayName();
+                                online.append(" ").append(op.getDisplayName());
                             }
                         }
                     } else {
-                        if (i == 0) {
-                            online = op[i].getDisplayName();
+                        if (first) {
+                            online = new StringBuilder(op.getDisplayName());
+                            first = false;
                         } else {
-                            online = online + " " + op[i].getDisplayName();
+                            online.append(" ").append(op.getDisplayName());
                         }
                     }
                 }
             }
-            if (online.equals("")) {
-                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.nomods"), "", "",""));
+            String onlineString = online.toString();
+            if (onlineString.equals("")) {
+                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.nomods"), "", "", ""));
                 return;
             }
-            sender.sendMessage(online);
+            sender.sendMessage(onlineString);
         }
     }
 }

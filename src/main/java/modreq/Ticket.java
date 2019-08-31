@@ -19,6 +19,7 @@ package modreq;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 
 import modreq.managers.TicketHandler;
 
@@ -137,17 +138,13 @@ public class Ticket {
      */
     public void sendSummarytoPlayer(Player p) {
         ChatColor namecolor = ChatColor.RED;
-        Player[] list = Bukkit.getServer().getOnlinePlayers();
-        int l = list.length;
-        int n = 0;
-        while (n < l) {
-            Player op = list[n];
+        Collection<? extends Player> list = Bukkit.getServer().getOnlinePlayers();
+        for (Player op : list) {
             if (op.getName().equals(submitter)) {
                 if (op.isOnline()) {
                     namecolor = ChatColor.GREEN;
                 }
             }
-            n++;
         }
         String summessage = message;
         if (summessage.length() > 15) {
@@ -295,11 +292,11 @@ public class Ticket {
         // the submitter of a
         // ticket if he is
         // online
-        Player[] op = Bukkit.getOnlinePlayers();
-        for (int i = 0; i < op.length; i++) {
-            if (op[i].getName().equals(submitter)) {
-                if (op[i].isOnline()) {
-                    op[i].sendMessage(message);
+        Collection<? extends Player> list = Bukkit.getOnlinePlayers();
+        for (Player op : list) {
+            if (op.getName().equals(submitter)) {
+                if (op.isOnline()) {
+                    op.sendMessage(message);
                     return;
                 }
             }
@@ -337,16 +334,15 @@ public class Ticket {
         }
     }
 
-    public void addDefaultComment(Player p, CommentType c) {
+    public void addDefaultComment(@org.jetbrains.annotations.NotNull Player p, CommentType c) {
         Comment comment = new Comment(p.getName(), c.getDefaultComment(), c);
         addComment(comment);
     }
 
     public void notifyStaff(String notification) {
-        Player[] op = Bukkit.getOnlinePlayers();
-        for (int i = 0; i < op.length; i++) {
-            if (op[i].getName().equals(staff)) {
-                op[i].sendMessage(notification);
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p.getName().equals(staff)) {
+                p.sendMessage(notification);
                 return;
             }
         }
