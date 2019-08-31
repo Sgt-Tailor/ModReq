@@ -28,44 +28,49 @@ import modreq.korik.Utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class CommentCommand extends SubCommandExecutor {
-    @Override
-    public void onInvalidCommand(CommandSender sender, String[] args, String command) {
+public class CommentCommand implements CommandExecutor {
+
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player) {
+            if (args.length <= 1) {
+                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.comment.empty"), "", "", ""));
+                return true;
+            }
+
             int id = Integer.parseInt(args[0]);
 
             if (id > ModReq.getInstance().getTicketHandler().getTicketCount()) {
-                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"),"","",""));
-                return;
+                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "", "", ""));
+                return true;
             }
             Player p = (Player) sender;
             Ticket t = ModReq.getInstance().getTicketHandler()
-                    .getTicketById(Integer.parseInt(args[0]));
+                    .getTicketById(id);
             if (p.hasPermission("modreq.check") || playerIsSubmitter(p, t)) {
                 if (maxCommentIsExeeded(p, t)) {
-                    sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.comment"),"","",""));
-                    return;
+                    sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.comment.toomany"), "", "", ""));
+                    return true;
                 }
                 String commenter = p.getName();
                 String comment = Utils.join(args, " ", 1);
                 Comment c = new Comment(commenter, comment, CommentType.COMMENT);
 
                 t.addComment(c);
-                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.comment"), "","",""));
-                for(Player op : Bukkit.getOnlinePlayers()){
-                    if(!op.getName().equals(sender.getName())){//do not send the message to the commandsender
-                        if(t.getSubmitter().equals(op.getName())){//it us the submitter
-                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("player.comment"), sender.getName(), args[0],""));
+                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.comment"), "", "", ""));
+                for (Player op : Bukkit.getOnlinePlayers()) {
+                    if (!op.getName().equals(sender.getName())) {//do not send the message to the commandsender
+                        if (t.getSubmitter().equals(op.getName())) {//it us the submitter
+                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("player.comment"), sender.getName(), args[0], ""));
+                        } else if (t.getStaff().equals(sender.getName())) {//it is the staff member
+                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.comment"), sender.getName(), args[0], ""));
+                        } else if (t.getCommentsBy(op.getName()).isEmpty() == false) {//it is someone else that commented earlier
+                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.comment"), sender.getName(), args[0], ""));
                         }
-                        else if(t.getStaff().equals(sender.getName())){//it is the staff member
-                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.comment"), sender.getName(), args[0],""));
-                        }
-                        else if(t.getCommentsBy(op.getName()).isEmpty() == false){//it is someone else that commented earlier
-                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.comment"), sender.getName(), args[0],""));
-                        } 
                     }
                 }
                 try {
@@ -77,6 +82,8 @@ public class CommentCommand extends SubCommandExecutor {
                         + "You don't have permissions to to this");
             }
         }
+
+        return true;
     }
 
     private boolean maxCommentIsExeeded(Player p, Ticket t) {

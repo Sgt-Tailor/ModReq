@@ -9,7 +9,9 @@ error:
     number: "&c&number is not a number"
     message: "&cYou have not typed a message, please do so"
     nomods: "&7There are no mods online at this time.."
-    comment: "&cYou may not submit that many comments in a row."
+    comment:
+        toomany: "&cYou may not submit that many comments in a row."
+        empty: "&cComment may not be empty"
     ticket:
         exist: "&cThat ticket does not exist (&6#&number&a)"
         your: "&cThat is not your ticket (&6#&number&a)"

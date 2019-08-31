@@ -334,7 +334,7 @@ public class Ticket {
         }
     }
 
-    public void addDefaultComment(@org.jetbrains.annotations.NotNull Player p, CommentType c) {
+    public void addDefaultComment(Player p, CommentType c) {
         Comment comment = new Comment(p.getName(), c.getDefaultComment(), c);
         addComment(comment);
     }
