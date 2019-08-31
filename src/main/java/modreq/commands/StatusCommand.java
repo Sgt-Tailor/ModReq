@@ -20,6 +20,8 @@ package modreq.commands;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import modreq.Message;
+import modreq.MessageType;
 import modreq.ModReq;
 import modreq.Ticket;
 import modreq.korik.SubCommandExecutor;
@@ -40,47 +42,56 @@ public class StatusCommand extends SubCommandExecutor {
     @command
     public void Null(CommandSender sender, String[] args) {
         tickets = plugin.getTicketHandler();
-        if (sender instanceof Player) {
-            Player p = (Player) sender;
-            if (args.length == 0) {
-                if (sender.hasPermission("modreq.status")) {
-                    try {
-                        ArrayList<Ticket> t = tickets.getTicketsByPlayer(sender.getName());
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.status.header"), "","",""));
-                        for (int i = 0; i < t.size(); i++) {
-                            t.get(i).sendStatus(p);
-                        }
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.status.footer"), "","",""));
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+        if (!(sender instanceof Player)) {
+            return;
         }
-    }
-    @Override
-    public void onInvalidCommand(CommandSender sender, String[] args, String command) {
-        tickets = plugin.getTicketHandler();
-        if (sender instanceof Player) {
-            Player p = (Player) sender;
-            if (args.length == 1) {
-                int id;
-                try {
-                    id = Integer.parseInt(args[0]);
-                    if (id > tickets.getTicketCount()) {
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "","",""));
-                        return;
-                    }
-                    Ticket t = tickets.getTicketById(id);
-                    if (t.getSubmitter().equals(p.getName())) {
-                        t.sendMessageToPlayer(p);
-                    } else {
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.your"), "","",""));
-                    }
-                } catch (Exception e) {
-                    p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "","",""));
-                }
+        Player p = (Player) sender;
+        if (!sender.hasPermission("modreq.status")) {
+            Message.sendToPlayer(MessageType.ERROR_PERMISSION, p);
+            return;
+        }
+        try {
+            ArrayList<Ticket> t = tickets.getTicketsByPlayer(sender.getName());
+            p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.status.header"), "", "", ""));
+            for (Ticket ticket : t) {
+                ticket.sendStatus(p);
             }
+            p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.status.footer"), "", "", ""));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+        }
+
+    }
+
+    @Override
+    public void onInvalidCommand(CommandSender sender, String[] args, String ticketNumber) {
+        tickets = plugin.getTicketHandler();
+        if (!(sender instanceof Player)) {
+            return;
+        }
+        Player p = (Player) sender;
+        if (args.length != 0) {
+            p.sendMessage("/status <id>");
+            return;
+        }
+
+        int id;
+        try {
+            id = Integer.parseInt(ticketNumber);
+            Ticket t = tickets.getTicketById(id);
+            if (t == null) {
+                Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, ticketNumber);
+                return;
+            }
+
+            if (t.getSubmitter().equals(p.getName())) {
+                t.sendMessageToPlayer(p);
+            } else {
+                Message.sendToPlayer(MessageType.ERROR_TICKET_YOUR, p, ticketNumber);
+            }
+        } catch (Exception e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, p, ticketNumber);
         }
     }
 }

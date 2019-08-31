@@ -19,19 +19,17 @@ package modreq.commands;
 
 import java.sql.SQLException;
 
-import modreq.Comment;
-import modreq.CommentType;
-import modreq.ModReq;
-import modreq.Status;
-import modreq.Ticket;
+import modreq.*;
 import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
 import modreq.managers.TicketHandler;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class ReopenCommand extends SubCommandExecutor {
+public class ReopenCommand implements CommandExecutor {
 
     private ModReq plugin;
     private TicketHandler tickets;
@@ -39,42 +37,55 @@ public class ReopenCommand extends SubCommandExecutor {
     public ReopenCommand(ModReq instance) {
         plugin = instance;
     }
+
     @Override
-    public void onInvalidCommand(CommandSender sender, String[] args, String command) {
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         tickets = plugin.getTicketHandler();
-        if (sender instanceof Player) {
-            Player p = (Player) sender;
-            if (p.hasPermission("modreq.reopen")) {
-                if (args.length > 0) {
-                    int id;
-                    try {
-                        id = Integer.parseInt(args[0]);
-                    } catch (Exception e) {
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "", args[0],""));
-                        return;
-                    }
-                    if (tickets.getTicketCount() < id) {
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exists"), "", Integer.toString(id),""));
-                    } else {
-                        String comment = Utils.join(args, " ", 1);
-                        Ticket t = tickets.getTicketById(id);
-
-                        Status status = Status.OPEN;
-                        String staff = sender.getName();
-
-                        t.addComment(new Comment(sender.getName(), comment, CommentType.REOPEN));
-                        t.setStaff(staff);
-                        t.setStatus(status);
-                        try {
-                            t.update();
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                        p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.re-opened"), "", "",""));
-                        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.reopen"), sender.getName(), args[0],""));
-                    }
-                }
-            }
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("You can only run this command as a Player");
+            return true;
         }
+        Player p = (Player) sender;
+        if (!p.hasPermission("modreq.reopen")) {
+            Message.sendToPlayer(MessageType.ERROR_PERMISSION, p);
+            return true;
+        }
+
+        if (args.length == 0) {
+            p.sendMessage("/" + label + " <id> (reason)");
+            return true;
+        }
+        int id;
+        try {
+            id = Integer.parseInt(args[0]);
+        } catch (Exception e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, p, args[0]);
+            return true;
+        }
+
+        Ticket t = tickets.getTicketById(id);
+        if (t == null) {
+            Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, args[0]);
+            return true;
+        }
+
+        String comment = Utils.join(args, " ", 1);
+        Status status = Status.OPEN;
+        String staff = sender.getName();
+
+        t.addComment(new Comment(sender.getName(), comment, CommentType.REOPEN));
+        t.setStaff(staff);
+        t.setStatus(status);
+        try {
+            t.update();
+        } catch (SQLException e) {
+            Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+            e.printStackTrace();
+            return true;
+        }
+
+        Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_REOPENED, p, id, comment);
+        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.reopen"), sender.getName(), args[0], ""));
+        return true;
     }
 }

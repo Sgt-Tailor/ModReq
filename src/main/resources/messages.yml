@@ -73,9 +73,9 @@ log:
     reopen:
         default: "I reopened this ticket."
         suffix: "&c[Ticket reopened]"
-    tpid:
+    tp-id:
         default: "I teleported to this ticket."
-        
+
 #ColourNodes do NOT work from here one!!!
 info:
     modreq: submit a help ticket
