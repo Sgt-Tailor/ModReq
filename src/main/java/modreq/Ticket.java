@@ -288,10 +288,7 @@ public class Ticket {
         tickets.updateTicket(this);
     }
 
-    public void sendMessageToSubmitter(String message) {// sends a message to
-        // the submitter of a
-        // ticket if he is
-        // online
+    public void sendMessageToSubmitter(String message) {
         Collection<? extends Player> list = Bukkit.getOnlinePlayers();
         for (Player op : list) {
             if (op.getName().equals(submitter)) {

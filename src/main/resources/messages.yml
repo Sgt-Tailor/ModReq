@@ -5,6 +5,7 @@
 #other tags can be found in the default messages, as well as in the comments
 #The tags used are &player, &number and &comment
 error:
+    generic: "&cSomething went wrong"
     permission: "&cYou do not have permissions to use this command."
     number: "&c&number is not a number"
     message: "&cYou have not typed a message, please do so"
