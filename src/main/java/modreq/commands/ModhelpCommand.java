@@ -84,7 +84,5 @@ public class ModhelpCommand extends SubCommandExecutor {
             sender.sendMessage(ChatColor.GOLD + "/mods " + ChatColor.WHITE + plugin.Messages.getString("info.mods"));
         }
         sender.sendMessage(ChatColor.GOLD + "/modhelp " + ChatColor.WHITE + plugin.Messages.getString("info.modhelp"));
-        return;
-
     }
 }

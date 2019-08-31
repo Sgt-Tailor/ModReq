@@ -18,7 +18,10 @@
 package modreq.commands;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 
+import modreq.Message;
+import modreq.MessageType;
 import modreq.ModReq;
 import modreq.Status;
 import modreq.korik.Utils;
@@ -41,60 +44,54 @@ public class ModreqCommand implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label,
-            String[] args) {
+    public boolean onCommand(final CommandSender sender, Command cmd, String label, String[] args) {
         tickets = plugin.getTicketHandler();
-        if (sender instanceof Player) {
-            Player p = (Player) sender;
-            if (p.hasPermission("modreq.request")) {
-                if (args.length == 0) {
-                    sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.message"), "", "",""));
-                    return true;
-                } else {
-                    int ticketsfromplayer;
-                    try {
-                        ticketsfromplayer = tickets.getTicketsFromPlayer(p,
-                                sender.getName(), Status.OPEN);
-                        if (plugin.getConfig().getInt("maximum-open-tickets") > ticketsfromplayer) {
-                            String message = Utils.join(args, " ", 0);
-                            int id = savereq(message, sender,((Player) sender).getLocation());
-                            sendMessageToAdmins(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.ticket-submitted"), sender.getName(), Integer.toString(id),""));
-                            p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("player.submit"), "", "",""));
-                            return true;
-                        } else {
-                            p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.toomany"), "", "",""));
-                            return true;
-                        }
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
 
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("This command can only be run as a player");
+            return true;
+        }
+        Player p = (Player) sender;
+        if (p.hasPermission("modreq.request")) {
+            if (args.length == 0) {
+                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.message"), "", "", ""));
+                return true;
+            }
+            try {
+                int ticketsfromplayer = tickets.getTicketsFromPlayer(p, sender.getName(), Status.OPEN);
+                if (ticketsfromplayer >= plugin.getConfig().getInt("maximum-open-tickets")) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_TOOMANY, p);
+                    return true;
                 }
+                String message = Utils.join(args, " ", 0);
+                int id = savereq(message, p);
+                final String idString = Integer.toString(id);
+
+                Message.sendToAdmins(MessageType.STAFF_ALL_TICKETSUBMITTED, new HashMap<String, String>() {{
+                    put("player", sender.getName());
+                    put("number", idString);
+                }});
+
+                Message.sendToPlayer(MessageType.PLAYER_SUBMIT, p);
+                return true;
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
         return false;
     }
 
-    public void sendMessageToAdmins(String message) {// sends a message to all
-        // online players with the
-        // modreq.check permission
-        for (Player op : Bukkit.getOnlinePlayers()) {
-            if (op.hasPermission("modreq.check")) {
-                op.sendMessage(message);
-            }
-        }
-    }
-
-    private int savereq(String message, CommandSender sender, Location loc) {// save
+    private int savereq(String message, Player sender) {// save
         String time = ModReq.getTimeString();
+        Location loc = sender.getLocation();
         String location = loc.getWorld().getName() + " @ "
                 + Math.round(loc.getX()) + " " + Math.round(loc.getY()) + " "
                 + Math.round(loc.getZ());
 
         try {
-            int id = tickets.addTicket(sender.getName(), message, time, Status.OPEN, location);
-            return id;
+            return tickets.addTicket(sender.getName(), message, time, Status.OPEN, location);
         } catch (SQLException e) {
+            e.printStackTrace();
         }
         return 0;
     }
