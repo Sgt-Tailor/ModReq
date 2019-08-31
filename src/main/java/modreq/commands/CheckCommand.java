@@ -42,7 +42,6 @@ public class CheckCommand extends SubCommandExecutor {
 
     @Override
     public void onInvalidCommand(CommandSender sender, String[] args, String command) {
-        Bukkit.getLogger().warning("invalid cmd!");
         tickets = plugin.getTicketHandler();
         int page = 1;
         try {
