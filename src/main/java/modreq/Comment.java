@@ -25,10 +25,6 @@ public class Comment {
 
     /**
      * Used for the comment system
-     *
-     * @param b Commenter name
-     * @param c Comment
-     * @param d Date
      */
     public Comment(String commenter, String comment, CommentType commenttype) {
         setCommenter(commenter);
