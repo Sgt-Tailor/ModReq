@@ -35,6 +35,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 public class TicketHandler {
 
@@ -113,8 +114,8 @@ public class TicketHandler {
         Statement stat = conn.createStatement();
         ResultSet result = stat
                 .executeQuery("SELECT * FROM requests WHERE submitter = '"
-                + target + "' AND status = '"
-                + status.getStatusString() + "'");
+                        + target + "' AND status = '"
+                        + status.getStatusString() + "'");
         int i = 0;
         while (result.next()) {
             i++;
@@ -131,7 +132,7 @@ public class TicketHandler {
         ArrayList<Ticket> value = new ArrayList<Ticket>();
         ResultSet result = stat
                 .executeQuery("SELECT * FROM requests WHERE submitter = '"
-                + target + "'");
+                        + target + "'");
 
         while (result.next()) {
             if (tickets.size() >= 5) {
@@ -152,11 +153,10 @@ public class TicketHandler {
         try {
             Connection conn = getConnection();
             Statement stat = conn.createStatement();
-
             ResultSet result = stat
                     .executeQuery("SELECT * FROM requests WHERE staff = '"
-                    + p.getName() + "' AND status = '"
-                    + Status.CLAIMED.getStatusString() + "' limit 5");
+                            + p.getName() + "' AND status = '"
+                            + Status.CLAIMED.getStatusString() + "' limit 5");
 
             if (result.next()) {
                 return true;
@@ -167,6 +167,9 @@ public class TicketHandler {
         return false;
     }
 
+    /**
+     * TODO: use sql offset in combination with limit
+     */
     public void sendPlayerPage(int page, Status status, Player p) {
         try {
             Connection conn = getConnection();
@@ -175,25 +178,30 @@ public class TicketHandler {
             int nmbr = page * 10;
             ResultSet resultOC;//Result of open and closed tickets
             ResultSet resultP;//Result of pending tickets
-            if (status.getStatusString().equals("open")) {
-                String a = "status = 'open'";
+
+            StringBuilder statusSelect = new StringBuilder();
+            statusSelect.append("status = '" + status.getStatusString() + "'");
+
+            if (status == Status.OPEN) {
                 if (plugin.getConfig().getBoolean("show-claimed-tickets-in-open-list")) {
-                    a = a + " or status = 'claimed'";
+                    statusSelect.append(" or status = 'claimed'");
                 }
                 if (plugin.getConfig().getBoolean("show-pending-tickets-in-open-list") && p.hasPermission("modreq.claim.pending")) {
                     resultP = stat.executeQuery("SELECT * FROM requests WHERE status = 'pending' limit " + nmbr);
-                    while(resultP.next()) {
-                	if(tickets.size() <=9) {
-                	    tickets.add(resultP.getInt(1));
-                	}
+                    while (resultP.next()) {
+                        if (tickets.size() >= 10) {
+                            break;
+                        }
+
+                        tickets.add(resultP.getInt(1));
                     }
                 }
-                resultOC = stat.executeQuery("SELECT * FROM requests WHERE " + a + " limit " + nmbr);
+                resultOC = stat.executeQuery("SELECT * FROM requests WHERE " + statusSelect.toString() + " limit " + nmbr);
 
             } else {
                 resultOC = stat
                         .executeQuery("SELECT * FROM requests WHERE status = '"
-                        + status.getStatusString() + "' limit " + nmbr);
+                                + status.getStatusString() + "' limit " + nmbr);
             }
             while (resultOC.next()) {
                 if (resultOC.getRow() > nmbr - 10 && tickets.size() < 10) {
@@ -215,13 +223,11 @@ public class TicketHandler {
         try {
             Connection conn = getConnection();
             Statement stat = conn.createStatement();
-            ResultSet rs = stat.executeQuery("SELECT id FROM requests ");
-            int i = 0;
-            while (rs.next()) {
-                i++;
+            ResultSet rs = stat.executeQuery("SELECT max(id) FROM requests ");
+            if (rs.next()) {
+                return rs.getInt(1);
             }
-            rs.close();
-            return i;
+            return 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -229,20 +235,17 @@ public class TicketHandler {
 
     }
 
-    public int getTicketAmount(Status status) {
-        String statusString = status.getStatusString();
+    public int getTicketAmount(@NotNull Status status) {
         try {
             Connection conn = getConnection();
-            Statement stat = conn.createStatement();
-            ResultSet rs = stat
-                    .executeQuery("SELECT id FROM requests WHERE status = '"
-                    + statusString + "'");
-            int i = 0;
-            while (rs.next()) {
-                i++;
+            PreparedStatement stat = conn.prepareStatement("SELECT count(1) FROM requests WHERE status = ?");
+            stat.setString(1, status.getStatusString());
+            ResultSet rs = stat.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
             }
-            rs.close();
-            return i;
+
+            return 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -251,13 +254,10 @@ public class TicketHandler {
     }
 
     public int addTicket(String submitter, String message, String date,
-            Status status, String location) throws SQLException {// add a new
-        // ticket to
-        // the database
+                         Status status, String location) throws SQLException {
         Connection conn = getConnection();
 
-        PreparedStatement prep = conn
-                .prepareStatement("INSERT INTO requests VALUES (?, ?, ?, ?, ?,?,?)");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO requests VALUES (?, ?, ?, ?, ?,?,?)");
         int id = getTicketCount() + 1;
         prep.setInt(1, id);
         prep.setString(2, submitter);
@@ -272,21 +272,24 @@ public class TicketHandler {
         return id;
     }
 
-    public Ticket getTicketById(int i) {// returns the Ticket WHERE id=i
+    public Ticket getTicketById(int id) {
         try {
             Connection conn = getConnection();
-            Statement stat = conn.createStatement();
-            ResultSet result = stat
-                    .executeQuery("SELECT * FROM requests WHERE id = '" + i
-                    + "'");
-            result.next();
+            PreparedStatement stat = conn.prepareStatement("SELECT * FROM requests WHERE id = ?");
+            stat.setInt(1, id);
+
+            ResultSet result = stat.executeQuery();
+            if (!result.next()) {
+                return null;
+            }
+
             String status = result.getString(5);
             String submitter = result.getString(2);
             String date = result.getString(4);
             String location = result.getString(6);
             String message = result.getString(3);
             String staff = result.getString(7);
-            Ticket ticket = new Ticket( i, submitter, message, date,
+            Ticket ticket = new Ticket(id, submitter, message, date,
                     Status.getByString(status), location, staff);
             stat.close();
             addCommentsToTicket(conn, ticket);
@@ -306,7 +309,7 @@ public class TicketHandler {
         int id = t.getId();
         PreparedStatement prep = conn
                 .prepareStatement("UPDATE requests SET status = ?, staff = ? WHERE id = "
-                + id + "");
+                        + id + "");
         String status = t.getStatus().getStatusString();
         String staff = t.getStaff();
 
@@ -317,6 +320,7 @@ public class TicketHandler {
 
         updateComments(conn, t);
     }
+
     public int getOpenTicketsAmount() {
         int i = 0;
         try {
@@ -351,6 +355,9 @@ public class TicketHandler {
         stat.close();
     }
 
+    /**
+     * TODO: simplify. This should append the last comment if it does not yet exist
+     */
     private void updateComments(Connection conn, Ticket t) throws SQLException {
         if (t.getComments().isEmpty()) {
             return;
@@ -393,17 +400,17 @@ public class TicketHandler {
         return;
 
     }
-    
+
     public int getViewablePageCount(CommandSender sender) {
-    	TicketHandler tickets = ModReq.getInstance().getTicketHandler();
-    	    int Openamount = tickets.getTicketAmount(Status.OPEN);
-    	    if (ModReq.getInstance().getConfig().getBoolean("show-claimed-tickets-in-open-list")) {
-    		Openamount = Openamount + tickets.getTicketAmount(Status.CLAIMED);
-    	    }
-    	    if (ModReq.getInstance().getConfig().getBoolean("show-pending-tickets-in-open-list") && sender.hasPermission("modreq.claim.pending")) {
-    		Openamount += tickets.getTicketAmount(Status.PENDING);
-    	    }
-    	    int pages = (int) Math.ceil(Openamount / 10.0);
-    	    return pages;
+        TicketHandler tickets = ModReq.getInstance().getTicketHandler();
+        int Openamount = tickets.getTicketAmount(Status.OPEN);
+        if (ModReq.getInstance().getConfig().getBoolean("show-claimed-tickets-in-open-list")) {
+            Openamount = Openamount + tickets.getTicketAmount(Status.CLAIMED);
         }
+        if (ModReq.getInstance().getConfig().getBoolean("show-pending-tickets-in-open-list") && sender.hasPermission("modreq.claim.pending")) {
+            Openamount += tickets.getTicketAmount(Status.PENDING);
+        }
+        int pages = (int) Math.ceil(Openamount / 10.0);
+        return pages;
+    }
 }

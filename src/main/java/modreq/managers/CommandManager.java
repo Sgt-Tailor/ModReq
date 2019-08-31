@@ -31,13 +31,13 @@ import modreq.commands.StatusCommand;
 import modreq.commands.TicketCommand;
 import modreq.commands.TpIdCommand;
 import modreq.commands.UpdatemodreqCommand;
-import modreq.commands.claimCommand;
+import modreq.commands.ClaimCommand;
 
 public class CommandManager {
 
     private ModReq plugin;
     private CheckCommand check;
-    private claimCommand claim;
+    private ClaimCommand claim;
     private DoneCommand done;
     private StatusCommand status;
     private ModreqCommand modreq;
@@ -54,7 +54,7 @@ public class CommandManager {
     public CommandManager(ModReq instance) {
         plugin = instance;
         check = new CheckCommand(plugin);
-        claim = new claimCommand(plugin);
+        claim = new ClaimCommand(plugin);
         done = new DoneCommand(plugin);
         status = new StatusCommand(plugin);
         modreq = new ModreqCommand(plugin);

@@ -31,12 +31,12 @@ import modreq.managers.TicketHandler;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class claimCommand extends SubCommandExecutor {
+public class ClaimCommand extends SubCommandExecutor {
 
     private ModReq plugin;
     private TicketHandler tickets;
 
-    public claimCommand(ModReq instance) {
+    public ClaimCommand(ModReq instance) {
         plugin = instance;
     }
 

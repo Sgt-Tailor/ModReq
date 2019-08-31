@@ -54,6 +54,7 @@ public class ModReq extends JavaPlugin {
     public String DownloadLink;
     private TicketHandler ticketHandler;
     private static PriorityManager priorityManager;
+
     @Override
     public void onEnable() {
         plugin = this;
@@ -79,11 +80,12 @@ public class ModReq extends JavaPlugin {
 
         logger.log(Level.INFO, "{0} version {1} is enabled.", new Object[]{this.getDescription().getName(), getCurrentVersion()});
     }
+
     @Override
     public void onDisable() {
         logger.log(Level.INFO, "{0} is now disabled ", this.getDescription().getName());
     }
-    
+
     private void startMetrics() {
         if (ModReq.plugin.getConfig().getBoolean("metrics")) {
             try {
@@ -127,17 +129,21 @@ public class ModReq extends JavaPlugin {
         plugin.reloadConfig();
 
     }
+
     public String getCurrentVersion() {
         return this.getDescription().getVersion();
     }
+
     public TicketHandler getTicketHandler() {
         return ticketHandler;
     }
+
     private void startVersionChecker() {
         long hour = 60 * 60 * 20;
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this,
                 new VersionChecker(this), 60L, hour);
     }
+
     private void startGraphs() {
         metrics.start();
         try {// test chart
@@ -166,6 +172,7 @@ public class ModReq extends JavaPlugin {
         }
 
     }
+
     private boolean checkTranslate() {
         if (!messages.exists()) {
             return false;
@@ -173,6 +180,7 @@ public class ModReq extends JavaPlugin {
             return true;
         }
     }
+
     private void loadMessages() {
         logger.info("[ModReq] Looking for messages.yml");
         if (checkTranslate()) {
@@ -217,7 +225,7 @@ public class ModReq extends JavaPlugin {
                                         + " "
                                         + plugin.Messages
                                         .getString("notification",
-                                        "open tickets are waiting for you"));
+                                                "open tickets are waiting for you"));
                             }
                         }
                     }
@@ -225,12 +233,15 @@ public class ModReq extends JavaPlugin {
             }, 60L, time);
         }
     }
+
     private void firstrun() {
         this.saveDefaultConfig();
     }
+
     public static ModReq getInstance() {
         return plugin;
     }
+
     public static String getTimeString() {
         String timezone = ModReq.getInstance().getConfig()
                 .getString("timezone");
@@ -246,15 +257,17 @@ public class ModReq extends JavaPlugin {
 
         return df.format(dt) + " @" + timezone;
     }
-    public static String format(String input, String player, String number, String comment){
+
+    public static String format(String input, String player, String number, String comment) {
         input = input.replace("&player", player);
         input = input.replace("&number", number);
         input = input.replace("&comment", comment);
-	input = ChatColor.translateAlternateColorCodes('&', input);
-        return input;    
+        input = ChatColor.translateAlternateColorCodes('&', input);
+        return input;
     }
+
     public static PriorityManager getPriorityManager() {
-	return priorityManager;
+        return priorityManager;
     }
 
 }
