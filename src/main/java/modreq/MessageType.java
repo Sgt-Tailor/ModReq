@@ -2,6 +2,8 @@ package modreq;
 
 import org.bukkit.ChatColor;
 
+import java.util.Map;
+
 
 public enum MessageType {
     ERROR_PERMISSION(),
@@ -94,10 +96,18 @@ public enum MessageType {
         return message;
     }
 
+    public String formatWithParameters(Map<String, String> parameters) {
+        for (Map.Entry<String, String> entry : parameters.entrySet()) {
+            message = message.replace("&" + entry.getKey(), entry.getValue());
+        }
+
+        message = ChatColor.translateAlternateColorCodes('&', message);
+        return message;
+    }
+
     private MessageType() {
         String a = this.name().toLowerCase().replace("_", ".");
         String b = ModReq.getInstance().Messages.getString(a, ModReq.getInstance().getDefaultMessages().getString(a));
         message = b;
     }
-
 }

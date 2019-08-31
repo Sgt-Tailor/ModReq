@@ -44,7 +44,8 @@ staff:
     all:
         comment: "&b&player &ajust commented on ticket (&6#&number&a)"
         notification: "&b&number &aopen tickets are waiting for you!"
-        ticket-submitted: "&b&player &ajust submitted ticket &6#&number."
+        ticket-submitted: "&b&player &ajust submitted ticket &6#&number." #There for compatibility reasons with version < 2.5
+        ticketsubmitted: "&b&player &ajust submitted ticket &6#&number."
 headers-footers:
     status: 
         header: "&6----List-of-your-last-5-tickets----"
