@@ -27,6 +27,7 @@ import org.bukkit.entity.Player;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class TicketHandler {
@@ -34,6 +35,11 @@ public class TicketHandler {
     public static ModReq plugin = ModReq.getInstance();
     private Connection connection;
     private static final Logger logger = Logger.getLogger("Minecraft");
+    private boolean useMysql;
+
+    public TicketHandler() {
+        useMysql = plugin.getConfig().getBoolean("use-mysql");
+    }
 
     private Connection getConnection() {
         try {
@@ -43,7 +49,7 @@ public class TicketHandler {
                 }
             }
             Class.forName("org.sqlite.JDBC");
-            if (plugin.getConfig().getBoolean("use-mysql")) {
+            if (useMysql) {
                 String ip = plugin.getConfig().getString("mysql.ip");
                 String user = plugin.getConfig().getString("mysql.user");
                 String pass = plugin.getConfig().getString("mysql.pass");
@@ -52,21 +58,22 @@ public class TicketHandler {
                 connection = DriverManager.getConnection("jdbc:mysql://"
                         + ip, user, pass);
                 Statement stat = connection.createStatement();
-                stat.execute("CREATE TABLE IF NOT EXISTS " + table1 + " (id INT, submitter TEXT, message TEXT, date TEXT, status TEXT, location TEXT, staff TEXT)");
-                stat.execute("CREATE TABLE IF NOT EXISTS " + table2 + " (id INT, commenter TEXT, message TEXT, date TEXT)");
+                stat.execute("CREATE TABLE IF NOT EXISTS " + table1 + " (id INTEGER NOT NULL AUTO_INCREMENT, submitter TEXT, message TEXT, date TEXT, status TEXT, location TEXT, staff TEXT, PRIMARY KEY(id))");
+                stat.execute("CREATE TABLE IF NOT EXISTS " + table2 + " (id INTEGER, commenter TEXT, message TEXT, date TEXT)");
                 KillConnection();
                 return connection;
             } else {
                 connection = DriverManager
                         .getConnection("jdbc:sqlite:plugins/ModReq/DataBase.sql");
                 Statement stat = connection.createStatement();
-                stat.execute("CREATE TABLE IF NOT EXISTS requests (id int, submitter String, message String, date String, status String, location String, staff String)");
-                stat.execute("CREATE TABLE IF NOT EXISTS comments (id int, commenter String, message String, date String)");
+                stat.execute("CREATE TABLE IF NOT EXISTS requests (id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, message TEXT, date TEXT, status TEXT, location TEXT, staff TEXT)");
+                stat.execute("CREATE TABLE IF NOT EXISTS comments (id INTEGER, commenter String, message String, date String)");
                 KillConnection();
                 return connection;
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             logger.severe("[ModReq] no connection could be made with the database. Shutting down plugin D:");
             plugin.getServer().getPluginManager().disablePlugin(plugin);
             return null;
@@ -153,7 +160,7 @@ public class TicketHandler {
         try {
             Connection conn = getConnection();
             Statement stat = conn.createStatement();
-            ArrayList<Integer> tickets = new ArrayList<Integer>();
+            List<Ticket> tickets = new ArrayList<Ticket>();
             int nmbr = page * 10;
             ResultSet resultOC;//Result of open and closed tickets
             ResultSet resultP;//Result of pending tickets
@@ -172,7 +179,7 @@ public class TicketHandler {
                             break;
                         }
 
-                        tickets.add(resultP.getInt(1));
+                        tickets.add(getTicketByResultSet(resultP));
                     }
                 }
                 resultOC = stat.executeQuery("SELECT * FROM requests WHERE " + statusSelect.toString() + " limit " + nmbr);
@@ -182,15 +189,16 @@ public class TicketHandler {
                         .executeQuery("SELECT * FROM requests WHERE status = '"
                                 + status.getStatusString() + "' limit " + nmbr);
             }
+
             while (resultOC.next()) {
                 if (resultOC.getRow() > nmbr - 10 && tickets.size() < 10) {
-                    tickets.add(resultOC.getInt(1));
+                    tickets.add(getTicketByResultSet(resultOC));
                 }
             }
             p.sendMessage(ChatColor.GOLD + "-----List-of-"
                     + status.getStatusString() + "-Requests-----");
-            for (int i = 0; i < tickets.size(); i++) {
-                getTicketById(tickets.get(i)).sendSummarytoPlayer(p);
+            for (Ticket t : tickets) {
+                t.sendSummarytoPlayer(p);
             }
             p.sendMessage(ChatColor.GOLD + "do /check <page> to see more");
         } catch (SQLException e) {
@@ -236,19 +244,28 @@ public class TicketHandler {
                          Status status, String location) throws SQLException {
         Connection conn = getConnection();
 
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO requests VALUES (?, ?, ?, ?, ?,?,?)");
-        int id = getTicketCount() + 1;
-        prep.setInt(1, id);
-        prep.setString(2, submitter);
-        prep.setString(3, message);
-        prep.setString(4, date);
-        prep.setString(5, status.getStatusString());
-        prep.setString(6, location);
-        prep.setString(7, "no staff member yet");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO requests (submitter, message, date, status, location, staff) VALUES (?, ?, ?, ?, ?, ?)");
+        prep.setString(1, submitter);
+        prep.setString(2, message);
+        prep.setString(3, date);
+        prep.setString(4, status.getStatusString());
+        prep.setString(5, location);
+        prep.setString(6, "no staff member yet");
         prep.addBatch();
 
         prep.executeBatch();
-        return id;
+
+        Statement statement = conn.createStatement();
+        String query = "select last_insert_rowid()";
+        if (useMysql) {
+            query = "SELECT LAST_INSERT_ID()";
+        }
+        ResultSet set = statement.executeQuery(query);
+        if (!set.next()) {
+            throw new SQLException("not data returned by " + query);
+        }
+
+        return set.getInt(1);
     }
 
     public Ticket getTicketById(int id) {
@@ -315,7 +332,7 @@ public class TicketHandler {
     }
 
     /**
-     * TODO: simplify. This should append the last comment if it does not yet exist
+     * TODO: simplify. This should append the last comment if it does not yet exist. Needs a schema change though
      */
     private void updateComments(Connection conn, Ticket t) throws SQLException {
         if (t.getComments().isEmpty()) {
@@ -323,9 +340,10 @@ public class TicketHandler {
         }
         PreparedStatement prep = conn
                 .prepareStatement("INSERT INTO comments VALUES (?, ?, ?, ?)");
-        Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT * FROM comments WHERE id = '"
-                + t.getId() + "'");
+        PreparedStatement stat = conn.prepareStatement("SELECT * FROM comments WHERE id = ?");
+        stat.setInt(1, t.getId());
+        ResultSet rs = stat.executeQuery();
+
         Comment A = new Comment();
         while (rs.next()) {
             String commenter = rs.getString(2);
@@ -350,6 +368,7 @@ public class TicketHandler {
         if (A.equalsComment(B)) {
             return;
         }
+
         prep.setInt(1, t.getId());
         prep.setString(2, B.getCommenter());
         prep.setString(3, B.getComment());
