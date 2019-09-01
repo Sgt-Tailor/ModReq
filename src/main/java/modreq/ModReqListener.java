@@ -43,7 +43,7 @@ public class ModReqListener implements Listener {
                 @Override
                 public void run() {
                     TicketHandler th = new TicketHandler();
-                    int opentickets = th.getOpenTicketsAmount();
+                    int opentickets = th.getTicketAmount(Status.OPEN);
                     if (opentickets > 0) {
                         p.sendMessage(ChatColor.GOLD + "[ModReq]" + ModReq.format(ModReq.getInstance().Messages.getString("staff.all.notification"), "", Integer.toString(opentickets),""));
                     }
