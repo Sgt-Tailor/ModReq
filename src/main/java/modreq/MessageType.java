@@ -78,35 +78,33 @@ public enum MessageType {
     TICKET_STAFF(),
     TICKET_REQUEST();
 
-    private String message;
-
-    private MessageType(String message) {
-        this.message = message;
-    }
+    private final String message;
 
     public String getMessage() {
         return message;
     }
 
     public String format(String PlayerName, String TicketNumber, String comment) {
-        message = message.replace("&player", PlayerName);
-        message = message.replace("&number", TicketNumber);
-        message = message.replace("&comment", comment);
-        message = ChatColor.translateAlternateColorCodes('&', message);
-        return message;
+        String formatted = message;
+        formatted = formatted.replace("&player", PlayerName);
+        formatted = formatted.replace("&number", TicketNumber);
+        formatted = formatted.replace("&comment", comment);
+        formatted = ChatColor.translateAlternateColorCodes('&', formatted);
+        return formatted;
     }
 
     public String formatWithParameters(Map<String, String> parameters) {
+        String formatted = message;
         for (Map.Entry<String, String> entry : parameters.entrySet()) {
-            message = message.replace("&" + entry.getKey(), entry.getValue());
+            formatted = formatted.replace("&" + entry.getKey(), entry.getValue());
         }
 
-        message = ChatColor.translateAlternateColorCodes('&', message);
-        return message;
+        return ChatColor.translateAlternateColorCodes('&', formatted);
     }
 
     MessageType() {
-        message = this.name().toLowerCase().replace("_", ".");
-        message = ModReq.getInstance().Messages.getString(message, ModReq.getInstance().getDefaultMessages().getString(message));
+        String tmpMessage = this.name().toLowerCase().replace("_", ".");
+        tmpMessage = ModReq.getInstance().Messages.getString(tmpMessage, ModReq.getInstance().getDefaultMessages().getString(tmpMessage));
+        message = tmpMessage;
     }
 }
