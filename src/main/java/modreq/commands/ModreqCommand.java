@@ -58,7 +58,7 @@ public class ModreqCommand implements CommandExecutor {
                 return true;
             }
             try {
-                int ticketsfromplayer = tickets.getTicketsFromPlayer(p, sender.getName(), Status.OPEN);
+                int ticketsfromplayer = tickets.getTicketsFromPlayer(p, Status.OPEN);
                 if (ticketsfromplayer >= plugin.getConfig().getInt("maximum-open-tickets")) {
                     Message.sendToPlayer(MessageType.ERROR_TICKET_TOOMANY, p);
                     return true;
