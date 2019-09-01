@@ -23,7 +23,6 @@ import modreq.Status;
 import modreq.Ticket;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.sql.*;
@@ -113,12 +112,11 @@ public class TicketHandler {
         return 0;
     }
 
-
     public ArrayList<Ticket> getTicketsByPlayer(String target)
             throws SQLException {// returns an arraylist containing all the
         // tickets that a player has submitted
         Connection conn = getConnection();
-        PreparedStatement stat = conn.prepareStatement("SELECT * FROM requests WHERE submitter = ?");
+        PreparedStatement stat = conn.prepareStatement("SELECT * FROM requests WHERE submitter = ? ORDER BY ID DESC LIMIT 5");
         stat.setString(1, target);
         ResultSet result = stat.executeQuery();
 
@@ -126,16 +124,8 @@ public class TicketHandler {
         ArrayList<Ticket> value = new ArrayList<Ticket>();
 
         while (result.next()) {
-            if (tickets.size() >= 5) {
-                tickets.remove(0);
-                tickets.add(result.getInt(1));
-            } else {
-                tickets.add(result.getInt(1));
-            }
-        }
-        int i = 0;
-        for (; i < tickets.size(); i++) {
-            value.add(getTicketById(tickets.get(i)));
+            Ticket t = getTicketByResultSet(result);
+            value.add(t);
         }
         return value;
     }
@@ -272,13 +262,7 @@ public class TicketHandler {
                 return null;
             }
 
-            String status = result.getString(5);
-            String submitter = result.getString(2);
-            String date = result.getString(4);
-            String location = result.getString(6);
-            String message = result.getString(3);
-            String staff = result.getString(7);
-            Ticket ticket = new Ticket(id, submitter, message, date, Status.getByString(status), location, staff);
+            Ticket ticket = getTicketByResultSet(result);
             stat.close();
             addCommentsToTicket(conn, ticket);
             return ticket;
@@ -286,6 +270,17 @@ public class TicketHandler {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private Ticket getTicketByResultSet(ResultSet result) throws SQLException {
+        int id = result.getInt(1);
+        String status = result.getString(5);
+        String submitter = result.getString(2);
+        String date = result.getString(4);
+        String location = result.getString(6);
+        String message = result.getString(3);
+        String staff = result.getString(7);
+        return new Ticket(id, submitter, message, date, Status.getByString(status), location, staff);
     }
 
     public void updateTicket(Ticket t) throws SQLException {
@@ -341,7 +336,7 @@ public class TicketHandler {
         }
         stat.close();
         Comment B = t.getComments().get(t.getComments().size() - 1);
-        if (A.isValid() == false) {
+        if (!A.isValid()) {
             prep.setInt(1, t.getId());
             prep.setString(2, B.getCommenter());
             prep.setString(3, B.getComment());
@@ -361,20 +356,5 @@ public class TicketHandler {
         prep.setString(4, B.getDate());
         prep.addBatch();
         prep.executeBatch();
-        return;
-
-    }
-
-    public int getViewablePageCount(CommandSender sender) {
-        TicketHandler tickets = ModReq.getInstance().getTicketHandler();
-        int Openamount = tickets.getTicketAmount(Status.OPEN);
-        if (ModReq.getInstance().getConfig().getBoolean("show-claimed-tickets-in-open-list")) {
-            Openamount = Openamount + tickets.getTicketAmount(Status.CLAIMED);
-        }
-        if (ModReq.getInstance().getConfig().getBoolean("show-pending-tickets-in-open-list") && sender.hasPermission("modreq.claim.pending")) {
-            Openamount += tickets.getTicketAmount(Status.PENDING);
-        }
-        int pages = (int) Math.ceil(Openamount / 10.0);
-        return pages;
     }
 }

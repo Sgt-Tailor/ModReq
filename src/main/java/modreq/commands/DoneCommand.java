@@ -24,6 +24,7 @@ import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
 import modreq.managers.TicketHandler;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -85,6 +86,7 @@ public class DoneCommand implements CommandExecutor {
         }
 
         t.addComment(new Comment(sender.getName(), comment, CommentType.CLOSE));
+
         t.setStaff(staff);
         t.setStatus(Status.CLOSED);
         try {
@@ -96,9 +98,9 @@ public class DoneCommand implements CommandExecutor {
 
         Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_CLOSED, p, idString);
         if (comment.equals("")) {
-            Message.sendToPlayer(MessageType.PLAYER_CLOSE_WITHOUTCOMMENT, p, idString);
+            t.sendMessageToSubmitter(MessageType.PLAYER_CLOSE_WITHOUTCOMMENT.format(p.getName(), idString, ""));
         } else {
-            Message.sendToPlayer(MessageType.PLAYER_CLOSE_WITHCOMMENT, p, id, comment);
+            t.sendMessageToSubmitter(MessageType.PLAYER_CLOSE_WITHCOMMENT.format(p.getName(), idString, comment));
         }
 
         return true;
