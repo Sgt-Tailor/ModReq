@@ -99,33 +99,31 @@ public class TicketHandler {
         }
     }
 
-    public int getTicketsFromPlayer(Player p, String target, Status status)
-            throws SQLException {// returns the amount of tickets send by a
-        // player
+    public int getTicketsFromPlayer(Player p, Status status) throws SQLException {
 
         Connection conn = getConnection();
-        Statement stat = conn.createStatement();
-        ResultSet result = stat
-                .executeQuery("SELECT * FROM requests WHERE submitter = '"
-                        + target + "' AND status = '"
-                        + status.getStatusString() + "'");
-        int i = 0;
-        while (result.next()) {
-            i++;
+        PreparedStatement stat = conn.prepareStatement("SELECT COUNT(1) FROM requests WHERE 'submitter' = ? AND 'status' = ?");
+        stat.setString(1, p.getName());
+        stat.setString(2, status.getStatusString());
+        ResultSet result = stat.executeQuery();
+        if (result.next()) {
+            return result.getInt(1);
         }
-        return i;
+
+        return 0;
     }
+
 
     public ArrayList<Ticket> getTicketsByPlayer(String target)
             throws SQLException {// returns an arraylist containing all the
         // tickets that a player has submitted
         Connection conn = getConnection();
-        Statement stat = conn.createStatement();
+        PreparedStatement stat = conn.prepareStatement("SELECT * FROM requests WHERE submitter = ?");
+        stat.setString(1, target);
+        ResultSet result = stat.executeQuery();
+
         ArrayList<Integer> tickets = new ArrayList<Integer>();
         ArrayList<Ticket> value = new ArrayList<Ticket>();
-        ResultSet result = stat
-                .executeQuery("SELECT * FROM requests WHERE submitter = '"
-                        + target + "'");
 
         while (result.next()) {
             if (tickets.size() >= 5) {
@@ -142,19 +140,17 @@ public class TicketHandler {
         return value;
     }
 
-    public boolean hasClaimed(Player p) {
-        try {
-            Connection conn = getConnection();
-            Statement stat = conn.createStatement();
-            ResultSet result = stat
-                    .executeQuery("SELECT * FROM requests WHERE staff = '"
-                            + p.getName() + "' AND status = '"
-                            + Status.CLAIMED.getStatusString() + "' limit 5");
+    public boolean hasClaimed(Player p) throws SQLException {
 
-            if (result.next()) {
-                return true;
-            }
-        } catch (SQLException e) {
+        Connection conn = getConnection();
+        PreparedStatement stat = conn.prepareStatement("SELECT * FROM requests WHERE staff = ? AND status = ? limit 1");
+        stat.setString(1, p.getName());
+        stat.setString(2, Status.CLAIMED.getStatusString());
+
+        ResultSet result = stat.executeQuery();
+
+        if (result.next()) {
+            return true;
         }
 
         return false;
@@ -282,8 +278,7 @@ public class TicketHandler {
             String location = result.getString(6);
             String message = result.getString(3);
             String staff = result.getString(7);
-            Ticket ticket = new Ticket(id, submitter, message, date,
-                    Status.getByString(status), location, staff);
+            Ticket ticket = new Ticket(id, submitter, message, date, Status.getByString(status), location, staff);
             stat.close();
             addCommentsToTicket(conn, ticket);
             return ticket;
@@ -293,48 +288,25 @@ public class TicketHandler {
         return null;
     }
 
-    public void updateTicket(Ticket t) throws SQLException {// updates the
-        // status, staff AND
-        // comment of tickt
-        // t
+    public void updateTicket(Ticket t) throws SQLException {
         Connection conn = getConnection();
-
-        int id = t.getId();
-        PreparedStatement prep = conn
-                .prepareStatement("UPDATE requests SET status = ?, staff = ? WHERE id = "
-                        + id + "");
+        PreparedStatement prep = conn.prepareStatement("UPDATE requests SET status = ?, staff = ? WHERE id = ?");
         String status = t.getStatus().getStatusString();
         String staff = t.getStaff();
 
         prep.setString(1, status);
         prep.setString(2, staff);
-        prep.addBatch();
-        prep.executeBatch();
+        prep.setInt(2, t.getId());
+        prep.execute();
 
         updateComments(conn, t);
     }
 
-    public int getOpenTicketsAmount() {
-        int i = 0;
-        try {
-            Connection conn = getConnection();
-            Statement stat = conn.createStatement();
-            ResultSet result = stat
-                    .executeQuery("SELECT id FROM requests WHERE status = 'open'");
-            while (result.next()) {
-                i++;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return i;
-    }
-
     private void addCommentsToTicket(Connection conn, Ticket t)
             throws SQLException {
-        Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT * FROM comments WHERE id = '"
-                + t.getId() + "'");
+        PreparedStatement stat = conn.prepareStatement("SELECT * FROM comments WHERE id = ?");
+        stat.setInt(1, t.getId());
+        ResultSet rs = stat.executeQuery();
         while (rs.next()) {
             String commenter = rs.getString(2);
             String comment = rs.getString(3);
@@ -342,7 +314,6 @@ public class TicketHandler {
 
             Comment c = new Comment(commenter, comment, date);
             t.addComment(c);
-
         }
         rs.close();
         stat.close();

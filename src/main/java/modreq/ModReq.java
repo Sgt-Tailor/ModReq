@@ -208,7 +208,7 @@ public class ModReq extends JavaPlugin {
                 @Override
                 public void run() {
                     TicketHandler th = getTicketHandler();
-                    int opentickets = th.getOpenTicketsAmount();
+                    int opentickets = th.getTicketAmount(Status.OPEN);
                     if (opentickets > 0) {
                         Player[] online = Bukkit.getOnlinePlayers().toArray(new Player[Bukkit.getOnlinePlayers().size()]);
                         for (int i = 0; i < online.length; i++) {
