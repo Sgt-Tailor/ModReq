@@ -41,18 +41,18 @@ public class Ticket {
     private TicketHandler tickets;
     private ArrayList<Comment> comments;
 
-    public Ticket(int idp, String submitt, String messa,
-            String date, Status status, String loc, String sta) {
-        submitter = submitt;
-        id = idp;
-        staff = sta;
+    public Ticket(int idp, String submitter, String message,
+                  String date, Status status, String location, String staff) {
+        this.submitter = submitter;
+        this.id = idp;
+        this.staff = staff;
         this.date = date;
-        message = messa;
+        this.message = message;
         this.status = status;
-        location = loc;
+        this.location = location;
 
-        tickets = ModReq.getInstance().getTicketHandler();
-        comments = new ArrayList<Comment>();
+        this.tickets = ModReq.getInstance().getTicketHandler();
+        this.comments = new ArrayList<Comment>();
     }
 
     /**
@@ -138,8 +138,7 @@ public class Ticket {
      */
     public void sendSummarytoPlayer(Player p) {
         ChatColor namecolor = ChatColor.RED;
-        Collection<? extends Player> list = Bukkit.getServer().getOnlinePlayers();
-        for (Player op : list) {
+        for (Player op : Bukkit.getServer().getOnlinePlayers()) {
             if (op.getName().equals(submitter)) {
                 if (op.isOnline()) {
                     namecolor = ChatColor.GREEN;
@@ -151,7 +150,7 @@ public class Ticket {
             summessage = summessage.substring(0, 15);
         }
         String summary;
-        if (((ModReq) Bukkit.getPluginManager().getPlugin("ModReq"))
+        if (Bukkit.getPluginManager().getPlugin("ModReq")
                 .getConfig().getString("use-nickname").equalsIgnoreCase("true")) {
             if (playerIsOnline()) {
                 submitter = Bukkit.getPlayer(submitter).getDisplayName();
@@ -196,7 +195,7 @@ public class Ticket {
      * @return
      */
     public void sendMessageToPlayer(Player p) {
-        if (((ModReq) Bukkit.getPluginManager().getPlugin("ModReq"))
+        if (Bukkit.getPluginManager().getPlugin("ModReq")
                 .getConfig().getString("use-nickname").equalsIgnoreCase("true")) {
             if (playerIsOnline()) {
                 submitter = Bukkit.getPlayer(submitter).getDisplayName();
@@ -210,7 +209,7 @@ public class Ticket {
         String e = plugin.Messages.getString("ticket.comment", "Comment");
         String f = plugin.Messages.getString("ticket.request", "Request");
         String g = plugin.Messages.getString("ticket.staff", "Staff member");
-        p.sendMessage(ModReq.format(plugin.Messages.getString("headers-footers.ticket.header"),"",Integer.toString(id),""));
+        p.sendMessage(ModReq.format(plugin.Messages.getString("headers-footers.ticket.header"), "", Integer.toString(id), ""));
         p.sendMessage(ChatColor.AQUA + d + ": " + ChatColor.GRAY
                 + status);
         p.sendMessage(ChatColor.AQUA + b + ": " + ChatColor.GRAY
@@ -230,32 +229,23 @@ public class Ticket {
     }
 
     private void sendComments(Player p) {
-        int i = comments.size() - 1;//
-        if (i == -1) {
-            return;
-        }
-        while (i >= 0) {
-            Comment c = comments.get(i);
+        int number = comments.size() - 1;
+        for (Comment c : comments) {
             String commenter = c.getCommenter();
             String date = c.getDate();
             String comment = c.getComment();
             comment = ChatColor.translateAlternateColorCodes('&', comment);
-            p.sendMessage(ChatColor.GOLD + "#" + Integer.toString(i + 1) + " "
+            p.sendMessage(ChatColor.GOLD + "#" + Integer.toString(number) + " "
                     + ChatColor.AQUA + date + " " + ChatColor.GOLD + commenter
                     + ": " + ChatColor.GRAY + comment);
-            i--;
+            number--;
         }
 
     }
 
     private boolean playerIsOnline() {
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p.getName().equalsIgnoreCase(submitter)) {
-                return true;
-            }
-        }
-
-        return false;
+        Player p = Bukkit.getPlayerExact(submitter);
+        return p != null && p.isOnline();
     }
 
     /**
@@ -289,14 +279,12 @@ public class Ticket {
     }
 
     public void sendMessageToSubmitter(String message) {
-        for (Player op : Bukkit.getOnlinePlayers()) {
-            if (op.getName().equals(submitter)) {
-                if (op.isOnline()) {
-                    op.sendMessage(message);
-                }
-                return;
-            }
+        Player p = Bukkit.getPlayerExact(submitter);
+        if (p == null || !p.isOnline()) {
+            return;
         }
+
+        p.sendMessage(message);
     }
 
     public ArrayList<Comment> getComments() {
@@ -313,21 +301,8 @@ public class Ticket {
         return a;
     }
 
-    public Comment getComment(int number) {
-        if (number < comments.size()) {
-            return comments.get(number - 1);
-        }
-        return null;
-    }
-
     public void addComment(Comment c) {
         comments.add(c);
-    }
-
-    public void deleteComment(int i) {
-        if (i < comments.size()) {
-            comments.remove(i - 1);
-        }
     }
 
     public void addDefaultComment(Player p, CommentType c) {
@@ -336,11 +311,11 @@ public class Ticket {
     }
 
     public void notifyStaff(String notification) {
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p.getName().equals(staff)) {
-                p.sendMessage(notification);
-                return;
-            }
+        Player p = Bukkit.getPlayerExact(staff);
+        if (p == null || !p.isOnline()) {
+            return;
         }
+        p.sendMessage(notification);
+
     }
 }
