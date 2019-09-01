@@ -41,13 +41,13 @@ public class CommentCommand implements CommandExecutor {
 
             int id = Integer.parseInt(args[0]);
 
-            if (id > ModReq.getInstance().getTicketHandler().getTicketCount()) {
-                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.exist"), "", "", ""));
+            Player p = (Player) sender;
+            Ticket t = ModReq.getInstance().getTicketHandler().getTicketById(id);
+
+            if (t == null) {
+                Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, args[0]);
                 return true;
             }
-            Player p = (Player) sender;
-            Ticket t = ModReq.getInstance().getTicketHandler()
-                    .getTicketById(id);
             if (p.hasPermission("modreq.check") || playerIsSubmitter(p, t)) {
                 if (maxCommentIsExeeded(p, t)) {
                     sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.comment.toomany"), "", "", ""));
@@ -88,16 +88,19 @@ public class CommentCommand implements CommandExecutor {
         if (p.hasPermission("modreq.overwrite.commentlimit")) {
             return false;
         }
+
+        int maxCommentStreak = ModReq.getInstance().getConfig().getInt("comment-limit");
         int i = 1;
+
         for (Comment c : t.getComments()) {
             if (c.getCommenter().equals(p.getName())) {
                 i++;
+                if (i > maxCommentStreak) {
+                    return true;
+                }
             } else {
                 i = 1;
             }
-        }
-        if (i > ModReq.getInstance().getConfig().getInt("comment-limit")) {
-            return true;
         }
         return false;
     }
