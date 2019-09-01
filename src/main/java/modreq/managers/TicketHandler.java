@@ -296,7 +296,7 @@ public class TicketHandler {
 
         prep.setString(1, status);
         prep.setString(2, staff);
-        prep.setInt(2, t.getId());
+        prep.setInt(3, t.getId());
         prep.execute();
 
         updateComments(conn, t);

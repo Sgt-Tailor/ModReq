@@ -88,18 +88,18 @@ public class ClaimCommand implements CommandExecutor {
             return true;
         }
 
-        if (!plugin.getConfig().getBoolean("may-claim-multiple", false)) {
-            if (tickets.hasClaimed(p)) {
-                Message.sendToPlayer(MessageType.ERROR_CLAIM_MULTIPLE, (Player) sender, args[0]);
-                return true;
-            }
-        }
-
-        t.setStaff(staff);
-        t.setStatus(status);
-        t.addDefaultComment(p, CommentType.CLAIM);
         try {
-            t.update();
+            if (!plugin.getConfig().getBoolean("may-claim-multiple", false)) {
+                if (tickets.hasClaimed(p)) {
+                    Message.sendToPlayer(MessageType.ERROR_CLAIM_MULTIPLE, (Player) sender, args[0]);
+                    return true;
+                }
+
+            }
+
+            t.setStaff(staff);
+            t.setStatus(status);
+            t.addDefaultComment(p, CommentType.CLAIM);
         } catch (SQLException e) {
             e.printStackTrace();
             Message.sendToPlayer(MessageType.ERROR_GENERIC, p);

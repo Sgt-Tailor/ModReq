@@ -19,10 +19,7 @@ package modreq.commands;
 
 import java.sql.SQLException;
 
-import modreq.Comment;
-import modreq.CommentType;
-import modreq.ModReq;
-import modreq.Ticket;
+import modreq.*;
 import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
 
@@ -75,11 +72,12 @@ public class CommentCommand implements CommandExecutor {
                 }
                 try {
                     t.update();
-                } catch (SQLException e) {// does not happen
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
                 }
             } else {
-                p.sendMessage(ChatColor.RED
-                        + "You don't have permissions to to this");
+                p.sendMessage(ChatColor.RED + "You don't have permissions to to this");
             }
         }
 
