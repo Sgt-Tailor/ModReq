@@ -224,14 +224,11 @@ public class ModReq extends JavaPlugin {
     }
 
     public static String getTimeString() {
-        String timezone = ModReq.getInstance().getConfig()
-                .getString("timezone");
-        DateFormat df = new SimpleDateFormat(ModReq.getInstance().getConfig()
-                .getString("timeformat", "YY-MM-dd HH:mm:ss"));
+        String timezone = ModReq.getInstance().getConfig().getString("timezone");
+        DateFormat df = new SimpleDateFormat(ModReq.getInstance().getConfig().getString("timeformat", "YY-MM-dd HH:mm:ss"));
         TimeZone tz = TimeZone.getTimeZone(timezone);
 
-        Calendar cal = Calendar.getInstance(Calendar.getInstance()
-                .getTimeZone(), Locale.ENGLISH);
+        Calendar cal = Calendar.getInstance(Calendar.getInstance().getTimeZone(), Locale.ENGLISH);
         cal.add(Calendar.MILLISECOND, -(cal.getTimeZone().getRawOffset()));
         cal.add(Calendar.MILLISECOND, tz.getRawOffset());
         Date dt = new Date(cal.getTimeInMillis());
