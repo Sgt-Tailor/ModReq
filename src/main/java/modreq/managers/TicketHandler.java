@@ -159,11 +159,11 @@ public class TicketHandler {
     public void sendPlayerPage(int page, Status status, Player p) {
         try {
             Connection conn = getConnection();
-            Statement stat = conn.createStatement();
+
             List<Ticket> tickets = new ArrayList<Ticket>();
-            int nmbr = page * 10;
-            ResultSet resultOC;//Result of open and closed tickets
-            ResultSet resultP;//Result of pending tickets
+
+            int ticketsPerPage = 10;
+            int offset = (ticketsPerPage * page) - 10;
 
             StringBuilder statusSelect = new StringBuilder();
             statusSelect.append("status = '" + status.getStatusString() + "'");
@@ -173,26 +173,28 @@ public class TicketHandler {
                     statusSelect.append(" or status = 'claimed'");
                 }
                 if (plugin.getConfig().getBoolean("show-pending-tickets-in-open-list") && p.hasPermission("modreq.claim.pending")) {
-                    resultP = stat.executeQuery("SELECT * FROM requests WHERE status = 'pending' limit " + nmbr);
-                    while (resultP.next()) {
-                        if (tickets.size() >= 10) {
-                            break;
-                        }
+                    PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM requests WHERE status = 'pending' limit ? offset ?");
 
-                        tickets.add(getTicketByResultSet(resultP));
+                    preparedStatement.setInt(1, ticketsPerPage);
+                    preparedStatement.setInt(2, offset);
+                    ResultSet resultPending = preparedStatement.executeQuery();
+
+                    while (resultPending.next()) {
+                        tickets.add(getTicketByResultSet(resultPending));
                     }
                 }
-                resultOC = stat.executeQuery("SELECT * FROM requests WHERE " + statusSelect.toString() + " limit " + nmbr);
-
-            } else {
-                resultOC = stat
-                        .executeQuery("SELECT * FROM requests WHERE status = '"
-                                + status.getStatusString() + "' limit " + nmbr);
             }
 
-            while (resultOC.next()) {
-                if (resultOC.getRow() > nmbr - 10 && tickets.size() < 10) {
-                    tickets.add(getTicketByResultSet(resultOC));
+            // only fetch more tickets if we have not exceeded the limit yet
+            int openTicketLimit = ticketsPerPage - tickets.size();
+            if (openTicketLimit > 0) {
+                PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM requests WHERE " + statusSelect.toString() + " limit ? offset ? ");
+                preparedStatement.setInt(1, openTicketLimit);
+                preparedStatement.setInt(2, offset);
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                while (resultSet.next()) {
+                    tickets.add(getTicketByResultSet(resultSet));
                 }
             }
             p.sendMessage(ChatColor.GOLD + "-----List-of-"
@@ -280,7 +282,6 @@ public class TicketHandler {
             }
 
             Ticket ticket = getTicketByResultSet(result);
-            stat.close();
             addCommentsToTicket(conn, ticket);
             return ticket;
         } catch (SQLException e) {
@@ -314,8 +315,7 @@ public class TicketHandler {
         updateComments(conn, t);
     }
 
-    private void addCommentsToTicket(Connection conn, Ticket t)
-            throws SQLException {
+    private void addCommentsToTicket(Connection conn, Ticket t) throws SQLException {
         PreparedStatement stat = conn.prepareStatement("SELECT * FROM comments WHERE id = ?");
         stat.setInt(1, t.getId());
         ResultSet rs = stat.executeQuery();
@@ -325,7 +325,7 @@ public class TicketHandler {
             String date = rs.getString(4);
 
             Comment c = new Comment(commenter, comment, date);
-            t.addComment(c);
+            t.insertComment(c);
         }
         rs.close();
         stat.close();
@@ -354,26 +354,14 @@ public class TicketHandler {
         }
         stat.close();
         Comment B = t.getComments().get(t.getComments().size() - 1);
-        if (!A.isValid()) {
+
+        if (B.isValid() && !A.equalsComment(B)) {
             prep.setInt(1, t.getId());
             prep.setString(2, B.getCommenter());
             prep.setString(3, B.getComment());
             prep.setString(4, B.getDate());
             prep.addBatch();
             prep.executeBatch();
-
-            return;
         }
-
-        if (A.equalsComment(B)) {
-            return;
-        }
-
-        prep.setInt(1, t.getId());
-        prep.setString(2, B.getCommenter());
-        prep.setString(3, B.getComment());
-        prep.setString(4, B.getDate());
-        prep.addBatch();
-        prep.executeBatch();
     }
 }
