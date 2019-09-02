@@ -66,7 +66,7 @@ public class ModReq extends JavaPlugin {
         pm.registerEvents(new ModReqListener(this), this);
 
         if (plugin.getConfig().getBoolean("check-updates", true)) {
-            startVersionChecker();
+            //startVersionChecker();
         } else {
             logger.info("[ModReq] Not using update feature");
         }
