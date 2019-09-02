@@ -15,7 +15,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package modreq.managers;
+package modreq.repository;
 
 import modreq.Comment;
 import modreq.ModReq;
@@ -30,14 +30,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class TicketHandler {
+public class TicketRepository {
 
     public static ModReq plugin = ModReq.getInstance();
-    private Connection connection;
     private static final Logger logger = Logger.getLogger("Minecraft");
+    private Connection connection;
     private boolean useMysql;
 
-    public TicketHandler() {
+    public TicketRepository() {
         useMysql = plugin.getConfig().getBoolean("use-mysql");
     }
 
@@ -105,7 +105,7 @@ public class TicketHandler {
         }
     }
 
-    public int getTicketsFromPlayer(Player p, Status status) throws SQLException {
+    public int getTicketCountBySubmitter(Player p, Status status) throws SQLException {
 
         Connection conn = getConnection();
         PreparedStatement stat = conn.prepareStatement("SELECT COUNT(1) FROM requests WHERE 'submitter' = ? AND 'status' = ?");
@@ -119,9 +119,7 @@ public class TicketHandler {
         return 0;
     }
 
-    public ArrayList<Ticket> getTicketsByPlayer(String target)
-            throws SQLException {// returns an arraylist containing all the
-        // tickets that a player has submitted
+    public ArrayList<Ticket> getTicketsBySubmitter(String target) throws SQLException {
         Connection conn = getConnection();
         PreparedStatement stat = conn.prepareStatement("SELECT * FROM requests WHERE submitter = ? ORDER BY ID DESC LIMIT 5");
         stat.setString(1, target);
@@ -137,7 +135,7 @@ public class TicketHandler {
         return value;
     }
 
-    public boolean hasClaimed(Player p) throws SQLException {
+    public boolean playerHasClaimedTicket(Player p) throws SQLException {
 
         Connection conn = getConnection();
         PreparedStatement stat = conn.prepareStatement("SELECT * FROM requests WHERE staff = ? AND status = ? limit 1");
@@ -208,23 +206,7 @@ public class TicketHandler {
         }
     }
 
-    public int getTicketCount() {// get the total amount of tickets
-        try {
-            Connection conn = getConnection();
-            Statement stat = conn.createStatement();
-            ResultSet rs = stat.executeQuery("SELECT max(id) FROM requests ");
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-            return 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-
-    }
-
-    public int getTicketAmount(Status status) {
+    public int getTicketCountByStatus(Status status) {
         try {
             Connection conn = getConnection();
             PreparedStatement stat = conn.prepareStatement("SELECT count(1) FROM requests WHERE status = ?");
@@ -242,16 +224,18 @@ public class TicketHandler {
 
     }
 
-    public int addTicket(String submitter, String message, String date,
-                         Status status, String location) throws SQLException {
+    public int addTicket(Ticket t) throws SQLException {
+        if (t.getId() != 0) {
+            throw new RuntimeException("TicketId is not 0");
+        }
         Connection conn = getConnection();
 
         PreparedStatement prep = conn.prepareStatement("INSERT INTO requests (submitter, message, date, status, location, staff) VALUES (?, ?, ?, ?, ?, ?)");
-        prep.setString(1, submitter);
-        prep.setString(2, message);
-        prep.setString(3, date);
-        prep.setString(4, status.getStatusString());
-        prep.setString(5, location);
+        prep.setString(1, t.getSubmitter());
+        prep.setString(2, t.getMessage());
+        prep.setString(3, t.getDate());
+        prep.setString(4, t.getStatus().getStatusString());
+        prep.setString(5, t.getLocationString());
         prep.setString(6, "no staff member yet");
         prep.addBatch();
 
@@ -267,7 +251,9 @@ public class TicketHandler {
             throw new SQLException("not data returned by " + query);
         }
 
-        return set.getInt(1);
+        int ticketId = set.getInt(1);
+        t.setId(ticketId);
+        return ticketId;
     }
 
     public Ticket getTicketById(int id) {
@@ -290,17 +276,6 @@ public class TicketHandler {
         return null;
     }
 
-    private Ticket getTicketByResultSet(ResultSet result) throws SQLException {
-        int id = result.getInt(1);
-        String status = result.getString(5);
-        String submitter = result.getString(2);
-        String date = result.getString(4);
-        String location = result.getString(6);
-        String message = result.getString(3);
-        String staff = result.getString(7);
-        return new Ticket(id, submitter, message, date, Status.getByString(status), location, staff);
-    }
-
     public void updateTicket(Ticket t) throws SQLException {
         Connection conn = getConnection();
         PreparedStatement prep = conn.prepareStatement("UPDATE requests SET status = ?, staff = ? WHERE id = ?");
@@ -313,6 +288,17 @@ public class TicketHandler {
         prep.execute();
 
         updateComments(conn, t);
+    }
+
+    private Ticket getTicketByResultSet(ResultSet result) throws SQLException {
+        int id = result.getInt(1);
+        String status = result.getString(5);
+        String submitter = result.getString(2);
+        String date = result.getString(4);
+        String location = result.getString(6);
+        String message = result.getString(3);
+        String staff = result.getString(7);
+        return new Ticket(id, submitter, message, date, Status.getByString(status), location, staff);
     }
 
     private void addCommentsToTicket(Connection conn, Ticket t) throws SQLException {

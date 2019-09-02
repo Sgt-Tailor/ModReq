@@ -21,7 +21,7 @@ import java.sql.SQLException;
 
 import modreq.*;
 import modreq.korik.SubCommandExecutor;
-import modreq.managers.TicketHandler;
+import modreq.repository.TicketRepository;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
 public class TicketCommand extends SubCommandExecutor {
 
     private ModReq plugin;
-    private TicketHandler tickets;
+    private TicketRepository tickets;
 
     public TicketCommand(ModReq instance) {
         plugin = instance;
@@ -37,7 +37,7 @@ public class TicketCommand extends SubCommandExecutor {
 
     @Override
     public void onInvalidCommand(CommandSender sender, String[] args, String command) {
-        tickets = plugin.getTicketHandler();
+        tickets = plugin.getTicketRepository();
         if (!(sender instanceof Player)) {
             sender.sendMessage("You can only run this command as a player");
             return;
@@ -78,7 +78,7 @@ public class TicketCommand extends SubCommandExecutor {
             usage = "/ticket setpending <id>"
     )
     public void setpending(CommandSender sender, String[] args) {
-        tickets = plugin.getTicketHandler();
+        tickets = plugin.getTicketRepository();
         Player p = (Player) sender;
         int id;
         try {

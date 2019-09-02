@@ -25,7 +25,7 @@ import modreq.MessageType;
 import modreq.ModReq;
 import modreq.Ticket;
 import modreq.korik.SubCommandExecutor;
-import modreq.managers.TicketHandler;
+import modreq.repository.TicketRepository;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -33,7 +33,7 @@ import org.bukkit.entity.Player;
 public class StatusCommand extends SubCommandExecutor {
 
     private ModReq plugin;
-    private TicketHandler tickets;
+    private TicketRepository tickets;
 
     public StatusCommand(ModReq instance) {
         plugin = instance;
@@ -41,7 +41,7 @@ public class StatusCommand extends SubCommandExecutor {
 
     @command
     public void Null(CommandSender sender, String[] args) {
-        tickets = plugin.getTicketHandler();
+        tickets = plugin.getTicketRepository();
         if (!(sender instanceof Player)) {
             return;
         }
@@ -51,7 +51,7 @@ public class StatusCommand extends SubCommandExecutor {
             return;
         }
         try {
-            ArrayList<Ticket> t = tickets.getTicketsByPlayer(sender.getName());
+            ArrayList<Ticket> t = tickets.getTicketsBySubmitter(sender.getName());
             p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.status.header"), "", "", ""));
             for (Ticket ticket : t) {
                 ticket.sendStatus(p);
@@ -66,7 +66,7 @@ public class StatusCommand extends SubCommandExecutor {
 
     @Override
     public void onInvalidCommand(CommandSender sender, String[] args, String ticketNumber) {
-        tickets = plugin.getTicketHandler();
+        tickets = plugin.getTicketRepository();
         if (!(sender instanceof Player)) {
             return;
         }

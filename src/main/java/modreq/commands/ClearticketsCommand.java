@@ -19,7 +19,7 @@ package modreq.commands;
 
 import modreq.ModReq;
 import modreq.korik.SubCommandExecutor;
-import modreq.managers.TicketHandler;
+import modreq.repository.TicketRepository;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -27,7 +27,7 @@ import org.bukkit.command.CommandSender;
 public class ClearticketsCommand extends SubCommandExecutor {
 
     private ModReq plugin;
-    private TicketHandler tickets;
+    private TicketRepository tickets;
 
     public ClearticketsCommand(ModReq instance) {
         plugin = instance;
@@ -35,7 +35,7 @@ public class ClearticketsCommand extends SubCommandExecutor {
 
     @command
     public void Null(CommandSender sender, String[] args) {
-        tickets = plugin.getTicketHandler();
+        tickets = plugin.getTicketRepository();
         if (sender.hasPermission("modreq.cleartickets")) {
             tickets.clearTickets();
             sender.sendMessage(ChatColor.GREEN

@@ -23,18 +23,15 @@ import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
 import modreq.korik.SubCommandExecutor;
-import modreq.korik.Utils;
-import modreq.managers.TicketHandler;
+import modreq.repository.TicketRepository;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class CheckCommand extends SubCommandExecutor {
 
     private ModReq plugin;
-    private TicketHandler tickets;
+    private TicketRepository tickets;
 
     public CheckCommand(ModReq instance) {
         plugin = instance;
@@ -42,7 +39,7 @@ public class CheckCommand extends SubCommandExecutor {
 
     @Override
     public void onInvalidCommand(CommandSender sender, String[] args, String command) {
-        tickets = plugin.getTicketHandler();
+        tickets = plugin.getTicketRepository();
         int page = 1;
         try {
             page = Integer.parseInt(command);
@@ -62,7 +59,7 @@ public class CheckCommand extends SubCommandExecutor {
     @command(minimumArgsLength = 1, maximumArgsLength = 1, usage = "/check id <id>")
     public void id(CommandSender sender, String[] args) {
         if (sender instanceof Player) {
-            tickets = plugin.getTicketHandler();
+            tickets = plugin.getTicketRepository();
             try {
                 int id = Integer.parseInt(args[0]);
                 Ticket t = tickets.getTicketById(id);
@@ -81,7 +78,7 @@ public class CheckCommand extends SubCommandExecutor {
 
     @command(minimumArgsLength = 0, maximumArgsLength = 1, usage = "/check closed <page>")
     public void closed(CommandSender sender, String[] args) {
-        tickets = plugin.getTicketHandler();
+        tickets = plugin.getTicketRepository();
         int page = 1;
         if (args.length == 1) {
             page = java.lang.Integer.parseInt(args[0]);
@@ -95,7 +92,7 @@ public class CheckCommand extends SubCommandExecutor {
 
     @command(minimumArgsLength = 0, maximumArgsLength = 1, usage = "/check claimed <page>")
     public void claimed(CommandSender sender, String[] args) {
-        tickets = plugin.getTicketHandler();
+        tickets = plugin.getTicketRepository();
         int page = 1;
         if (args.length == 1) {
             page = java.lang.Integer.parseInt(args[0]);
@@ -109,7 +106,7 @@ public class CheckCommand extends SubCommandExecutor {
 
     @command(minimumArgsLength = 0, maximumArgsLength = 1, usage = "/check claimed <page>")
     public void pending(CommandSender sender, String[] args) {
-        tickets = plugin.getTicketHandler();
+        tickets = plugin.getTicketRepository();
         int page = 1;
         if (args.length == 1) {
             page = java.lang.Integer.parseInt(args[0]);

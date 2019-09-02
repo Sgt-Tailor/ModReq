@@ -20,9 +20,8 @@ package modreq.commands;
 import java.sql.SQLException;
 
 import modreq.*;
-import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
-import modreq.managers.TicketHandler;
+import modreq.repository.TicketRepository;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -32,7 +31,7 @@ import org.bukkit.entity.Player;
 public class ReopenCommand implements CommandExecutor {
 
     private ModReq plugin;
-    private TicketHandler tickets;
+    private TicketRepository tickets;
 
     public ReopenCommand(ModReq instance) {
         plugin = instance;
@@ -40,7 +39,7 @@ public class ReopenCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        tickets = plugin.getTicketHandler();
+        tickets = plugin.getTicketRepository();
         if (!(sender instanceof Player)) {
             sender.sendMessage("You can only run this command as a Player");
             return true;

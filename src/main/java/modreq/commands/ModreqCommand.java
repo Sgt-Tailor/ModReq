@@ -20,14 +20,10 @@ package modreq.commands;
 import java.sql.SQLException;
 import java.util.HashMap;
 
-import modreq.Message;
-import modreq.MessageType;
-import modreq.ModReq;
-import modreq.Status;
+import modreq.*;
 import modreq.korik.Utils;
-import modreq.managers.TicketHandler;
+import modreq.repository.TicketRepository;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -37,7 +33,7 @@ import org.bukkit.entity.Player;
 public class ModreqCommand implements CommandExecutor {
 
     private ModReq plugin;
-    private TicketHandler tickets;
+    private TicketRepository tickets;
 
     public ModreqCommand(ModReq instance) {
         plugin = instance;
@@ -45,7 +41,7 @@ public class ModreqCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(final CommandSender sender, Command cmd, String label, String[] args) {
-        tickets = plugin.getTicketHandler();
+        tickets = plugin.getTicketRepository();
 
         if (!(sender instanceof Player)) {
             sender.sendMessage("This command can only be run as a player");
@@ -58,7 +54,7 @@ public class ModreqCommand implements CommandExecutor {
                 return true;
             }
             try {
-                int ticketsfromplayer = tickets.getTicketsFromPlayer(p, Status.OPEN);
+                int ticketsfromplayer = tickets.getTicketCountBySubmitter(p, Status.OPEN);
                 if (ticketsfromplayer >= plugin.getConfig().getInt("maximum-open-tickets")) {
                     Message.sendToPlayer(MessageType.ERROR_TICKET_TOOMANY, p);
                     return true;
@@ -89,7 +85,8 @@ public class ModreqCommand implements CommandExecutor {
                 + Math.round(loc.getZ());
 
         try {
-            return tickets.addTicket(sender.getName(), message, time, Status.OPEN, location);
+            Ticket t = new Ticket(0, sender.getName(), message, time, Status.OPEN, location, "no staff member yet");
+            return tickets.addTicket(t);
         } catch (SQLException e) {
             e.printStackTrace();
         }

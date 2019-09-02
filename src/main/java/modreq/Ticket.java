@@ -19,9 +19,8 @@ package modreq;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 
-import modreq.managers.TicketHandler;
+import modreq.repository.TicketRepository;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -38,7 +37,7 @@ public class Ticket {
     private Status status;
     private String location;
     private String staff;
-    private TicketHandler tickets;
+    private TicketRepository tickets;
     private ArrayList<Comment> comments;
 
     public Ticket(int id, String submitter, String message,
@@ -51,7 +50,7 @@ public class Ticket {
         this.status = status;
         this.location = location;
 
-        this.tickets = ModReq.getInstance().getTicketHandler();
+        this.tickets = ModReq.getInstance().getTicketRepository();
         this.comments = new ArrayList<Comment>();
     }
 
@@ -128,6 +127,10 @@ public class Ticket {
         double zz = Integer.parseInt(z);
         Location loc = new Location(w, xx, yy, zz);
         return loc;
+    }
+
+    public String getLocationString() {
+        return location;
     }
 
     /**
@@ -249,6 +252,13 @@ public class Ticket {
         return p != null && p.isOnline();
     }
 
+    public void setId(int id) {
+        if (this.id != 0) {
+            throw new RuntimeException("id already set on ticket");
+        }
+
+        this.id = id;
+    }
     /**
      * This is used to set a new staff member The ticket must be updated for any
      * changes to apply
