@@ -25,8 +25,7 @@ import modreq.MessageType;
 import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
-import modreq.korik.SubCommandExecutor;
-import modreq.managers.TicketHandler;
+import modreq.repository.TicketRepository;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -43,7 +42,7 @@ public class ClaimCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        TicketHandler tickets = plugin.getTicketHandler();
+        TicketRepository tickets = plugin.getTicketRepository();
         if (!(sender instanceof Player)) {
             sender.sendMessage("This command can only be ran as a player");
             return true;
@@ -90,7 +89,7 @@ public class ClaimCommand implements CommandExecutor {
 
         try {
             if (!plugin.getConfig().getBoolean("may-claim-multiple", false)) {
-                if (tickets.hasClaimed(p)) {
+                if (tickets.playerHasClaimedTicket(p)) {
                     Message.sendToPlayer(MessageType.ERROR_CLAIM_MULTIPLE, (Player) sender, args[0]);
                     return true;
                 }

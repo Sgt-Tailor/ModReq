@@ -18,8 +18,8 @@
 package modreq;
 
 import modreq.Metrics.Graph;
-import modreq.managers.CommandManager;
-import modreq.managers.TicketHandler;
+import modreq.repository.CommandManager;
+import modreq.repository.TicketRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -40,22 +40,19 @@ import java.util.logging.Logger;
 
 public class ModReq extends JavaPlugin {
 
-    public CommandManager cmdManager;
     public YamlConfiguration Messages;
     private static ModReq plugin;
-    public static final Logger logger = Logger.getLogger("Minecraft");
-    public File configFile;
+    private static final Logger logger = Logger.getLogger("Minecraft");
+    private File configFile;
     private File messages;
     private Metrics metrics;
-    public String latestVersion;
-    public String DownloadLink;
-    private TicketHandler ticketHandler;
+    private TicketRepository ticketRepository;
 
     @Override
     public void onEnable() {
         plugin = this;
-        cmdManager = new CommandManager(this);
-        ticketHandler = new TicketHandler();
+        CommandManager cmdManager = new CommandManager(this);
+        ticketRepository = new TicketRepository();
         messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
         checkConfigFile();
         loadMessages();
@@ -65,11 +62,6 @@ public class ModReq extends JavaPlugin {
         PluginManager pm = this.getServer().getPluginManager();
         pm.registerEvents(new ModReqListener(this), this);
 
-        if (plugin.getConfig().getBoolean("check-updates", true)) {
-            //startVersionChecker();
-        } else {
-            logger.info("[ModReq] Not using update feature");
-        }
         startNotify();
         startMetrics();
 
@@ -120,7 +112,7 @@ public class ModReq extends JavaPlugin {
             logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
         }
         loadMessages();
-        ticketHandler = new TicketHandler();
+        ticketRepository = new TicketRepository();
         plugin.reloadConfig();
 
     }
@@ -129,14 +121,8 @@ public class ModReq extends JavaPlugin {
         return this.getDescription().getVersion();
     }
 
-    public TicketHandler getTicketHandler() {
-        return ticketHandler;
-    }
-
-    private void startVersionChecker() {
-        long hour = 60 * 60 * 20;
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this,
-                new VersionChecker(this), 60L, hour);
+    public TicketRepository getTicketRepository() {
+        return ticketRepository;
     }
 
     private void startGraphs() {
@@ -147,19 +133,19 @@ public class ModReq extends JavaPlugin {
             graph.addPlotter(new Metrics.Plotter("Open") {
                 @Override
                 public int getValue() {
-                    return ticketHandler.getTicketAmount(Status.OPEN);
+                    return ticketRepository.getTicketCountByStatus(Status.OPEN);
                 }
             });
             graph.addPlotter(new Metrics.Plotter("Claimed") {
                 @Override
                 public int getValue() {
-                    return ticketHandler.getTicketAmount(Status.CLAIMED);
+                    return ticketRepository.getTicketCountByStatus(Status.CLAIMED);
                 }
             });
             graph.addPlotter(new Metrics.Plotter("Closed") {
                 @Override
                 public int getValue() {
-                    return ticketHandler.getTicketAmount(Status.CLOSED);
+                    return ticketRepository.getTicketCountByStatus(Status.CLOSED);
                 }
             });
             metrics.start();
@@ -207,8 +193,8 @@ public class ModReq extends JavaPlugin {
             Bukkit.getScheduler().runTaskTimer(this, new Runnable() {
                 @Override
                 public void run() {
-                    TicketHandler th = getTicketHandler();
-                    int opentickets = th.getTicketAmount(Status.OPEN);
+                    TicketRepository th = getTicketRepository();
+                    int opentickets = th.getTicketCountByStatus(Status.OPEN);
                     if (opentickets > 0) {
                         Player[] online = Bukkit.getOnlinePlayers().toArray(new Player[Bukkit.getOnlinePlayers().size()]);
                         for (int i = 0; i < online.length; i++) {

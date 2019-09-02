@@ -20,7 +20,7 @@ package modreq.commands;
 import java.sql.SQLException;
 
 import modreq.*;
-import modreq.managers.TicketHandler;
+import modreq.repository.TicketRepository;
 
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -38,7 +38,7 @@ public class TpIdCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        TicketHandler tickets = plugin.getTicketHandler();
+        TicketRepository tickets = plugin.getTicketRepository();
         if (!(sender instanceof Player)) {
             sender.sendMessage("You can only run this command as a player");
             return true;

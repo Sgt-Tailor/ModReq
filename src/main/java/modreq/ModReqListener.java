@@ -17,7 +17,7 @@
  */
 package modreq;
 
-import modreq.managers.TicketHandler;
+import modreq.repository.TicketRepository;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -42,27 +42,14 @@ public class ModReqListener implements Listener {
                     new Runnable() {
                 @Override
                 public void run() {
-                    TicketHandler th = new TicketHandler();
-                    int opentickets = th.getTicketAmount(Status.OPEN);
+                    TicketRepository th = new TicketRepository();
+                    int opentickets = th.getTicketCountByStatus(Status.OPEN);
                     if (opentickets > 0) {
                         p.sendMessage(ChatColor.GOLD + "[ModReq]" + ModReq.format(ModReq.getInstance().Messages.getString("staff.all.notification"), "", Integer.toString(opentickets),""));
                     }
 
                 }
             }, 60L);
-        }
-        if (p.hasPermission("modreq.update")) {
-            if (plugin.getConfig().getBoolean("check-updates", true)) {
-                String currentVersion = plugin.getDescription().getVersion();
-                if (plugin.latestVersion != null && currentVersion != null) {
-                    if (!plugin.latestVersion.equals(currentVersion)) {
-                        p.sendMessage(ChatColor.GOLD
-                                + "[ModReq]"
-                                + ChatColor.DARK_PURPLE
-                                + "A newer version of ModReq is available. If you wish to download this file to the modreq folder do /updatemodreq");
-                    }
-                }
-            }
         }
     }
 }

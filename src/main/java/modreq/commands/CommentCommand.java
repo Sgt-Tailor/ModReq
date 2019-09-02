@@ -20,7 +20,6 @@ package modreq.commands;
 import java.sql.SQLException;
 
 import modreq.*;
-import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
 
 import org.bukkit.Bukkit;
@@ -42,7 +41,7 @@ public class CommentCommand implements CommandExecutor {
             int id = Integer.parseInt(args[0]);
 
             Player p = (Player) sender;
-            Ticket t = ModReq.getInstance().getTicketHandler().getTicketById(id);
+            Ticket t = ModReq.getInstance().getTicketRepository().getTicketById(id);
 
             if (t == null) {
                 Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, args[0]);

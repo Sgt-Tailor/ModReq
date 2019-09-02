@@ -20,11 +20,9 @@ package modreq.commands;
 import java.sql.SQLException;
 
 import modreq.*;
-import modreq.korik.SubCommandExecutor;
 import modreq.korik.Utils;
-import modreq.managers.TicketHandler;
+import modreq.repository.TicketRepository;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -40,7 +38,7 @@ public class DoneCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        TicketHandler tickets = plugin.getTicketHandler();
+        TicketRepository tickets = plugin.getTicketRepository();
 
         if (!(sender instanceof Player)) {
             sender.sendMessage("This command can only be run by a player");
