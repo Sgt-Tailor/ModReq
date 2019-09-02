@@ -41,10 +41,10 @@ public class Ticket {
     private TicketHandler tickets;
     private ArrayList<Comment> comments;
 
-    public Ticket(int idp, String submitter, String message,
+    public Ticket(int id, String submitter, String message,
                   String date, Status status, String location, String staff) {
         this.submitter = submitter;
-        this.id = idp;
+        this.id = id;
         this.staff = staff;
         this.date = date;
         this.message = message;
@@ -157,7 +157,7 @@ public class Ticket {
             }
         }
         summary = ChatColor.GOLD + "#" + id + ChatColor.AQUA + " " + date
-                + " [" + Integer.toString(comments.size()) + "] "
+                + " [" + comments.size() + "] "
                 + namecolor + submitter + " " + ChatColor.GRAY + summessage
                 + "...";
         if (status.equals(Status.CLAIMED)) {
@@ -182,7 +182,7 @@ public class Ticket {
             summessage = summessage.substring(0, 15);
         }
         String summary = ChatColor.GOLD + "#" + id + ChatColor.AQUA + " "
-                + date + " " + "[" + Integer.toString(comments.size()) + "]"
+                + date + " " + "[" + comments.size() + "]"
                 + " " + ChatColor.DARK_GREEN + " [" + status + "]" + " "
                 + ChatColor.GRAY + summessage + "...";
         p.sendMessage(summary);
@@ -209,6 +209,7 @@ public class Ticket {
         String e = plugin.Messages.getString("ticket.comment", "Comment");
         String f = plugin.Messages.getString("ticket.request", "Request");
         String g = plugin.Messages.getString("ticket.staff", "Staff member");
+
         p.sendMessage(ModReq.format(plugin.Messages.getString("headers-footers.ticket.header"), "", Integer.toString(id), ""));
         p.sendMessage(ChatColor.AQUA + d + ": " + ChatColor.GRAY
                 + status);
@@ -229,7 +230,7 @@ public class Ticket {
     }
 
     private void sendComments(Player p) {
-        int number = comments.size() - 1;
+        int number = comments.size();
         for (Comment c : comments) {
             String commenter = c.getCommenter();
             String date = c.getDate();
@@ -303,6 +304,10 @@ public class Ticket {
 
     public void addComment(Comment c) {
         comments.add(c);
+    }
+
+    public void insertComment(Comment c) {
+        comments.add(0, c);
     }
 
     public void addDefaultComment(Player p, CommentType c) {

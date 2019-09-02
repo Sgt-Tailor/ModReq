@@ -100,6 +100,7 @@ public class ClaimCommand implements CommandExecutor {
             t.setStaff(staff);
             t.setStatus(status);
             t.addDefaultComment(p, CommentType.CLAIM);
+            t.update();
         } catch (SQLException e) {
             e.printStackTrace();
             Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
