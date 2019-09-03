@@ -3,98 +3,104 @@
 #Since version 2.4 you can use colourtags in the messages. A colour is
 #represented by the &, followed by the numbers 0-9 and the letters a-f, k-n
 #other tags can be found in the default messages, as well as in the comments
-#The tags used are %player%, %number% and %comment%
+#Check the original messages for the available tags. %ticketId% for example.
 error:
-    generic: "&cSomething went wrong"
-    permission: "&cYou do not have permissions to use this command."
-    number: "&c%number% is not a number"
-    message: "&cYou have not typed a message, please do so"
-    nomods: "&7There are no mods online at this time.."
-    comment:
-        toomany: "&cYou may not submit that many comments in a row."
-        empty: "&cComment may not be empty"
-    claim:
-        pending: "&cYou may not claim pending ticket (&6#%number%&a)"
-        multiple: "&cYou care not allowed to claim multiple tickets"
-    ticket:
-        exist: "&cThat ticket does not exist (&6#%number%&a)"
-        your: "&cThat is not your ticket (&6#%number%&a)"
-        close: "&cYou may not close that ticket (&6#%number%&a)"
-        claim: "&cYou may not claim that ticket (&6#%number%&a)"
-        toomany: "&aYou have too many open tickets (&6#%number%&a)"        
+  generic: "&cSomething went wrong"
+  permission: "&cYou do not have permissions to use this command."
+  number: "&c%number% is not a number"
+  message: "&cYou have not typed a message, please do so"
+  nomods: "&7There are no mods online at this time.."
+  comment:
+    toomany: "&cYou may not submit that many comments in a row."
+    empty: "&cComment may not be empty"
+  claim:
+    pending: "&cYou may not claim pending ticket (&6#%number%&a)"
+    multiple: "&cYou care not allowed to claim multiple tickets"
+  ticket:
+    exist: "&cThat ticket does not exist (&6#%number%&a)"
+    your: "&cThat is not your ticket (&6#%number%&a)"
+    close: "&cYou may not close that ticket (&6#%number%&a)"
+    claim: "&cYou may not claim that ticket (&6#%number%&a)"
+    toomany: "&aYou have too many open tickets (&6#%number%&a)"
 player:
-    submit: "&aYou have succesfully submitted a ticket, a staff member will help you soon"
-    teleport: "&a%player% just teleported to the location of your ticket (&6#%number%&a)"
-    claim: "&b%player% &ajust claimed your ticket (&6#%number%&a)"
-    pending: "&b%player% &ajust set your ticket to pending (&6#%number%&a), please be patient"
-    reopen: "&b%player% &ajust reopened your ticket (&6#%number%&a)"
-    close:
-        withcomment: "&b%player% &ajust closed your ticket (&6#%number%&a) &awith the comment: &7%comment% "
-        withoutcomment: "&b%player% &ajust closed your ticket (&6#%number%&a)"
-    comment: "&b%player%&ajust commented on your ticket (&6#%number%&a)"
+  submit: "&aYou have succesfully submitted a ticket, a staff member will help you soon"
+  teleport: "&a%player% just teleported to the location of your ticket (&6#%number%&a)"
+  claim: "&b%player% &ajust claimed your ticket (&6#%number%&a)"
+  pending: "&b%player% &ajust set your ticket to pending (&6#%number%&a), please be patient"
+  reopen: "&b%player% &ajust reopened your ticket (&6#%number%&a)"
+  close:
+    withcomment: "&b%player% &ajust closed your ticket (&6#%number%&a) &awith the comment: &7%comment% "
+    withoutcomment: "&b%player% &ajust closed your ticket (&6#%number%&a)"
+  comment: "&b%player%&ajust commented on your ticket (&6#%number%&a)"
 staff:
-    executor:
-        ticket:
-            closed: "&aTicket closed"
-            claimed: "&aTicket claimed"
-            pending: "&aTicket set to pending"
-            reopened: "&aTicket reopened"
-            teleport: "&aYou have been teleported"
-            comment: "&aComment added"
-    all:
-        comment: "&b%player% &ajust commented on ticket (&6#%number%&a)"
-        notification: "&b%number% &aopen tickets are waiting for you!"
-        ticket-submitted: "&b%player% &ajust submitted ticket &6#%number%." #There for compatibility reasons with version < 2.5
-        ticketsubmitted: "&b%player% &ajust submitted ticket &6#%number%."
+  executor:
+    ticket:
+      closed: "&aTicket closed"
+      claimed: "&aTicket claimed"
+      pending: "&aTicket set to pending"
+      reopened: "&aTicket reopened"
+      teleport: "&aYou have been teleported"
+      comment: "&aComment added"
+  all:
+    comment: "&b%player% &ajust commented on ticket (&6#%number%&a)"
+    notification: "&b%number% &aopen tickets are waiting for you!"
+    ticket-submitted: "&b%player% &ajust submitted ticket &6#%number%." #There for compatibility reasons with version < 2.5
+    ticketsubmitted: "&b%player% &ajust submitted ticket &6#%number%."
 headers-footers:
-    status: 
-        header: "&6----List-of-your-last-5-tickets----"
-        footer: "&6---do /status <id> for more info---"
-    mods:
-        header: "&6----List-of-online-staffmembers----"
-    check:
-        header: "&6--List-of-[status]-tickets--"
-        footer: "&6Do /check <page> for more tickets"
+  status:
+    header: "&6----List-of-your-last-5-tickets----"
+    footer: "&6---do /status <id> for more info---"
+  mods:
+    header: "&6----List-of-online-staffmembers----"
+  check:
+    header: "&6--List-of-[status]-tickets--"
+    footer: "&6Do /check <page> for more tickets"
 
-#Colour nodes do not work from here on!
+  #Colour nodes do not work from here on!
 
-    
+
 #These are the messages used as default comment to a ticket when a
 #certain command is performed
 log:
-    pending: 
-        default: "I set the status to pending"
-    claim:
-        default: "I claimed this ticket."
-    close:
-        default: "I closed this ticket."
-        suffix: "&c[Ticket closed]"
-    reopen:
-        default: "I reopened this ticket."
-        suffix: "&c[Ticket reopened]"
-    tp-id:
-        default: "I teleported to this ticket."
+  pending:
+    default: "I set the status to pending"
+  claim:
+    default: "I claimed this ticket."
+  close:
+    default: "I closed this ticket."
+    suffix: "&c[Ticket closed]"
+  reopen:
+    default: "I reopened this ticket."
+    suffix: "&c[Ticket reopened]"
+  tp-id:
+    default: "I teleported to this ticket."
 
-info:
-    modreq: submit a help ticket
-    pending: set the status of a ticket to pending
-    check: returns a list of all tickets
-    tpid: teleports you to the location of the ticket
-    claim: claims a ticket
-    reopen: re-opens a ticket
-    status: returns your last 5 tickets
-    done: closes a ticket
-    mods: returns a list of all online mods
-    modhelp: shows this message
-    comment: adds a comment on a ticket
-    ticket: shows detailed information of a ticket
 ticket:
-    header: "&6---Info-about-ticket-#%number%---"
-    summary: "&6#%ticketId% &b%date% [%comments%] %submitter% &7%message% %status%"
-    submitter: Submitter
-    date: Date of request
-    location: Location
-    status: Status
-    comment: Comment
-    staff: Staff member
-    request: request
+  header: "&6---Info-about-ticket-#%number%---"
+  summary: "&6#%ticketId% &b%date% [%comments%] %submitter% &7%message% &c[%status%]"
+  submitter: Submitter
+  date: Date of request
+  location: Location
+  status: Status
+  comment: Comment
+  staff: Staff member
+  request: request
+status:
+  header: "&6----List-of-your-last-5-tickets----"
+  summary: "&6#%ticketId% &b%date% [%comments%] &2[%status%] &7%message%"
+  footer: "&6---do /status <id> for more info---"
+
+# chatcolours do not work in the section below
+info:
+  modreq: submit a help ticket
+  pending: set the status of a ticket to pending
+  check: returns a list of all tickets
+  tpid: teleports you to the location of the ticket
+  claim: claims a ticket
+  reopen: re-opens a ticket
+  status: returns your last 5 tickets
+  done: closes a ticket
+  mods: returns a list of all online mods
+  modhelp: shows this message
+  comment: adds a comment on a ticket
+  ticket: shows detailed information of a ticket

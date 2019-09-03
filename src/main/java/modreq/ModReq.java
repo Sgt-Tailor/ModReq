@@ -32,6 +32,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -48,6 +50,7 @@ public class ModReq extends JavaPlugin {
     private File messages;
     private Metrics metrics;
     private TicketRepository ticketRepository;
+    private static DateTimeFormatter dateTimeFormatter;
 
     @Override
     public void onEnable() {
@@ -61,6 +64,11 @@ public class ModReq extends JavaPlugin {
         boolean usesql = getConfig().getBoolean("use-mysql");
         ticketRepository = new TicketRepository(schema, usesql);
 
+        String timeformat = getConfig().get("timeformat").toString();
+        String timezone = getConfig().get("timezone").toString();
+
+        dateTimeFormatter = DateTimeFormatter.ofPattern(timeformat).withZone(ZoneId.of(timezone));
+
         CommandManager cmdManager = new CommandManager(this);
         cmdManager.initCommands();
 
@@ -69,6 +77,8 @@ public class ModReq extends JavaPlugin {
 
         startNotify();
         startMetrics();
+
+
 
         logger.log(Level.INFO, "{0} version {1} is enabled.", new Object[]{this.getDescription().getName(), getCurrentVersion()});
     }
@@ -249,5 +259,9 @@ public class ModReq extends JavaPlugin {
         input = input.replace("&comment", comment);
         input = ChatColor.translateAlternateColorCodes('&', input);
         return input;
+    }
+
+    public static DateTimeFormatter getDateTimeFormatter() {
+        return dateTimeFormatter;
     }
 }

@@ -186,8 +186,7 @@ public class TicketRepository {
                     tickets.add(getTicketByResultSet(resultSet));
                 }
             }
-            p.sendMessage(ChatColor.GOLD + "-----List-of-"
-                    + status.getStatusString() + "-Requests-----");
+            p.sendMessage(ChatColor.GOLD + "-----List-of-" + status.getStatusString() + "-Requests-----");
             for (Ticket t : tickets) {
                 t.sendSummarytoPlayer(p);
             }
@@ -288,8 +287,7 @@ public class TicketRepository {
         String staff = result.getString(8);
         String staffUUID = result.getString(9);
 
-        Instant utc = date.toInstant(ZoneOffset.ofHours(0));
-        logger.info(utc.toString());
+        Instant utc = date.toInstant(ZoneOffset.UTC);
         return new Ticket(id, submitter, submitterUUID, message, utc, Status.getByString(status), location, staff, staffUUID);
     }
 
@@ -317,30 +315,18 @@ public class TicketRepository {
         if (t.getComments().isEmpty()) {
             return;
         }
-        PreparedStatement prep = conn
-                .prepareStatement("INSERT INTO comment (ticketId, commenter, commenterUUID, message, date) VALUES (?, ?, ?, ?, ?)");
-        PreparedStatement stat = conn.prepareStatement("SELECT * FROM comment WHERE id = ?");
-        stat.setInt(1, t.getId());
-        ResultSet rs = stat.executeQuery();
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO comment (ticketId, commenter, commenterUUID, message, date) VALUES (?, ?, ?, ?, ?)");
 
-        Comment A = new Comment();
-        while (rs.next()) {
-            int id = rs.getInt(1);
-            String commenter = rs.getString(3);
-            String commenterUUID = rs.getString(4);
-            String comment = rs.getString(5);
-            String date = rs.getString(6);
+        for (Comment c : t.getComments()) {
+            if (c.getId() > 0) {
+                continue;
+            }
 
-            A = new Comment(id, commenter, commenterUUID, comment, date);
-        }
-        stat.close();
-        Comment B = t.getComments().get(t.getComments().size() - 1);
-
-        if (B.isValid() && !A.equalsComment(B)) {
             prep.setInt(1, t.getId());
-            prep.setString(2, B.getCommenter());
-            prep.setString(3, B.getCommenter());
-            prep.setString(4, B.getDate());
+            prep.setString(2, c.getCommenter());
+            prep.setString(3, c.getCommenterUUID());
+            prep.setString(4, c.getComment());
+            prep.setObject(5, LocalDateTime.ofInstant(t.getDate(), ZoneOffset.UTC));
             prep.addBatch();
             prep.executeBatch();
         }
