@@ -19,26 +19,37 @@ package modreq;
 
 public class Comment {
 
+    private int id;
     private String commenter;
+    private String commenterUUID;
     private String date;
     private String comment;
 
     /**
      * Used for the comment system
      */
-    public Comment(String commenter, String comment, CommentType commenttype) {
-        setCommenter(commenter);
-        setComment(comment + " " + commenttype.getSuffix());
-        setDate(ModReq.getTimeString());
+    public Comment(String commenter, String commenterUUID, String comment, CommentType commenttype) {
+        this.id = 0;
+        this.commenter = commenter;
+        this.commenterUUID = commenterUUID;
+        this.comment = comment + " " + commenttype.getSuffix();
+        this.date = ModReq.getTimeString();
     }
 
-    public Comment(String commenter, String comment, String time) {
-        setCommenter(commenter);
-        setComment(comment);
-        setDate(time);
+    public Comment(int id, String commenter, String commenterUUID, String comment, String date) {
+        this.id = id;
+        this.commenter = commenter;
+        this.commenterUUID = commenterUUID;
+        this.comment = comment;
+        this.date = date;
     }
 
     public Comment() {
+    }
+
+
+    public int getId() {
+        return id;
     }
 
     public String getCommenter() {
@@ -88,5 +99,9 @@ public class Comment {
         }
         return true;
 
+    }
+
+    public String getCommenterUUID() {
+        return commenterUUID;
     }
 }

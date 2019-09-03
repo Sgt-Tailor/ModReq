@@ -55,8 +55,7 @@ headers-footers:
     check:
         header: "&6--List-of-[status]-tickets--"
         footer: "&6Do /check <page> for more tickets"
-    ticket:
-        header: "&6---Info-about-ticket-#&number---"
+
 #Colour nodes do not work from here on!
 
     
@@ -91,6 +90,7 @@ info:
     comment: adds a comment on a ticket
     ticket: shows detailed information of a ticket
 ticket:
+    header: "&6---Info-about-ticket-#&number---"
     submitter: Submitter
     date: Date of request
     location: Location
