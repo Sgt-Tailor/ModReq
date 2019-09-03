@@ -97,6 +97,7 @@ public class ClaimCommand implements CommandExecutor {
             }
 
             t.setStaff(staff);
+            t.setStaffUUID(p.getUniqueId());
             t.setStatus(status);
             t.addDefaultComment(p, CommentType.CLAIM);
             t.update();

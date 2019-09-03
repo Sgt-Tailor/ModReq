@@ -17,36 +17,35 @@
  */
 package modreq;
 
+import java.time.Instant;
+import java.util.UUID;
+
 public class Comment {
 
     private int id;
     private String commenter;
-    private String commenterUUID;
-    private String date;
+    private UUID commenterUUID;
+    private Instant date;
     private String comment;
 
     /**
      * Used for the comment system
      */
-    public Comment(String commenter, String commenterUUID, String comment, CommentType commenttype) {
+    public Comment(String commenter, UUID commenterUUID, String comment, CommentType commenttype) {
         this.id = 0;
         this.commenter = commenter;
         this.commenterUUID = commenterUUID;
         this.comment = comment + " " + commenttype.getSuffix();
-        this.date = ModReq.getTimeString();
+        this.date = Instant.now();
     }
 
-    public Comment(int id, String commenter, String commenterUUID, String comment, String date) {
+    public Comment(int id, String commenter, UUID commenterUUID, String comment, Instant date) {
         this.id = id;
         this.commenter = commenter;
         this.commenterUUID = commenterUUID;
         this.comment = comment;
         this.date = date;
     }
-
-    public Comment() {
-    }
-
 
     public int getId() {
         return id;
@@ -56,52 +55,15 @@ public class Comment {
         return commenter;
     }
 
-    private void setCommenter(String commenter) {
-        this.commenter = commenter;
-    }
-
-    public String getDate() {
+    public Instant getDate() {
         return date;
-    }
-
-    private void setDate(String date) {
-        this.date = date;
     }
 
     public String getComment() {
         return comment;
     }
 
-    private void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public boolean equalsComment(Comment c) {
-        if (c.getCommenter().equals(commenter)) {
-            if (c.getComment().equals(comment)) {
-                if (c.getDate().equals(date)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public boolean isValid() {
-        if (commenter == null) {
-            return false;
-        }
-        if (comment == null) {
-            return false;
-        }
-        if (date == null) {
-            return false;
-        }
-        return true;
-
-    }
-
-    public String getCommenterUUID() {
+    public UUID getCommenterUUID() {
         return commenterUUID;
     }
 }

@@ -85,7 +85,7 @@ public class ModreqCommand implements CommandExecutor {
                 + Math.round(loc.getZ());
 
         try {
-            Ticket t = new Ticket(0, sender.getName(), sender.getUniqueId().toString(), message, Instant.now(), Status.OPEN, location, "no staff member yet", null);
+            Ticket t = new Ticket(0, sender.getName(), sender.getUniqueId(), message, Instant.now(), Status.OPEN, location, "no staff member yet", null);
             return tickets.addTicket(t);
         } catch (SQLException e) {
             e.printStackTrace();

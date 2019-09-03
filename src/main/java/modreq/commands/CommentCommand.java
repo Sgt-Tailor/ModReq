@@ -54,7 +54,7 @@ public class CommentCommand implements CommandExecutor {
                 }
                 String commenter = p.getName();
                 String comment = Utils.join(args, " ", 1);
-                Comment c = new Comment(commenter, p.getUniqueId().toString(), comment, CommentType.COMMENT);
+                Comment c = new Comment(commenter, p.getUniqueId(), comment, CommentType.COMMENT);
 
                 t.addComment(c);
                 sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.comment"), "", "", ""));
@@ -64,7 +64,7 @@ public class CommentCommand implements CommandExecutor {
                             op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("player.comment"), sender.getName(), args[0], ""));
                         } else if (t.getStaff().equals(sender.getName())) {//it is the staff member
                             op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.comment"), sender.getName(), args[0], ""));
-                        } else if (t.getCommentsBy(op.getName()).isEmpty() == false) {//it is someone else that commented earlier
+                        } else if (!t.getCommentsBy(op.getName()).isEmpty()) {//it is someone else that commented earlier
                             op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.comment"), sender.getName(), args[0], ""));
                         }
                     }

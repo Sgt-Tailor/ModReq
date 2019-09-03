@@ -17,45 +17,41 @@
  */
 package modreq;
 
-import java.sql.SQLException;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
-
 import modreq.repository.TicketRepository;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import java.sql.SQLException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+
 public class Ticket {
 
     private int id;
     private String submitter;
-    private String submitterUUID;
+    private UUID submitterUUID;
     private String message;
     private Instant date;
     private Status status;
     private String location;
     private String staff;
-    private String staffUUID;
+    private UUID staffUUID;
 
     private TicketRepository ticketRepository;
     private List<Comment> comments;
 
-    public Ticket(int id, String submitter, String submitterUUID, String message, Instant date, Status status, String location, String staff, String staffUUID) {
+    public Ticket(int id, String submitter, UUID submitterUUID, String message, Instant date, Status status, String location, String staff, UUID staffUUID) {
         this.submitter = submitter;
         this.submitterUUID = submitterUUID;
         this.id = id;
         this.staff = staff;
-        this.staffUUID = staff;
+        this.staffUUID = staffUUID;
         this.date = date;
         this.message = message;
         this.status = status;
@@ -151,7 +147,7 @@ public class Ticket {
      * @return
      */
     public void sendSummarytoPlayer(Player p) {
-        ChatColor namecolor = Bukkit.getPlayer(UUID.fromString(submitterUUID)) == null ? ChatColor.RED : ChatColor.GREEN;
+        ChatColor namecolor = Bukkit.getPlayer(submitterUUID) == null ? ChatColor.RED : ChatColor.GREEN;
 
         String summessage = message;
         if (summessage.length() > 15) {
@@ -246,11 +242,11 @@ public class Ticket {
         int number = comments.size();
         for (Comment c : comments) {
             String commenter = c.getCommenter();
-            String date = c.getDate();
+            Instant date = c.getDate();
             String comment = c.getComment();
             comment = ChatColor.translateAlternateColorCodes('&', comment);
-            p.sendMessage(ChatColor.GOLD + "#" + Integer.toString(number) + " "
-                    + ChatColor.AQUA + date + " " + ChatColor.GOLD + commenter
+            p.sendMessage(ChatColor.GOLD + "#" + number + " "
+                    + ChatColor.AQUA + ModReq.getDateTimeFormatter().format(date) + " " + ChatColor.GOLD + commenter
                     + ": " + ChatColor.GRAY + comment);
             number--;
         }
@@ -332,7 +328,7 @@ public class Ticket {
     }
 
     public void addDefaultComment(Player p, CommentType c) {
-        Comment comment = new Comment(p.getName(), p.getUniqueId().toString(), c.getDefaultComment(), c);
+        Comment comment = new Comment(p.getName(), p.getUniqueId(), c.getDefaultComment(), c);
         addComment(comment);
     }
 
@@ -345,19 +341,19 @@ public class Ticket {
 
     }
 
-    public String getSubmitterUUID() {
+    public UUID getSubmitterUUID() {
         return submitterUUID;
     }
 
-    public void setSubmitterUUID(String submitterUUID) {
+    public void setSubmitterUUID(UUID submitterUUID) {
         this.submitterUUID = submitterUUID;
     }
 
-    public String getStaffUUID() {
+    public UUID getStaffUUID() {
         return staffUUID;
     }
 
-    public void setStaffUUID(String staffUUID) {
+    public void setStaffUUID(UUID staffUUID) {
         this.staffUUID = staffUUID;
     }
 }
