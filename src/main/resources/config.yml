@@ -62,14 +62,11 @@ show-claimed-tickets-in-open-list: false
 #people with enough permissions, set this to false
 show-pending-tickets-in-open-list: true
 
-#Specify the TimeZone used for the Date here
-timezone: GMT
+#The timezone used for displaying time in messages
+timezone: 'Europe/Paris'
 
-#Use this to change the time format using SimpleDateFormat. If you
-#don't know how SimpleDateFormat is used you can check out this link:
-#http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html
-timeformat: 'HH:mm'
-
+#The time format as used in messages
+timeformat: 'd MMM HH:mm'
 
 #Change this to true if you want the staff to be notified about
 #open tickets uppon login

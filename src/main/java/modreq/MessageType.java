@@ -44,6 +44,8 @@ public enum MessageType {
 
     STATUS_HEADER(),
     STATUS_FOOTER(),
+    STATUS_SUMMARY(),
+
     MODS_HEADER(),
     CHECK_HEADER(),
     CHECK_FOOTER(),

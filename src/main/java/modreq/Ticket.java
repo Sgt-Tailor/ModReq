@@ -25,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import modreq.repository.TicketRepository;
 
@@ -150,7 +151,7 @@ public class Ticket {
      * @return
      */
     public void sendSummarytoPlayer(Player p) {
-        ChatColor namecolor = Bukkit.getPlayer(UUID) == null ? ChatColor.RED : ChatColor.GREEN;
+        ChatColor namecolor = Bukkit.getPlayer(UUID.fromString(submitterUUID)) == null ? ChatColor.RED : ChatColor.GREEN;
 
         String summessage = message;
         if (summessage.length() > 15) {
@@ -165,20 +166,18 @@ public class Ticket {
         }
 
         String statusString = "";
-        if (status.equals(Status.CLAIMED)) {
-            statusString = ChatColor.RED + " [Claimed]";
-        }
-        if (status.equals(Status.PENDING)) {
-            statusString = ChatColor.RED + " [Pending]";
+        if (status.equals(Status.CLAIMED) || status.equals(Status.PENDING)) {
+            statusString = status.getStatusString();
         }
 
         String finalStatusString1 = statusString;
-        Message.sendToPlayer(MessageType.TICKET_SUMMARY, p, new HashMap<String, String>() {{
+        String finalSummessage = summessage;
+        Message.sendToPlayer(MessageType.STATUS_SUMMARY, p, new HashMap<String, String>() {{
             put("ticketId", Integer.toString(id));
-            put("date", ZonedDateTime.ofInstant(date, ZoneId.of("Europe/Paris")).format(DateTimeFormatter.ISO_LOCAL_TIME));
+            put("date", ModReq.getDateTimeFormatter().format(date));
             put("comments", Integer.toString(comments.size()));
             put("submitter", namecolor + submitter);
-            put("message", message);
+            put("message", finalSummessage);
             put("status", finalStatusString1);
         }});
     }
@@ -194,11 +193,15 @@ public class Ticket {
         if (summessage.length() > 15) {
             summessage = summessage.substring(0, 15);
         }
-        String summary = ChatColor.GOLD + "#" + id + ChatColor.AQUA + " "
-                + date + " " + "[" + comments.size() + "]"
-                + " " + ChatColor.DARK_GREEN + " [" + status + "]" + " "
-                + ChatColor.GRAY + summessage + "...";
-        p.sendMessage(summary);
+
+        String finalSummessage = summessage;
+        Message.sendToPlayer(MessageType.STATUS_SUMMARY, p, new HashMap<String, String>() {{
+            put("ticketId", Integer.toString(id));
+            put("date", ModReq.getDateTimeFormatter().format(date));
+            put("comments", Integer.toString(comments.size()));
+            put("message", finalSummessage);
+            put("status", status.getStatusString());
+        }});
 
     }
 
@@ -226,13 +229,14 @@ public class Ticket {
         Message.sendToPlayer(MessageType.TICKET_HEADER, p, Integer.toString(id));
         p.sendMessage(ChatColor.AQUA + status + ": " + ChatColor.GRAY + this.status);
         p.sendMessage(ChatColor.AQUA + submitter + ": " + ChatColor.GRAY + this.submitter);
+
         if (p.hasPermission("modreq.tp-id") || p.getName().equals(this.submitter)) {
             p.sendMessage(ChatColor.AQUA + location + ": " + ChatColor.GRAY + this.location);
         }
 
-        p.sendMessage(ChatColor.AQUA + staff + ": " + ChatColor.GRAY + (this.staff == null ? "a" : "b"));
-        p.sendMessage(ChatColor.AQUA + dateOfRequest + ": " + ChatColor.GRAY + date.atZone(ZoneId.of("Europe/Paris")).format(DateTimeFormatter.ofPattern("HH:mm @ z")));
-        p.sendMessage(ChatColor.AQUA + request + ": " + ChatColor.GRAY + message);
+        p.sendMessage(ChatColor.AQUA + staff + ": " + ChatColor.GRAY + (this.staff == null ? "-" : this.staff));
+        p.sendMessage(ChatColor.AQUA + dateOfRequest + ": " + ChatColor.GRAY + ModReq.getDateTimeFormatter().format(this.date));
+        p.sendMessage(ChatColor.AQUA + request + ": " + ChatColor.GRAY + this.message);
         p.sendMessage(ChatColor.AQUA + comment + ":");
 
         sendComments(p);
