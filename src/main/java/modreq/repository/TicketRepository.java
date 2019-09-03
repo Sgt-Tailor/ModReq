@@ -21,7 +21,6 @@ import modreq.Comment;
 import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -29,12 +28,10 @@ import org.bukkit.entity.Player;
 import java.sql.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public class TicketRepository {
@@ -221,7 +218,7 @@ public class TicketRepository {
 
         PreparedStatement prep = conn.prepareStatement("INSERT INTO ticket (submitter, submitterUUID, message, date, status, location, staff, staffUUID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         prep.setString(1, t.getSubmitter());
-        prep.setString(2, t.getSubmitterUUID());
+        prep.setString(2, t.getSubmitterUUID().toString());
         prep.setString(3, t.getMessage());
         prep.setObject(4, LocalDateTime.ofInstant(t.getDate(), ZoneOffset.UTC));
         prep.setString(5, t.getStatus().getStatusString());
@@ -269,7 +266,7 @@ public class TicketRepository {
 
         prep.setString(1, t.getStatus().getStatusString());
         prep.setString(2, t.getStaff());
-        prep.setString(3, t.getStaffUUID());
+        prep.setString(3, t.getStaffUUID() == null ? null : t.getSubmitterUUID().toString());
         prep.setInt(4, t.getId());
         prep.execute();
 
@@ -279,16 +276,20 @@ public class TicketRepository {
     private Ticket getTicketByResultSet(ResultSet result) throws SQLException {
         int id = result.getInt(1);
         String submitter = result.getString(2);
-        String submitterUUID = result.getString(3);
+        String submitterUUIDString = result.getString(3);
         String message = result.getString(4);
         LocalDateTime date = result.getObject(5, LocalDateTime.class);
         String status = result.getString(6);
         String location = result.getString(7);
         String staff = result.getString(8);
-        String staffUUID = result.getString(9);
+        String staffUUIDString = result.getString(9);
 
-        Instant utc = date.toInstant(ZoneOffset.UTC);
-        return new Ticket(id, submitter, submitterUUID, message, utc, Status.getByString(status), location, staff, staffUUID);
+        UUID staffUUID = null;
+        if (staff != null) {
+            staffUUID = UUID.fromString(staffUUIDString);
+        }
+        
+        return new Ticket(id, submitter, UUID.fromString(submitterUUIDString), message, date.toInstant(ZoneOffset.UTC), Status.getByString(status), location, staff, staffUUID);
     }
 
     private void addCommentsToTicket(Connection conn, Ticket t) throws SQLException {
@@ -298,11 +299,11 @@ public class TicketRepository {
         while (rs.next()) {
             int id = rs.getInt(1);
             String commenter = rs.getString(3);
-            String commenterUUID = rs.getString(4);
+            String commenterUUIDString = rs.getString(4);
             String comment = rs.getString(5);
-            String date = rs.getString(6);
+            LocalDateTime date = rs.getObject(6, LocalDateTime.class);
 
-            Comment c = new Comment(id, commenter, commenterUUID, comment, date);
+            Comment c = new Comment(id, commenter, UUID.fromString(commenterUUIDString), comment, date.toInstant(ZoneOffset.UTC));
             t.insertComment(c);
         }
         stat.close();
@@ -324,9 +325,9 @@ public class TicketRepository {
 
             prep.setInt(1, t.getId());
             prep.setString(2, c.getCommenter());
-            prep.setString(3, c.getCommenterUUID());
+            prep.setString(3, c.getCommenterUUID().toString());
             prep.setString(4, c.getComment());
-            prep.setObject(5, LocalDateTime.ofInstant(t.getDate(), ZoneOffset.UTC));
+            prep.setObject(5, LocalDateTime.ofInstant(c.getDate(), ZoneOffset.UTC));
             prep.addBatch();
             prep.executeBatch();
         }
