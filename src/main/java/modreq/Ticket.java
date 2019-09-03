@@ -18,6 +18,8 @@
 package modreq;
 
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,18 +35,23 @@ public class Ticket {
 
     private int id;
     private String submitter;
+    private String submitterUUID;
     private String message;
-    private String date;
+    private Instant date;
     private Status status;
     private String location;
     private String staff;
+    private String staffUUID;
+
     private TicketRepository ticketRepository;
     private List<Comment> comments;
 
-    public Ticket(int id, String submitter, String message, String date, Status status, String location, String staff) {
+    public Ticket(int id, String submitter, String submitterUUID, String message, Instant date, Status status, String location, String staff, String staffUUID) {
         this.submitter = submitter;
+        this.submitterUUID = submitterUUID;
         this.id = id;
         this.staff = staff;
+        this.staffUUID = staff;
         this.date = date;
         this.message = message;
         this.status = status;
@@ -87,7 +94,7 @@ public class Ticket {
      *
      * @return
      */
-    public String getDate() {
+    public Instant getDate() {
         return date;
     }
 
@@ -220,7 +227,7 @@ public class Ticket {
             p.sendMessage(ChatColor.AQUA + location + ": " + ChatColor.GRAY + this.location);
         }
 
-        p.sendMessage(ChatColor.AQUA + staff + ": " + ChatColor.GRAY + this.staff);
+        p.sendMessage(ChatColor.AQUA + staff + ": " + ChatColor.GRAY + (this.staff == null ? "a" : "b"));
         p.sendMessage(ChatColor.AQUA + dateOfRequest + ": " + ChatColor.GRAY + date);
         p.sendMessage(ChatColor.AQUA + request + ": " + ChatColor.GRAY + message);
         p.sendMessage(ChatColor.AQUA + comment + ":");
@@ -295,7 +302,7 @@ public class Ticket {
         p.sendMessage(message);
     }
 
-    public ArrayList<Comment> getComments() {
+    public List<Comment> getComments() {
         return comments;
     }
 
@@ -318,7 +325,7 @@ public class Ticket {
     }
 
     public void addDefaultComment(Player p, CommentType c) {
-        Comment comment = new Comment(p.getName(), c.getDefaultComment(), c);
+        Comment comment = new Comment(p.getName(),p.getUniqueId().toString(), c.getDefaultComment(), c);
         addComment(comment);
     }
 
@@ -329,5 +336,21 @@ public class Ticket {
         }
         p.sendMessage(notification);
 
+    }
+
+    public String getSubmitterUUID() {
+        return submitterUUID;
+    }
+
+    public void setSubmitterUUID(String submitterUUID) {
+        this.submitterUUID = submitterUUID;
+    }
+
+    public String getStaffUUID() {
+        return staffUUID;
+    }
+
+    public void setStaffUUID(String staffUUID) {
+        this.staffUUID = staffUUID;
     }
 }

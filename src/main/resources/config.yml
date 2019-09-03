@@ -85,13 +85,10 @@ comment-limit: 3
 #change this to use mySQL or not
 use-mysql: false
 
-#specify mySQL server information here. The example does noet work
+#specify mySQL server information here.
 #The format for the ip is domain:port/database
 #You can also specify the tables used to store the tickets.
 mysql:
-    tables:
-        tickets: 'requests'
-        comments: 'comments'
     ip: example.com/sgt_tailor
     user: Sgt_Tailor
     pass: Walrus

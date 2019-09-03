@@ -54,7 +54,7 @@ public class CommentCommand implements CommandExecutor {
                 }
                 String commenter = p.getName();
                 String comment = Utils.join(args, " ", 1);
-                Comment c = new Comment(commenter, comment, CommentType.COMMENT);
+                Comment c = new Comment(commenter, p.getUniqueId().toString(), comment, CommentType.COMMENT);
 
                 t.addComment(c);
                 sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.comment"), "", "", ""));

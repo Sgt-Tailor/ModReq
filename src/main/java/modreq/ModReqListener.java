@@ -17,8 +17,6 @@
  */
 package modreq;
 
-import modreq.repository.TicketRepository;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -33,23 +31,22 @@ public class ModReqListener implements Listener {
     public ModReqListener(ModReq instance) {
         plugin = instance;
     }
-    
+
     @EventHandler
     public void onLogin(PlayerJoinEvent event) {
         final Player p = event.getPlayer();
         if (p.hasPermission("modreq.check")) {
             Bukkit.getScheduler().scheduleSyncDelayedTask(plugin,
                     new Runnable() {
-                @Override
-                public void run() {
-                    TicketRepository th = new TicketRepository();
-                    int opentickets = th.getTicketCountByStatus(Status.OPEN);
-                    if (opentickets > 0) {
-                        p.sendMessage(ChatColor.GOLD + "[ModReq]" + ModReq.format(ModReq.getInstance().Messages.getString("staff.all.notification"), "", Integer.toString(opentickets),""));
-                    }
+                        @Override
+                        public void run() {
+                            int opentickets = plugin.getTicketRepository().getTicketCountByStatus(Status.OPEN);
+                            if (opentickets > 0) {
+                                p.sendMessage(ChatColor.GOLD + "[ModReq]" + ModReq.format(ModReq.getInstance().Messages.getString("staff.all.notification"), "", Integer.toString(opentickets), ""));
+                            }
 
-                }
-            }, 60L);
+                        }
+                    }, 60L);
         }
     }
 }

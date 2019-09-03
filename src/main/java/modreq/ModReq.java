@@ -26,6 +26,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,12 +52,16 @@ public class ModReq extends JavaPlugin {
     @Override
     public void onEnable() {
         plugin = this;
-        CommandManager cmdManager = new CommandManager(this);
-        ticketRepository = new TicketRepository();
         messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
+
         checkConfigFile();
         loadMessages();
 
+        YamlConfiguration schema = YamlConfiguration.loadConfiguration(getTextResource("schema.yml"));
+        boolean usesql = getConfig().getBoolean("use-mysql");
+        ticketRepository = new TicketRepository(schema, usesql);
+
+        CommandManager cmdManager = new CommandManager(this);
         cmdManager.initCommands();
 
         PluginManager pm = this.getServer().getPluginManager();
@@ -112,9 +117,11 @@ public class ModReq extends JavaPlugin {
             logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
         }
         loadMessages();
-        ticketRepository = new TicketRepository();
-        plugin.reloadConfig();
 
+        YamlConfiguration schema = YamlConfiguration.loadConfiguration(getTextResource("schema.yml"));
+        ticketRepository = new TicketRepository(schema, this.getConfig().getBoolean("use-mysql"));
+
+        plugin.reloadConfig();
     }
 
     public String getCurrentVersion() {

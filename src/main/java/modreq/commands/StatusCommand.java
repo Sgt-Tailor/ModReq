@@ -51,7 +51,7 @@ public class StatusCommand extends SubCommandExecutor {
             return;
         }
         try {
-            ArrayList<Ticket> t = tickets.getTicketsBySubmitter(sender.getName());
+            ArrayList<Ticket> t = tickets.getTicketsBySubmitter(p);
             p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.status.header"), "", "", ""));
             for (Ticket ticket : t) {
                 ticket.sendStatus(p);
