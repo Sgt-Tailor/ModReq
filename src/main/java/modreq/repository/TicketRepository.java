@@ -28,8 +28,11 @@ import org.bukkit.entity.Player;
 
 import java.sql.*;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -60,13 +63,13 @@ public class TicketRepository {
                     return connection;
                 }
             }
-            Class.forName("org.sqlite.JDBC");
             if (useMysql) {
                 String ip = plugin.getConfig().getString("mysql.ip");
                 String user = plugin.getConfig().getString("mysql.user");
                 String pass = plugin.getConfig().getString("mysql.pass");
                 connection = DriverManager.getConnection("jdbc:mysql://" + ip, user, pass);
             } else {
+                Class.forName("org.sqlite.JDBC");
                 connection = DriverManager.getConnection("jdbc:sqlite:plugins/ModReq/DataBase.sql");
             }
 
@@ -117,7 +120,6 @@ public class TicketRepository {
         stat.setString(1, p.getUniqueId().toString());
         ResultSet result = stat.executeQuery();
 
-        ArrayList<Integer> tickets = new ArrayList<Integer>();
         ArrayList<Ticket> value = new ArrayList<Ticket>();
 
         while (result.next()) {
@@ -143,9 +145,6 @@ public class TicketRepository {
         return false;
     }
 
-    /**
-     * TODO: use sql offset in combination with limit
-     */
     public void sendPlayerPage(int page, Status status, Player p) {
         try {
             Connection conn = getConnection();
@@ -225,7 +224,7 @@ public class TicketRepository {
         prep.setString(1, t.getSubmitter());
         prep.setString(2, t.getSubmitterUUID());
         prep.setString(3, t.getMessage());
-        prep.setString(4, DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm:ss").withZone(ZoneId.of("UTC")).format(t.getDate()));
+        prep.setObject(4, LocalDateTime.ofInstant(t.getDate(), ZoneOffset.UTC));
         prep.setString(5, t.getStatus().getStatusString());
         prep.setString(6, t.getLocationString());
         prep.setString(7, null);
@@ -283,12 +282,15 @@ public class TicketRepository {
         String submitter = result.getString(2);
         String submitterUUID = result.getString(3);
         String message = result.getString(4);
-        Timestamp date = result.getObject(5, Timestamp.class);
+        LocalDateTime date = result.getObject(5, LocalDateTime.class);
         String status = result.getString(6);
         String location = result.getString(7);
         String staff = result.getString(8);
         String staffUUID = result.getString(9);
-        return new Ticket(id, submitter, submitterUUID, message, date.toInstant(), Status.getByString(status), location, staff, staffUUID);
+
+        Instant utc = date.toInstant(ZoneOffset.ofHours(0));
+        logger.info(utc.toString());
+        return new Ticket(id, submitter, submitterUUID, message, utc, Status.getByString(status), location, staff, staffUUID);
     }
 
     private void addCommentsToTicket(Connection conn, Ticket t) throws SQLException {

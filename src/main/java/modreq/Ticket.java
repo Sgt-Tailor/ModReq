@@ -19,8 +19,11 @@ package modreq;
 
 import java.sql.SQLException;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import modreq.repository.TicketRepository;
@@ -147,14 +150,8 @@ public class Ticket {
      * @return
      */
     public void sendSummarytoPlayer(Player p) {
-        ChatColor namecolor = ChatColor.RED;
-        for (Player op : Bukkit.getServer().getOnlinePlayers()) {
-            if (op.getName().equals(submitter)) {
-                if (op.isOnline()) {
-                    namecolor = ChatColor.GREEN;
-                }
-            }
-        }
+        ChatColor namecolor = Bukkit.getPlayer(UUID) == null ? ChatColor.RED : ChatColor.GREEN;
+
         String summessage = message;
         if (summessage.length() > 15) {
             summessage = summessage.substring(0, 15);
@@ -166,18 +163,24 @@ public class Ticket {
                 submitter = Bukkit.getPlayer(submitter).getDisplayName();
             }
         }
-        summary = ChatColor.GOLD + "#" + id + ChatColor.AQUA + " " + date
-                + " [" + comments.size() + "] "
-                + namecolor + submitter + " " + ChatColor.GRAY + summessage
-                + "...";
+
+        String statusString = "";
         if (status.equals(Status.CLAIMED)) {
-            summary = summary + " " + ChatColor.RED + " [Claimed]";
+            statusString = ChatColor.RED + " [Claimed]";
         }
         if (status.equals(Status.PENDING)) {
-            summary = summary + " " + ChatColor.RED + " [Pending]";
+            statusString = ChatColor.RED + " [Pending]";
         }
 
-        p.sendMessage(summary);
+        String finalStatusString1 = statusString;
+        Message.sendToPlayer(MessageType.TICKET_SUMMARY, p, new HashMap<String, String>() {{
+            put("ticketId", Integer.toString(id));
+            put("date", ZonedDateTime.ofInstant(date, ZoneId.of("Europe/Paris")).format(DateTimeFormatter.ISO_LOCAL_TIME));
+            put("comments", Integer.toString(comments.size()));
+            put("submitter", namecolor + submitter);
+            put("message", message);
+            put("status", finalStatusString1);
+        }});
     }
 
     /**
@@ -228,7 +231,7 @@ public class Ticket {
         }
 
         p.sendMessage(ChatColor.AQUA + staff + ": " + ChatColor.GRAY + (this.staff == null ? "a" : "b"));
-        p.sendMessage(ChatColor.AQUA + dateOfRequest + ": " + ChatColor.GRAY + date);
+        p.sendMessage(ChatColor.AQUA + dateOfRequest + ": " + ChatColor.GRAY + date.atZone(ZoneId.of("Europe/Paris")).format(DateTimeFormatter.ofPattern("HH:mm @ z")));
         p.sendMessage(ChatColor.AQUA + request + ": " + ChatColor.GRAY + message);
         p.sendMessage(ChatColor.AQUA + comment + ":");
 
@@ -325,7 +328,7 @@ public class Ticket {
     }
 
     public void addDefaultComment(Player p, CommentType c) {
-        Comment comment = new Comment(p.getName(),p.getUniqueId().toString(), c.getDefaultComment(), c);
+        Comment comment = new Comment(p.getName(), p.getUniqueId().toString(), c.getDefaultComment(), c);
         addComment(comment);
     }
 
