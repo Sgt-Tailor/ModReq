@@ -18,6 +18,7 @@
 package modreq.commands;
 
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.HashMap;
 
 import modreq.*;
@@ -78,14 +79,13 @@ public class ModreqCommand implements CommandExecutor {
     }
 
     private int savereq(String message, Player sender) {// save
-        String time = ModReq.getTimeString();
         Location loc = sender.getLocation();
         String location = loc.getWorld().getName() + " @ "
                 + Math.round(loc.getX()) + " " + Math.round(loc.getY()) + " "
                 + Math.round(loc.getZ());
 
         try {
-            Ticket t = new Ticket(0, sender.getName(), message, time, Status.OPEN, location, "no staff member yet");
+            Ticket t = new Ticket(0, sender.getName(), sender.getUniqueId(), message, Instant.now(), Status.OPEN, location, "no staff member yet", null);
             return tickets.addTicket(t);
         } catch (SQLException e) {
             e.printStackTrace();

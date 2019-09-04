@@ -60,16 +60,20 @@ public class CheckCommand extends SubCommandExecutor {
     public void id(CommandSender sender, String[] args) {
         if (sender instanceof Player) {
             tickets = plugin.getTicketRepository();
+            int id;
+            Player player = (Player) sender;
             try {
-                int id = Integer.parseInt(args[0]);
-                Ticket t = tickets.getTicketById(id);
-                if (t != null) {
-                    t.sendMessageToPlayer((Player) sender);
-                } else {
-                    Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, (Player) sender, args[0]);
-                }
+                id = Integer.parseInt(args[0]);
             } catch (Exception e) {
-                Message.sendToPlayer(MessageType.ERROR_NUMBER, (Player) sender, args[0]);
+                Message.sendToPlayer(MessageType.ERROR_NUMBER, player, args[0]);
+                return;
+            }
+
+            Ticket t = tickets.getTicketById(id);
+            if (t != null) {
+                t.sendMessageToPlayer(player);
+            } else {
+                Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, player, args[0]);
             }
         } else {
             sender.sendMessage("This command can only be ran as a player");

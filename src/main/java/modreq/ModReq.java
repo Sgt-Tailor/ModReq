@@ -26,11 +26,14 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -47,16 +50,26 @@ public class ModReq extends JavaPlugin {
     private File messages;
     private Metrics metrics;
     private TicketRepository ticketRepository;
+    private static DateTimeFormatter dateTimeFormatter;
 
     @Override
     public void onEnable() {
         plugin = this;
-        CommandManager cmdManager = new CommandManager(this);
-        ticketRepository = new TicketRepository();
         messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
+
         checkConfigFile();
         loadMessages();
 
+        YamlConfiguration schema = YamlConfiguration.loadConfiguration(getTextResource("schema.yml"));
+        boolean usesql = getConfig().getBoolean("use-mysql");
+        ticketRepository = new TicketRepository(schema, usesql);
+
+        String timeformat = getConfig().get("timeformat").toString();
+        String timezone = getConfig().get("timezone").toString();
+
+        dateTimeFormatter = DateTimeFormatter.ofPattern(timeformat).withZone(ZoneId.of(timezone));
+
+        CommandManager cmdManager = new CommandManager(this);
         cmdManager.initCommands();
 
         PluginManager pm = this.getServer().getPluginManager();
@@ -64,6 +77,8 @@ public class ModReq extends JavaPlugin {
 
         startNotify();
         startMetrics();
+
+
 
         logger.log(Level.INFO, "{0} version {1} is enabled.", new Object[]{this.getDescription().getName(), getCurrentVersion()});
     }
@@ -112,9 +127,11 @@ public class ModReq extends JavaPlugin {
             logger.info("[ModReq] Your plugin version does not match the config version. Please visit the bukkitdev page for more information");
         }
         loadMessages();
-        ticketRepository = new TicketRepository();
-        plugin.reloadConfig();
 
+        YamlConfiguration schema = YamlConfiguration.loadConfiguration(getTextResource("schema.yml"));
+        ticketRepository = new TicketRepository(schema, this.getConfig().getBoolean("use-mysql"));
+
+        plugin.reloadConfig();
     }
 
     public String getCurrentVersion() {
@@ -224,14 +241,11 @@ public class ModReq extends JavaPlugin {
     }
 
     public static String getTimeString() {
-        String timezone = ModReq.getInstance().getConfig()
-                .getString("timezone");
-        DateFormat df = new SimpleDateFormat(ModReq.getInstance().getConfig()
-                .getString("timeformat", "YY-MM-dd HH:mm:ss"));
+        String timezone = ModReq.getInstance().getConfig().getString("timezone");
+        DateFormat df = new SimpleDateFormat(ModReq.getInstance().getConfig().getString("timeformat", "YY-MM-dd HH:mm:ss"));
         TimeZone tz = TimeZone.getTimeZone(timezone);
 
-        Calendar cal = Calendar.getInstance(Calendar.getInstance()
-                .getTimeZone(), Locale.ENGLISH);
+        Calendar cal = Calendar.getInstance(Calendar.getInstance().getTimeZone(), Locale.ENGLISH);
         cal.add(Calendar.MILLISECOND, -(cal.getTimeZone().getRawOffset()));
         cal.add(Calendar.MILLISECOND, tz.getRawOffset());
         Date dt = new Date(cal.getTimeInMillis());
@@ -245,5 +259,9 @@ public class ModReq extends JavaPlugin {
         input = input.replace("&comment", comment);
         input = ChatColor.translateAlternateColorCodes('&', input);
         return input;
+    }
+
+    public static DateTimeFormatter getDateTimeFormatter() {
+        return dateTimeFormatter;
     }
 }

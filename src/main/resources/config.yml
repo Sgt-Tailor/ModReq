@@ -62,14 +62,11 @@ show-claimed-tickets-in-open-list: false
 #people with enough permissions, set this to false
 show-pending-tickets-in-open-list: true
 
-#Specify the TimeZone used for the Date here
-timezone: GMT
+#The timezone used for displaying time in messages
+timezone: 'Europe/Paris'
 
-#Use this to change the time format using SimpleDateFormat. If you
-#don't know how SimpleDateFormat is used you can check out this link:
-#http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html
-timeformat: 'HH:mm'
-
+#The time format as used in messages
+timeformat: 'd MMM HH:mm'
 
 #Change this to true if you want the staff to be notified about
 #open tickets uppon login
@@ -85,13 +82,10 @@ comment-limit: 3
 #change this to use mySQL or not
 use-mysql: false
 
-#specify mySQL server information here. The example does noet work
+#specify mySQL server information here.
 #The format for the ip is domain:port/database
 #You can also specify the tables used to store the tickets.
 mysql:
-    tables:
-        tickets: 'requests'
-        comments: 'comments'
     ip: example.com/sgt_tailor
     user: Sgt_Tailor
     pass: Walrus

@@ -83,7 +83,7 @@ public class DoneCommand implements CommandExecutor {
             return true;
         }
 
-        t.addComment(new Comment(sender.getName(), comment, CommentType.CLOSE));
+        t.addComment(new Comment(sender.getName(), p.getUniqueId(), comment, CommentType.CLOSE));
 
         t.setStaff(staff);
         t.setStatus(Status.CLOSED);

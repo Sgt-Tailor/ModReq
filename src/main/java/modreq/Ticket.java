@@ -17,41 +17,48 @@
  */
 package modreq;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-
 import modreq.repository.TicketRepository;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import java.sql.SQLException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+
 public class Ticket {
 
     private int id;
     private String submitter;
+    private UUID submitterUUID;
     private String message;
-    private String date;
+    private Instant date;
     private Status status;
     private String location;
     private String staff;
-    private TicketRepository tickets;
-    private ArrayList<Comment> comments;
+    private UUID staffUUID;
 
-    public Ticket(int id, String submitter, String message,
-                  String date, Status status, String location, String staff) {
+    private TicketRepository ticketRepository;
+    private List<Comment> comments;
+
+    public Ticket(int id, String submitter, UUID submitterUUID, String message, Instant date, Status status, String location, String staff, UUID staffUUID) {
         this.submitter = submitter;
+        this.submitterUUID = submitterUUID;
         this.id = id;
         this.staff = staff;
+        this.staffUUID = staffUUID;
         this.date = date;
         this.message = message;
         this.status = status;
         this.location = location;
 
-        this.tickets = ModReq.getInstance().getTicketRepository();
-        this.comments = new ArrayList<Comment>();
+        this.ticketRepository = ModReq.getInstance().getTicketRepository();
+        this.comments = new ArrayList<>();
     }
 
     /**
@@ -87,7 +94,7 @@ public class Ticket {
      *
      * @return
      */
-    public String getDate() {
+    public Instant getDate() {
         return date;
     }
 
@@ -140,14 +147,8 @@ public class Ticket {
      * @return
      */
     public void sendSummarytoPlayer(Player p) {
-        ChatColor namecolor = ChatColor.RED;
-        for (Player op : Bukkit.getServer().getOnlinePlayers()) {
-            if (op.getName().equals(submitter)) {
-                if (op.isOnline()) {
-                    namecolor = ChatColor.GREEN;
-                }
-            }
-        }
+        ChatColor namecolor = Bukkit.getPlayer(submitterUUID) == null ? ChatColor.RED : ChatColor.GREEN;
+
         String summessage = message;
         if (summessage.length() > 15) {
             summessage = summessage.substring(0, 15);
@@ -159,18 +160,22 @@ public class Ticket {
                 submitter = Bukkit.getPlayer(submitter).getDisplayName();
             }
         }
-        summary = ChatColor.GOLD + "#" + id + ChatColor.AQUA + " " + date
-                + " [" + comments.size() + "] "
-                + namecolor + submitter + " " + ChatColor.GRAY + summessage
-                + "...";
-        if (status.equals(Status.CLAIMED)) {
-            summary = summary + " " + ChatColor.RED + " [Claimed]";
-        }
-        if (status.equals(Status.PENDING)) {
-            summary = summary + " " + ChatColor.RED + " [Pending]";
+
+        String statusString = "";
+        if (status.equals(Status.CLAIMED) || status.equals(Status.PENDING)) {
+            statusString = status.getStatusString();
         }
 
-        p.sendMessage(summary);
+        String finalStatusString1 = statusString;
+        String finalSummessage = summessage;
+        Message.sendToPlayer(MessageType.STATUS_SUMMARY, p, new HashMap<String, String>() {{
+            put("ticketId", Integer.toString(id));
+            put("date", ModReq.getDateTimeFormatter().format(date));
+            put("comments", Integer.toString(comments.size()));
+            put("submitter", namecolor + submitter);
+            put("message", finalSummessage);
+            put("status", finalStatusString1);
+        }});
     }
 
     /**
@@ -184,11 +189,15 @@ public class Ticket {
         if (summessage.length() > 15) {
             summessage = summessage.substring(0, 15);
         }
-        String summary = ChatColor.GOLD + "#" + id + ChatColor.AQUA + " "
-                + date + " " + "[" + comments.size() + "]"
-                + " " + ChatColor.DARK_GREEN + " [" + status + "]" + " "
-                + ChatColor.GRAY + summessage + "...";
-        p.sendMessage(summary);
+
+        String finalSummessage = summessage;
+        Message.sendToPlayer(MessageType.STATUS_SUMMARY, p, new HashMap<String, String>() {{
+            put("ticketId", Integer.toString(id));
+            put("date", ModReq.getDateTimeFormatter().format(date));
+            put("comments", Integer.toString(comments.size()));
+            put("message", finalSummessage);
+            put("status", status.getStatusString());
+        }});
 
     }
 
@@ -205,29 +214,26 @@ public class Ticket {
             }
         }
         ModReq plugin = ModReq.getInstance();
-        String a = plugin.Messages.getString("ticket.location", "Location");
-        String b = plugin.Messages.getString("ticket.submitter", "Submitter");
-        String c = plugin.Messages.getString("ticket.date", "Date of Request");
-        String d = plugin.Messages.getString("ticket.status", "Status");
-        String e = plugin.Messages.getString("ticket.comment", "Comment");
-        String f = plugin.Messages.getString("ticket.request", "Request");
-        String g = plugin.Messages.getString("ticket.staff", "Staff member");
+        String location = plugin.Messages.getString("ticket.location", "Location");
+        String submitter = plugin.Messages.getString("ticket.submitter", "Submitter");
+        String dateOfRequest = plugin.Messages.getString("ticket.date", "Date of Request");
+        String status = plugin.Messages.getString("ticket.status", "Status");
+        String comment = plugin.Messages.getString("ticket.comment", "Comment");
+        String request = plugin.Messages.getString("ticket.request", "Request");
+        String staff = plugin.Messages.getString("ticket.staff", "Staff member");
 
-        p.sendMessage(ModReq.format(plugin.Messages.getString("headers-footers.ticket.header"), "", Integer.toString(id), ""));
-        p.sendMessage(ChatColor.AQUA + d + ": " + ChatColor.GRAY
-                + status);
-        p.sendMessage(ChatColor.AQUA + b + ": " + ChatColor.GRAY
-                + submitter);
-        if (p.hasPermission("modreq.tp-id") || p.getName().equals(submitter)) {
-            p.sendMessage(ChatColor.AQUA + a + ": " + ChatColor.GRAY
-                    + location);
+        Message.sendToPlayer(MessageType.TICKET_HEADER, p, Integer.toString(id));
+        p.sendMessage(ChatColor.AQUA + status + ": " + ChatColor.GRAY + this.status);
+        p.sendMessage(ChatColor.AQUA + submitter + ": " + ChatColor.GRAY + this.submitter);
+
+        if (p.hasPermission("modreq.tp-id") || p.getName().equals(this.submitter)) {
+            p.sendMessage(ChatColor.AQUA + location + ": " + ChatColor.GRAY + this.location);
         }
-        p.sendMessage(ChatColor.AQUA + g + ": " + ChatColor.GRAY
-                + staff);
-        p.sendMessage(ChatColor.AQUA + c + ": " + ChatColor.GRAY + date);
-        p.sendMessage(ChatColor.AQUA + f + ": " + ChatColor.GRAY
-                + message);
-        p.sendMessage(ChatColor.AQUA + e + ":");
+
+        p.sendMessage(ChatColor.AQUA + staff + ": " + ChatColor.GRAY + (this.staff == null ? "-" : this.staff));
+        p.sendMessage(ChatColor.AQUA + dateOfRequest + ": " + ChatColor.GRAY + ModReq.getDateTimeFormatter().format(this.date));
+        p.sendMessage(ChatColor.AQUA + request + ": " + ChatColor.GRAY + this.message);
+        p.sendMessage(ChatColor.AQUA + comment + ":");
 
         sendComments(p);
     }
@@ -236,11 +242,11 @@ public class Ticket {
         int number = comments.size();
         for (Comment c : comments) {
             String commenter = c.getCommenter();
-            String date = c.getDate();
+            Instant date = c.getDate();
             String comment = c.getComment();
             comment = ChatColor.translateAlternateColorCodes('&', comment);
-            p.sendMessage(ChatColor.GOLD + "#" + Integer.toString(number) + " "
-                    + ChatColor.AQUA + date + " " + ChatColor.GOLD + commenter
+            p.sendMessage(ChatColor.GOLD + "#" + number + " "
+                    + ChatColor.AQUA + ModReq.getDateTimeFormatter().format(date) + " " + ChatColor.GOLD + commenter
                     + ": " + ChatColor.GRAY + comment);
             number--;
         }
@@ -259,6 +265,7 @@ public class Ticket {
 
         this.id = id;
     }
+
     /**
      * This is used to set a new staff member The ticket must be updated for any
      * changes to apply
@@ -286,7 +293,7 @@ public class Ticket {
      * @return
      */
     public void update() throws SQLException {
-        tickets.updateTicket(this);
+        ticketRepository.updateTicket(this);
     }
 
     public void sendMessageToSubmitter(String message) {
@@ -298,7 +305,7 @@ public class Ticket {
         p.sendMessage(message);
     }
 
-    public ArrayList<Comment> getComments() {
+    public List<Comment> getComments() {
         return comments;
     }
 
@@ -321,7 +328,7 @@ public class Ticket {
     }
 
     public void addDefaultComment(Player p, CommentType c) {
-        Comment comment = new Comment(p.getName(), c.getDefaultComment(), c);
+        Comment comment = new Comment(p.getName(), p.getUniqueId(), c.getDefaultComment(), c);
         addComment(comment);
     }
 
@@ -332,5 +339,21 @@ public class Ticket {
         }
         p.sendMessage(notification);
 
+    }
+
+    public UUID getSubmitterUUID() {
+        return submitterUUID;
+    }
+
+    public void setSubmitterUUID(UUID submitterUUID) {
+        this.submitterUUID = submitterUUID;
+    }
+
+    public UUID getStaffUUID() {
+        return staffUUID;
+    }
+
+    public void setStaffUUID(UUID staffUUID) {
+        this.staffUUID = staffUUID;
     }
 }

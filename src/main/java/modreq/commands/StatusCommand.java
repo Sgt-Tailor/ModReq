@@ -51,12 +51,12 @@ public class StatusCommand extends SubCommandExecutor {
             return;
         }
         try {
-            ArrayList<Ticket> t = tickets.getTicketsBySubmitter(sender.getName());
-            p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.status.header"), "", "", ""));
+            ArrayList<Ticket> t = tickets.getTicketsBySubmitter(p);
+            Message.sendToPlayer(MessageType.STATUS_HEADER, p);
             for (Ticket ticket : t) {
                 ticket.sendStatus(p);
             }
-            p.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("headers-footers.status.footer"), "", "", ""));
+            Message.sendToPlayer(MessageType.STATUS_FOOTER, p);
         } catch (SQLException e) {
             e.printStackTrace();
             Message.sendToPlayer(MessageType.ERROR_GENERIC, p);

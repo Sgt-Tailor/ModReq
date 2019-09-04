@@ -19,6 +19,9 @@ public class Message {
         player.sendMessage(MessageType.format(player.getName(), number, ""));
     }
 
+    public static void sendToPlayer(MessageType MessageType, Player player, Map<String,String>parameters) {
+        player.sendMessage(MessageType.formatWithParameters(parameters));
+    }
     public static void sendToAdmins(MessageType MessageType, Map<String,String>parameters) {
         String message = MessageType.formatWithParameters(parameters);
         for (Player op : Bukkit.getOnlinePlayers()) {

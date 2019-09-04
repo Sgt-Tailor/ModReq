@@ -72,7 +72,7 @@ public class ReopenCommand implements CommandExecutor {
         Status status = Status.OPEN;
         String staff = sender.getName();
 
-        t.addComment(new Comment(sender.getName(), comment, CommentType.REOPEN));
+        t.addComment(new Comment(sender.getName(), p.getUniqueId(), comment, CommentType.REOPEN));
         t.setStaff(staff);
         t.setStatus(status);
         try {

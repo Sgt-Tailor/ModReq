@@ -17,17 +17,22 @@
  */
 package modreq.repository;
 
+import jdk.vm.ci.meta.Local;
 import modreq.Comment;
 import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.sql.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public class TicketRepository {
@@ -37,8 +42,16 @@ public class TicketRepository {
     private Connection connection;
     private boolean useMysql;
 
-    public TicketRepository() {
-        useMysql = plugin.getConfig().getBoolean("use-mysql");
+    private List<String> createTables;
+    private String getInsertedId;
+
+
+    public TicketRepository(YamlConfiguration schema, boolean useMysql) {
+        this.useMysql = useMysql;
+        String prefix = useMysql ? "mysql" : "sqlite";
+
+        createTables = schema.getStringList(prefix + ".schema");
+        this.getInsertedId = schema.get(prefix + ".get-inserted-id").toString();
     }
 
     private Connection getConnection() {
@@ -48,28 +61,20 @@ public class TicketRepository {
                     return connection;
                 }
             }
-            Class.forName("org.sqlite.JDBC");
             if (useMysql) {
                 String ip = plugin.getConfig().getString("mysql.ip");
                 String user = plugin.getConfig().getString("mysql.user");
                 String pass = plugin.getConfig().getString("mysql.pass");
-                String table1 = plugin.getConfig().getString("mysql.tables.tickets", "tickets");
-                String table2 = plugin.getConfig().getString("mysql.tables.comments", "comments");
-                connection = DriverManager.getConnection("jdbc:mysql://"
-                        + ip, user, pass);
-                Statement stat = connection.createStatement();
-                stat.execute("CREATE TABLE IF NOT EXISTS " + table1 + " (id INTEGER NOT NULL AUTO_INCREMENT, submitter TEXT, message TEXT, date TEXT, status TEXT, location TEXT, staff TEXT, PRIMARY KEY(id))");
-                stat.execute("CREATE TABLE IF NOT EXISTS " + table2 + " (id INTEGER, commenter TEXT, message TEXT, date TEXT)");
-                KillConnection();
-                return connection;
+                connection = DriverManager.getConnection("jdbc:mysql://" + ip, user, pass);
             } else {
-                connection = DriverManager
-                        .getConnection("jdbc:sqlite:plugins/ModReq/DataBase.sql");
-                Statement stat = connection.createStatement();
-                stat.execute("CREATE TABLE IF NOT EXISTS requests (id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, message TEXT, date TEXT, status TEXT, location TEXT, staff TEXT)");
-                stat.execute("CREATE TABLE IF NOT EXISTS comments (id INTEGER, commenter String, message String, date String)");
-                KillConnection();
-                return connection;
+                Class.forName("org.sqlite.JDBC");
+                connection = DriverManager.getConnection("jdbc:sqlite:plugins/ModReq/DataBase.sql");
+            }
+
+            Statement stat = connection.createStatement();
+
+            for (String query : this.createTables) {
+                stat.execute(query);
             }
 
         } catch (Exception e) {
@@ -79,27 +84,15 @@ public class TicketRepository {
             return null;
         }
 
-    }
-
-    private void KillConnection() {
-        Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, 2L);
+        return connection;
     }
 
     public void clearTickets() {
         try {
             Connection conn = getConnection();
             Statement stat = conn.createStatement();
-            stat.execute("DROP TABLE requests");
-            stat.execute("DROP TABLE comments");
+            stat.execute("DROP TABLE ticket");
+            stat.execute("DROP TABLE commment");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -108,8 +101,8 @@ public class TicketRepository {
     public int getTicketCountBySubmitter(Player p, Status status) throws SQLException {
 
         Connection conn = getConnection();
-        PreparedStatement stat = conn.prepareStatement("SELECT COUNT(1) FROM requests WHERE 'submitter' = ? AND 'status' = ?");
-        stat.setString(1, p.getName());
+        PreparedStatement stat = conn.prepareStatement("SELECT COUNT(1) FROM ticket WHERE 'submitterUUID' = ? AND 'status' = ?");
+        stat.setString(1, p.getUniqueId().toString());
         stat.setString(2, status.getStatusString());
         ResultSet result = stat.executeQuery();
         if (result.next()) {
@@ -119,13 +112,12 @@ public class TicketRepository {
         return 0;
     }
 
-    public ArrayList<Ticket> getTicketsBySubmitter(String target) throws SQLException {
+    public ArrayList<Ticket> getTicketsBySubmitter(Player p) throws SQLException {
         Connection conn = getConnection();
-        PreparedStatement stat = conn.prepareStatement("SELECT * FROM requests WHERE submitter = ? ORDER BY ID DESC LIMIT 5");
-        stat.setString(1, target);
+        PreparedStatement stat = conn.prepareStatement("SELECT * FROM ticket WHERE submitterUUID = ? ORDER BY ID DESC LIMIT 5");
+        stat.setString(1, p.getUniqueId().toString());
         ResultSet result = stat.executeQuery();
 
-        ArrayList<Integer> tickets = new ArrayList<Integer>();
         ArrayList<Ticket> value = new ArrayList<Ticket>();
 
         while (result.next()) {
@@ -138,8 +130,8 @@ public class TicketRepository {
     public boolean playerHasClaimedTicket(Player p) throws SQLException {
 
         Connection conn = getConnection();
-        PreparedStatement stat = conn.prepareStatement("SELECT * FROM requests WHERE staff = ? AND status = ? limit 1");
-        stat.setString(1, p.getName());
+        PreparedStatement stat = conn.prepareStatement("SELECT * FROM ticket WHERE staffUUID = ? AND status = ? limit 1");
+        stat.setString(1, p.getUniqueId().toString());
         stat.setString(2, Status.CLAIMED.getStatusString());
 
         ResultSet result = stat.executeQuery();
@@ -151,9 +143,6 @@ public class TicketRepository {
         return false;
     }
 
-    /**
-     * TODO: use sql offset in combination with limit
-     */
     public void sendPlayerPage(int page, Status status, Player p) {
         try {
             Connection conn = getConnection();
@@ -171,7 +160,7 @@ public class TicketRepository {
                     statusSelect.append(" or status = 'claimed'");
                 }
                 if (plugin.getConfig().getBoolean("show-pending-tickets-in-open-list") && p.hasPermission("modreq.claim.pending")) {
-                    PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM requests WHERE status = 'pending' limit ? offset ?");
+                    PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM ticket WHERE status = 'pending' limit ? offset ?");
 
                     preparedStatement.setInt(1, ticketsPerPage);
                     preparedStatement.setInt(2, offset);
@@ -186,7 +175,7 @@ public class TicketRepository {
             // only fetch more tickets if we have not exceeded the limit yet
             int openTicketLimit = ticketsPerPage - tickets.size();
             if (openTicketLimit > 0) {
-                PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM requests WHERE " + statusSelect.toString() + " limit ? offset ? ");
+                PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM ticket WHERE " + statusSelect.toString() + " limit ? offset ? ");
                 preparedStatement.setInt(1, openTicketLimit);
                 preparedStatement.setInt(2, offset);
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -195,8 +184,7 @@ public class TicketRepository {
                     tickets.add(getTicketByResultSet(resultSet));
                 }
             }
-            p.sendMessage(ChatColor.GOLD + "-----List-of-"
-                    + status.getStatusString() + "-Requests-----");
+            p.sendMessage(ChatColor.GOLD + "-----List-of-" + status.getStatusString() + "-Requests-----");
             for (Ticket t : tickets) {
                 t.sendSummarytoPlayer(p);
             }
@@ -209,13 +197,12 @@ public class TicketRepository {
     public int getTicketCountByStatus(Status status) {
         try {
             Connection conn = getConnection();
-            PreparedStatement stat = conn.prepareStatement("SELECT count(1) FROM requests WHERE status = ?");
+            PreparedStatement stat = conn.prepareStatement("SELECT count(1) FROM ticket WHERE status = ?");
             stat.setString(1, status.getStatusString());
             ResultSet rs = stat.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
             }
-
             return 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -230,25 +217,23 @@ public class TicketRepository {
         }
         Connection conn = getConnection();
 
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO requests (submitter, message, date, status, location, staff) VALUES (?, ?, ?, ?, ?, ?)");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO ticket (submitter, submitterUUID, message, date, status, location, staff, staffUUID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         prep.setString(1, t.getSubmitter());
-        prep.setString(2, t.getMessage());
-        prep.setString(3, t.getDate());
-        prep.setString(4, t.getStatus().getStatusString());
-        prep.setString(5, t.getLocationString());
-        prep.setString(6, "no staff member yet");
+        prep.setString(2, t.getSubmitterUUID().toString());
+        prep.setString(3, t.getMessage());
+        prep.setObject(4, LocalDateTime.ofInstant(t.getDate(), ZoneOffset.UTC));
+        prep.setString(5, t.getStatus().getStatusString());
+        prep.setString(6, t.getLocationString());
+        prep.setString(7, null);
+        prep.setString(8, null);
         prep.addBatch();
 
         prep.executeBatch();
 
         Statement statement = conn.createStatement();
-        String query = "select last_insert_rowid()";
-        if (useMysql) {
-            query = "SELECT LAST_INSERT_ID()";
-        }
-        ResultSet set = statement.executeQuery(query);
+        ResultSet set = statement.executeQuery(this.getInsertedId);
         if (!set.next()) {
-            throw new SQLException("not data returned by " + query);
+            throw new SQLException("not data returned by " + this.getInsertedId);
         }
 
         int ticketId = set.getInt(1);
@@ -259,7 +244,7 @@ public class TicketRepository {
     public Ticket getTicketById(int id) {
         try {
             Connection conn = getConnection();
-            PreparedStatement stat = conn.prepareStatement("SELECT * FROM requests WHERE id = ?");
+            PreparedStatement stat = conn.prepareStatement("SELECT * FROM ticket WHERE id = ?");
             stat.setInt(1, id);
 
             ResultSet result = stat.executeQuery();
@@ -278,13 +263,12 @@ public class TicketRepository {
 
     public void updateTicket(Ticket t) throws SQLException {
         Connection conn = getConnection();
-        PreparedStatement prep = conn.prepareStatement("UPDATE requests SET status = ?, staff = ? WHERE id = ?");
-        String status = t.getStatus().getStatusString();
-        String staff = t.getStaff();
+        PreparedStatement prep = conn.prepareStatement("UPDATE ticket SET status = ?, staff = ?, staffUUID = ? WHERE id = ?");
 
-        prep.setString(1, status);
-        prep.setString(2, staff);
-        prep.setInt(3, t.getId());
+        prep.setString(1, t.getStatus().getStatusString());
+        prep.setString(2, t.getStaff());
+        prep.setString(3, t.getStaffUUID() == null ? null : t.getSubmitterUUID().toString());
+        prep.setInt(4, t.getId());
         prep.execute();
 
         updateComments(conn, t);
@@ -292,60 +276,65 @@ public class TicketRepository {
 
     private Ticket getTicketByResultSet(ResultSet result) throws SQLException {
         int id = result.getInt(1);
-        String status = result.getString(5);
         String submitter = result.getString(2);
-        String date = result.getString(4);
-        String location = result.getString(6);
-        String message = result.getString(3);
-        String staff = result.getString(7);
-        return new Ticket(id, submitter, message, date, Status.getByString(status), location, staff);
+        String submitterUUIDString = result.getString(3);
+        String message = result.getString(4);
+
+        LocalDateTime date;
+        if (useMysql) {
+            date = result.getObject(5, LocalDateTime.class);
+        } else {
+            date = LocalDateTime.parse(result.getString(5));
+        }
+        String status = result.getString(6);
+        String location = result.getString(7);
+        String staff = result.getString(8);
+        String staffUUIDString = result.getString(9);
+
+        UUID staffUUID = null;
+        if (staff != null) {
+            staffUUID = UUID.fromString(staffUUIDString);
+        }
+        
+        return new Ticket(id, submitter, UUID.fromString(submitterUUIDString), message, date.toInstant(ZoneOffset.UTC), Status.getByString(status), location, staff, staffUUID);
     }
 
     private void addCommentsToTicket(Connection conn, Ticket t) throws SQLException {
-        PreparedStatement stat = conn.prepareStatement("SELECT * FROM comments WHERE id = ?");
+        PreparedStatement stat = conn.prepareStatement("SELECT * FROM comment WHERE ticketId = ?");
         stat.setInt(1, t.getId());
         ResultSet rs = stat.executeQuery();
         while (rs.next()) {
-            String commenter = rs.getString(2);
-            String comment = rs.getString(3);
-            String date = rs.getString(4);
+            int id = rs.getInt(1);
+            String commenter = rs.getString(3);
+            String commenterUUIDString = rs.getString(4);
+            String comment = rs.getString(5);
+            LocalDateTime date = rs.getObject(6, LocalDateTime.class);
 
-            Comment c = new Comment(commenter, comment, date);
+            Comment c = new Comment(id, commenter, UUID.fromString(commenterUUIDString), comment, date.toInstant(ZoneOffset.UTC));
             t.insertComment(c);
         }
-        rs.close();
         stat.close();
     }
 
     /**
-     * TODO: simplify. This should append the last comment if it does not yet exist. Needs a schema change though
+     * TODO: simplify. This should append the last comment if it does not yet exist.
      */
     private void updateComments(Connection conn, Ticket t) throws SQLException {
         if (t.getComments().isEmpty()) {
             return;
         }
-        PreparedStatement prep = conn
-                .prepareStatement("INSERT INTO comments VALUES (?, ?, ?, ?)");
-        PreparedStatement stat = conn.prepareStatement("SELECT * FROM comments WHERE id = ?");
-        stat.setInt(1, t.getId());
-        ResultSet rs = stat.executeQuery();
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO comment (ticketId, commenter, commenterUUID, message, date) VALUES (?, ?, ?, ?, ?)");
 
-        Comment A = new Comment();
-        while (rs.next()) {
-            String commenter = rs.getString(2);
-            String comment = rs.getString(3);
-            String date = rs.getString(4);
+        for (Comment c : t.getComments()) {
+            if (c.getId() > 0) {
+                continue;
+            }
 
-            A = new Comment(commenter, comment, date);
-        }
-        stat.close();
-        Comment B = t.getComments().get(t.getComments().size() - 1);
-
-        if (B.isValid() && !A.equalsComment(B)) {
             prep.setInt(1, t.getId());
-            prep.setString(2, B.getCommenter());
-            prep.setString(3, B.getComment());
-            prep.setString(4, B.getDate());
+            prep.setString(2, c.getCommenter());
+            prep.setString(3, c.getCommenterUUID().toString());
+            prep.setString(4, c.getComment());
+            prep.setObject(5, LocalDateTime.ofInstant(c.getDate(), ZoneOffset.UTC));
             prep.addBatch();
             prep.executeBatch();
         }

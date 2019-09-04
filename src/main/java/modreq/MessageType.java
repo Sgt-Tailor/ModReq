@@ -44,6 +44,8 @@ public enum MessageType {
 
     STATUS_HEADER(),
     STATUS_FOOTER(),
+    STATUS_SUMMARY(),
+
     MODS_HEADER(),
     CHECK_HEADER(),
     CHECK_FOOTER(),
@@ -76,7 +78,8 @@ public enum MessageType {
     TICKET_STATUS(),
     TICKET_COMMENT(),
     TICKET_STAFF(),
-    TICKET_REQUEST();
+    TICKET_REQUEST(),
+    TICKET_SUMMARY;
 
     private final String message;
 
@@ -86,9 +89,9 @@ public enum MessageType {
 
     public String format(String PlayerName, String TicketNumber, String comment) {
         String formatted = message;
-        formatted = formatted.replace("&player", PlayerName);
-        formatted = formatted.replace("&number", TicketNumber);
-        formatted = formatted.replace("&comment", comment);
+        formatted = formatted.replace("%player%", PlayerName);
+        formatted = formatted.replace("%number%", TicketNumber);
+        formatted = formatted.replace("%comment%", comment);
         formatted = ChatColor.translateAlternateColorCodes('&', formatted);
         return formatted;
     }
@@ -96,7 +99,7 @@ public enum MessageType {
     public String formatWithParameters(Map<String, String> parameters) {
         String formatted = message;
         for (Map.Entry<String, String> entry : parameters.entrySet()) {
-            formatted = formatted.replace("&" + entry.getKey(), entry.getValue());
+            formatted = formatted.replace("%" + entry.getKey() + "%", entry.getValue());
         }
 
         return ChatColor.translateAlternateColorCodes('&', formatted);

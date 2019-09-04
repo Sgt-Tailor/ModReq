@@ -1,0 +1,71 @@
+sqlite:
+  schema:
+  - >
+    CREATE TABLE IF NOT EXISTS ticket (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      submitter VARCHAR(16),
+      submitterUUID VARCHAR(36),
+      message TEXT,
+      date DATETIME,
+      status VARCHAR(16),
+      location TEXT,
+      staff VARCHAR(16),
+      staffUUID VARCHAR(36)
+    );
+    CREATE INDEX findByStatus ON ticket(status);
+    CREATE INDEX findBySubmitter ON ticket(submitter);
+    CREATE INDEX findBySubmitterID ON ticket(submitterUUID);
+    CREATE INDEX findByDate ON ticket(date);
+
+    CREATE TABLE IF NOT EXISTS comment (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ticketId INTEGER,
+      commenter VARCHAR(16),
+      commenterUUID VARCHAR(36),
+      message TEXT,
+      date DATETIME,
+    );
+
+    CREATE INDEX findByTicket ON comment(ticketId);
+    CREATE INDEX findByCommenter ON comment(commenter);
+    CREATE INDEX findByCommenterId ON comment(commenterUUID);
+    CREATE INDEX findByDate ON comment(date);
+  get-inserted-id: SELECT last_insert_rowid()
+mysql:
+  schema:
+  - >
+    CREATE TABLE IF NOT EXISTS ticket (
+      id INTEGER NOT NULL AUTO_INCREMENT,
+      submitter VARCHAR(16),
+      submitterUUID VARCHAR(36),
+      message TEXT,
+      date TIMESTAMP,
+      status ENUM('open', 'closed', 'claimed', 'pending'),
+      location TEXT,
+      staff VARCHAR(16),
+      staffUUID VARCHAR(36),
+
+      PRIMARY KEY (id),
+
+      INDEX findByStatus(status),
+      INDEX findBySubmitter(submitter),
+      INDEX findBySubmitterID(submitterUUID),
+      INDEX findByDate(date)
+    );
+  - >
+    CREATE TABLE IF NOT EXISTS comment (
+      id INTEGER NOT NULL AUTO_INCREMENT,
+      ticketId INTEGER,
+      commenter VARCHAR(16),
+      commenterUUID VARCHAR(36),
+      message TEXT,
+      date TIMESTAMP,
+
+      PRIMARY KEY (id),
+
+      INDEX findByTicket(ticketId),
+      INDEX findByCommenter(commenter),
+      INDEX findByCommenterId(commenterUUID),
+      INDEX findByDate(date)
+    );
+  get-inserted-id: SELECT LAST_INSERT_ID()
