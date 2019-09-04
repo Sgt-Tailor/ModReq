@@ -17,6 +17,7 @@
  */
 package modreq.repository;
 
+import jdk.vm.ci.meta.Local;
 import modreq.Comment;
 import modreq.ModReq;
 import modreq.Status;
@@ -278,7 +279,13 @@ public class TicketRepository {
         String submitter = result.getString(2);
         String submitterUUIDString = result.getString(3);
         String message = result.getString(4);
-        LocalDateTime date = result.getObject(5, LocalDateTime.class);
+
+        LocalDateTime date;
+        if (useMysql) {
+            date = result.getObject(5, LocalDateTime.class);
+        } else {
+            date = LocalDateTime.parse(result.getString(5));
+        }
         String status = result.getString(6);
         String location = result.getString(7);
         String staff = result.getString(8);
