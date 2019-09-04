@@ -17,7 +17,6 @@
  */
 package modreq.repository;
 
-import jdk.vm.ci.meta.Local;
 import modreq.Comment;
 import modreq.ModReq;
 import modreq.Status;
@@ -27,7 +26,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.sql.*;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
