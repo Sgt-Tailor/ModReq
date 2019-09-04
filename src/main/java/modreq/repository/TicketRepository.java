@@ -265,7 +265,7 @@ public class TicketRepository {
 
         prep.setString(1, t.getStatus().getStatusString());
         prep.setString(2, t.getStaff());
-        prep.setString(3, t.getStaffUUID() == null ? null : t.getSubmitterUUID().toString());
+        prep.setString(3, t.getStaffUUID() == null ? null : t.getStaffUUID().toString());
         prep.setInt(4, t.getId());
         prep.execute();
 
