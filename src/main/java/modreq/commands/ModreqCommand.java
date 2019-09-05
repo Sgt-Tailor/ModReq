@@ -25,6 +25,7 @@ import modreq.*;
 import modreq.korik.Utils;
 import modreq.repository.TicketRepository;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -49,16 +50,21 @@ public class ModreqCommand implements CommandExecutor {
             return true;
         }
         Player p = (Player) sender;
-        if (p.hasPermission("modreq.request")) {
-            if (args.length == 0) {
-                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.message"), "", "", ""));
-                return true;
-            }
+        if (!p.hasPermission("modreq.request")) {
+            Message.sendToPlayer(MessageType.ERROR_PERMISSION, p);
+            return true;
+        }
+        if (args.length == 0) {
+            sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.message"), "", "", ""));
+            return true;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 int ticketsfromplayer = tickets.getTicketCountBySubmitter(p, Status.OPEN);
                 if (ticketsfromplayer >= plugin.getConfig().getInt("maximum-open-tickets")) {
                     Message.sendToPlayer(MessageType.ERROR_TICKET_TOOMANY, p);
-                    return true;
+                    return;
                 }
                 String message = Utils.join(args, " ", 0);
                 int id = savereq(message, p);
@@ -70,26 +76,21 @@ public class ModreqCommand implements CommandExecutor {
                 }});
 
                 Message.sendToPlayer(MessageType.PLAYER_SUBMIT, p);
-                return true;
             } catch (SQLException e) {
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
                 e.printStackTrace();
             }
-        }
-        return false;
+        });
+        return true;
     }
 
-    private int savereq(String message, Player sender) {// save
+    private int savereq(String message, Player sender) throws SQLException {
         Location loc = sender.getLocation();
         String location = loc.getWorld().getName() + " @ "
                 + Math.round(loc.getX()) + " " + Math.round(loc.getY()) + " "
                 + Math.round(loc.getZ());
 
-        try {
-            Ticket t = new Ticket(0, sender.getName(), sender.getUniqueId(), message, Instant.now(), Status.OPEN, location, "no staff member yet", null);
-            return tickets.addTicket(t);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
+        Ticket t = new Ticket(0, sender.getName(), sender.getUniqueId(), message, Instant.now(), Status.OPEN, location, "no staff member yet", null);
+        return tickets.addTicket(t);
     }
 }

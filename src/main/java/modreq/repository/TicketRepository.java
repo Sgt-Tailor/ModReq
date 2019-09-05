@@ -120,6 +120,7 @@ public class TicketRepository {
 
         while (result.next()) {
             Ticket t = getTicketByResultSet(result);
+            this.addCommentsToTicket(conn, t);
             value.add(t);
         }
         return value;
@@ -141,55 +142,51 @@ public class TicketRepository {
         return false;
     }
 
-    public void sendPlayerPage(int page, Status status, Player p) {
-        try {
-            Connection conn = getConnection();
+    public void sendPlayerPage(int page, Status status, Player p) throws SQLException {
+        Connection conn = getConnection();
 
-            List<Ticket> tickets = new ArrayList<Ticket>();
+        List<Ticket> tickets = new ArrayList<Ticket>();
 
-            int ticketsPerPage = 10;
-            int offset = (ticketsPerPage * page) - 10;
+        int ticketsPerPage = 10;
+        int offset = (ticketsPerPage * page) - 10;
 
-            StringBuilder statusSelect = new StringBuilder();
-            statusSelect.append("status = '" + status.getStatusString() + "'");
+        StringBuilder statusSelect = new StringBuilder();
+        statusSelect.append("status = '" + status.getStatusString() + "'");
 
-            if (status == Status.OPEN) {
-                if (plugin.getConfig().getBoolean("show-claimed-tickets-in-open-list")) {
-                    statusSelect.append(" or status = 'claimed'");
-                }
-                if (plugin.getConfig().getBoolean("show-pending-tickets-in-open-list") && p.hasPermission("modreq.claim.pending")) {
-                    PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM ticket WHERE status = 'pending' limit ? offset ?");
-
-                    preparedStatement.setInt(1, ticketsPerPage);
-                    preparedStatement.setInt(2, offset);
-                    ResultSet resultPending = preparedStatement.executeQuery();
-
-                    while (resultPending.next()) {
-                        tickets.add(getTicketByResultSet(resultPending));
-                    }
-                }
+        if (status == Status.OPEN) {
+            if (plugin.getConfig().getBoolean("show-claimed-tickets-in-open-list")) {
+                statusSelect.append(" or status = 'claimed'");
             }
+            if (plugin.getConfig().getBoolean("show-pending-tickets-in-open-list") && p.hasPermission("modreq.claim.pending")) {
+                PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM ticket WHERE status = 'pending' limit ? offset ?");
 
-            // only fetch more tickets if we have not exceeded the limit yet
-            int openTicketLimit = ticketsPerPage - tickets.size();
-            if (openTicketLimit > 0) {
-                PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM ticket WHERE " + statusSelect.toString() + " limit ? offset ? ");
-                preparedStatement.setInt(1, openTicketLimit);
+                preparedStatement.setInt(1, ticketsPerPage);
                 preparedStatement.setInt(2, offset);
-                ResultSet resultSet = preparedStatement.executeQuery();
+                ResultSet resultPending = preparedStatement.executeQuery();
 
-                while (resultSet.next()) {
-                    tickets.add(getTicketByResultSet(resultSet));
+                while (resultPending.next()) {
+                    tickets.add(getTicketByResultSet(resultPending));
                 }
             }
-            p.sendMessage(ChatColor.GOLD + "-----List-of-" + status.getStatusString() + "-Requests-----");
-            for (Ticket t : tickets) {
-                t.sendSummarytoPlayer(p);
-            }
-            p.sendMessage(ChatColor.GOLD + "do /check <page> to see more");
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+
+        // only fetch more tickets if we have not exceeded the limit yet
+        int openTicketLimit = ticketsPerPage - tickets.size();
+        if (openTicketLimit > 0) {
+            PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM ticket WHERE " + statusSelect.toString() + " limit ? offset ? ");
+            preparedStatement.setInt(1, openTicketLimit);
+            preparedStatement.setInt(2, offset);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                tickets.add(getTicketByResultSet(resultSet));
+            }
+        }
+        p.sendMessage(ChatColor.GOLD + "-----List-of-" + status.getStatusString() + "-Requests-----");
+        for (Ticket t : tickets) {
+            t.sendSummarytoPlayer(p);
+        }
+        p.sendMessage(ChatColor.GOLD + "do /check <page> to see more");
     }
 
     public int getTicketCountByStatus(Status status) {
@@ -239,24 +236,19 @@ public class TicketRepository {
         return ticketId;
     }
 
-    public Ticket getTicketById(int id) {
-        try {
-            Connection conn = getConnection();
-            PreparedStatement stat = conn.prepareStatement("SELECT * FROM ticket WHERE id = ?");
-            stat.setInt(1, id);
+    public Ticket getTicketById(int id) throws SQLException {
+        Connection conn = getConnection();
+        PreparedStatement stat = conn.prepareStatement("SELECT * FROM ticket WHERE id = ?");
+        stat.setInt(1, id);
 
-            ResultSet result = stat.executeQuery();
-            if (!result.next()) {
-                return null;
-            }
-
-            Ticket ticket = getTicketByResultSet(result);
-            addCommentsToTicket(conn, ticket);
-            return ticket;
-        } catch (SQLException e) {
-            e.printStackTrace();
+        ResultSet result = stat.executeQuery();
+        if (!result.next()) {
+            return null;
         }
-        return null;
+
+        Ticket ticket = getTicketByResultSet(result);
+        addCommentsToTicket(conn, ticket);
+        return ticket;
     }
 
     public void updateTicket(Ticket t) throws SQLException {
@@ -293,7 +285,7 @@ public class TicketRepository {
         if (staff != null) {
             staffUUID = UUID.fromString(staffUUIDString);
         }
-        
+
         return new Ticket(id, submitter, UUID.fromString(submitterUUIDString), message, date.toInstant(ZoneOffset.UTC), Status.getByString(status), location, staff, staffUUID);
     }
 

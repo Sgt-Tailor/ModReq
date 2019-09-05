@@ -23,6 +23,7 @@ import modreq.*;
 import modreq.korik.SubCommandExecutor;
 import modreq.repository.TicketRepository;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -61,13 +62,23 @@ public class TicketCommand extends SubCommandExecutor {
             return;
         }
 
-        Ticket ticket = tickets.getTicketById(id);
-        if (ticket == null) {
-            Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, player);
-            return;
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            Ticket ticket;
+            try {
+                ticket = tickets.getTicketById(id);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
+                return;
+            }
 
-        ticket.sendMessageToPlayer(player);
+            if (ticket == null) {
+                Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, player);
+                return;
+            }
+
+            ticket.sendMessageToPlayer(player);
+        });
     }
 
     @command(
@@ -88,24 +99,27 @@ public class TicketCommand extends SubCommandExecutor {
             return;
         }
 
-        Ticket t = tickets.getTicketById(id);
-        if (t == null) {
-            Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
-            return;
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                Ticket t = tickets.getTicketById(id);
+                if (t == null) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
+                    return;
+                }
 
-        t.setStatus(Status.PENDING);
-        t.addDefaultComment(p, CommentType.PENDING);
-        t.setStaff("no staff member");
-        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.pending"), sender.getName(), Integer.toString(id), ""));
+                t.setStatus(Status.PENDING);
+                t.addDefaultComment(p, CommentType.PENDING);
+                t.setStaff("no staff member");
+                t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.pending"), sender.getName(), Integer.toString(id), ""));
 
-        Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_PENDING, p);
-        try {
-            t.update();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
-        }
+                Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_PENDING, p);
+
+                t.update();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+            }
+        });
     }
 }
 

@@ -31,26 +31,47 @@ import org.bukkit.entity.Player;
 
 public class CommentCommand implements CommandExecutor {
 
+    private final ModReq plugin;
+
+    public CommentCommand(ModReq instance) {
+        this.plugin = instance;
+    }
+
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender instanceof Player) {
-            if (args.length <= 1) {
-                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.comment.empty"), "", "", ""));
-                return true;
-            }
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "You don't have permissions to to this");
+            return true;
+        }
+        if (args.length <= 1) {
+            sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.comment.empty"), "", "", ""));
+            return true;
+        }
 
-            int id = Integer.parseInt(args[0]);
+        Player p = (Player) sender;
+        int id;
 
-            Player p = (Player) sender;
-            Ticket t = ModReq.getInstance().getTicketRepository().getTicketById(id);
+        try {
+            id = Integer.parseInt(args[0]);
+        } catch (NumberFormatException e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, p);
+            return true;
+        }
 
-            if (t == null) {
-                Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, args[0]);
-                return true;
-            }
-            if (p.hasPermission("modreq.check") || playerIsSubmitter(p, t)) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                Ticket t = ModReq.getInstance().getTicketRepository().getTicketById(id);
+                if (t == null) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, args[0]);
+                    return;
+                }
+                if (!p.hasPermission("modreq.check") && p.getUniqueId() != t.getSubmitterUUID()) {
+                    Message.sendToPlayer(MessageType.ERROR_PERMISSION, p);
+                    return;
+                }
+
                 if (maxCommentIsExeeded(p, t)) {
                     sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.comment.toomany"), "", "", ""));
-                    return true;
+                    return;
                 }
                 String commenter = p.getName();
                 String comment = Utils.join(args, " ", 1);
@@ -69,16 +90,14 @@ public class CommentCommand implements CommandExecutor {
                         }
                     }
                 }
-                try {
-                    t.update();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
-                }
-            } else {
-                p.sendMessage(ChatColor.RED + "You don't have permissions to to this");
+
+                t.update();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
             }
-        }
+        });
 
         return true;
     }
@@ -100,15 +119,6 @@ public class CommentCommand implements CommandExecutor {
             } else {
                 i = 1;
             }
-        }
-        return false;
-    }
-
-    private boolean playerIsSubmitter(Player p, Ticket t) {
-        String sub = t.getSubmitter();
-        String com = p.getName();
-        if (sub.equals(com)) {
-            return true;
         }
         return false;
     }

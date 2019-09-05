@@ -27,6 +27,7 @@ import modreq.Status;
 import modreq.Ticket;
 import modreq.repository.TicketRepository;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -67,48 +68,50 @@ public class ClaimCommand implements CommandExecutor {
             return true;
         }
 
-        Ticket t = tickets.getTicketById(ticketId);
-        if (t == null) {
-            Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
-            return true;
-        }
-
-        Status currentstatus = t.getStatus();
-        Status status = Status.CLAIMED;
-        String staff = sender.getName();
-
-        if (currentstatus.equals(Status.CLAIMED) && !sender.hasPermission("modreq.overwrite.claim")) {
-            Message.sendToPlayer(MessageType.ERROR_TICKET_CLAIM, (Player) sender, args[0]);
-            return true;
-        }
-
-        if (currentstatus.equals(Status.PENDING) && !sender.hasPermission("modreq.claim.pending")) {
-            Message.sendToPlayer(MessageType.ERROR_CLAIM_PENDING, (Player) sender, args[0]);
-            return true;
-        }
-
-        try {
-            if (!plugin.getConfig().getBoolean("may-claim-multiple", false)) {
-                if (tickets.playerHasClaimedTicket(p)) {
-                    Message.sendToPlayer(MessageType.ERROR_CLAIM_MULTIPLE, (Player) sender, args[0]);
-                    return true;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                Ticket t = tickets.getTicketById(ticketId);
+                if (t == null) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
+                    return;
                 }
 
+                Status currentstatus = t.getStatus();
+                Status status = Status.CLAIMED;
+                String staff = sender.getName();
+
+                if (currentstatus.equals(Status.CLAIMED) && !sender.hasPermission("modreq.overwrite.claim")) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_CLAIM, (Player) sender, args[0]);
+                    return;
+                }
+
+                if (currentstatus.equals(Status.PENDING) && !sender.hasPermission("modreq.claim.pending")) {
+                    Message.sendToPlayer(MessageType.ERROR_CLAIM_PENDING, (Player) sender, args[0]);
+                    return;
+                }
+
+                if (!plugin.getConfig().getBoolean("may-claim-multiple", false)) {
+                    if (tickets.playerHasClaimedTicket(p)) {
+                        Message.sendToPlayer(MessageType.ERROR_CLAIM_MULTIPLE, (Player) sender, args[0]);
+                        return;
+                    }
+
+                }
+
+                t.setStaff(staff);
+                t.setStaffUUID(p.getUniqueId());
+                t.setStatus(status);
+                t.addDefaultComment(p, CommentType.CLAIM);
+                t.update();
+
+                Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_CLAIMED, (Player) sender, args[0]);
+                t.sendMessageToSubmitter(MessageType.PLAYER_CLAIM.format(p.getName(), args[0], ""));
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
             }
+        });
 
-            t.setStaff(staff);
-            t.setStaffUUID(p.getUniqueId());
-            t.setStatus(status);
-            t.addDefaultComment(p, CommentType.CLAIM);
-            t.update();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
-            return true;
-        }
-
-        Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_CLAIMED, (Player) sender, args[0]);
-        t.sendMessageToSubmitter(MessageType.PLAYER_CLAIM.format(p.getName(), args[0], ""));
         return true;
     }
 }

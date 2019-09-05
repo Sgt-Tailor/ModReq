@@ -23,6 +23,7 @@ import modreq.*;
 import modreq.korik.Utils;
 import modreq.repository.TicketRepository;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -62,29 +63,31 @@ public class ReopenCommand implements CommandExecutor {
             return true;
         }
 
-        Ticket t = tickets.getTicketById(id);
-        if (t == null) {
-            Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, args[0]);
-            return true;
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                Ticket t = tickets.getTicketById(id);
+                if (t == null) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, args[0]);
+                    return;
+                }
 
-        String comment = Utils.join(args, " ", 1);
-        Status status = Status.OPEN;
-        String staff = sender.getName();
+                String comment = Utils.join(args, " ", 1);
+                Status status = Status.OPEN;
+                String staff = sender.getName();
 
-        t.addComment(new Comment(sender.getName(), p.getUniqueId(), comment, CommentType.REOPEN));
-        t.setStaff(staff);
-        t.setStatus(status);
-        try {
-            t.update();
-        } catch (SQLException e) {
-            Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
-            e.printStackTrace();
-            return true;
-        }
+                t.addComment(new Comment(sender.getName(), p.getUniqueId(), comment, CommentType.REOPEN));
+                t.setStaff(staff);
+                t.setStatus(status);
+                t.update();
 
-        Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_REOPENED, p, id, comment);
-        t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.reopen"), sender.getName(), args[0], ""));
+                Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_REOPENED, p, id, comment);
+                t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.reopen"), sender.getName(), args[0], ""));
+
+            } catch (SQLException e) {
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+                e.printStackTrace();
+            }
+        });
         return true;
     }
 }

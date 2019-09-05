@@ -11,13 +11,26 @@ bear with me as I make ModReq ready for a new release.
 ModReq is a bukkit plugin designed to make the life of a moderator or admin
 a lot easier. Every high ranked person knows that many people are always
 spamming the chat to get your attention. ModReq will create a support Ticket
-system for your bukkit server. If a person needs help, all he needs to do is
-send a modreq via the /modreq <message> command. When the player submits the
-ticket all online moderators and admins will receive a message about this. 
-They can then do /check to receive a list of all open Tickets. They can also
-claim a ticket by doing /claim <id> and start helping the person. Everyone
-can check the status of their last five tickets by doing /status. They can 
-also check the full message of one of their tickets by doing /status <id>
+system for your bukkit server. The following commands exists
+
+#wip: the commands for modreq 3.0 will be the following
+| command | info |
+| ------- | ---- |
+| /modreq \<message\> | creates a new ticket |
+| /ticket new \<message\> | creates a new ticket |
+| /ticket create \<message\> | creates a new ticket |
+| /ticket show \<id\> | shows the info about a ticket |
+| /ticket claim \<id\> | assigns the ticket to the staff member |
+| /ticket close \<id\> (comment) | closes the ticket and adds the optional comment |
+| /ticket escalate \<id\> | sets the ticket to status pending so a different staff member can pick it up |
+| /ticket reopen \<id\> | reopens the ticket |
+| /ticket comment \<id\> \<comment\> | adds a comment to a ticket |
+| /ticket teleport \<id\> | teleports the staff member to the location of the ticket |
+| /ticket status (page) | shows a list of tickets the player has submitted |
+| /ticket list (status) (page) | list all tickets, filtered by status and page |
+| /mods | display all the online mods (hidden players won't be shown) | 
+
+
 
 Any more information and answers to your question can be found on bukkit Dev
 Bukkit Dev link: http://dev.bukkit.org/server-mods/modreq/
