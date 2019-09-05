@@ -27,13 +27,14 @@ import modreq.Ticket;
 import modreq.korik.SubCommandExecutor;
 import modreq.repository.TicketRepository;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class StatusCommand extends SubCommandExecutor {
 
     private ModReq plugin;
-    private TicketRepository tickets;
+    private TicketRepository ticketRepository;
 
     public StatusCommand(ModReq instance) {
         plugin = instance;
@@ -41,32 +42,34 @@ public class StatusCommand extends SubCommandExecutor {
 
     @command
     public void Null(CommandSender sender, String[] args) {
-        tickets = plugin.getTicketRepository();
+        ticketRepository = plugin.getTicketRepository();
         if (!(sender instanceof Player)) {
             return;
         }
-        Player p = (Player) sender;
+        Player player = (Player) sender;
         if (!sender.hasPermission("modreq.status")) {
-            Message.sendToPlayer(MessageType.ERROR_PERMISSION, p);
+            Message.sendToPlayer(MessageType.ERROR_PERMISSION, player);
             return;
         }
-        try {
-            ArrayList<Ticket> t = tickets.getTicketsBySubmitter(p);
-            Message.sendToPlayer(MessageType.STATUS_HEADER, p);
-            for (Ticket ticket : t) {
-                ticket.sendStatus(p);
-            }
-            Message.sendToPlayer(MessageType.STATUS_FOOTER, p);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
-        }
 
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                ArrayList<Ticket> tickets = this.ticketRepository.getTicketsBySubmitter(player);
+                Message.sendToPlayer(MessageType.STATUS_HEADER, player);
+                for (Ticket ticket : tickets) {
+                    ticket.sendStatus(player);
+                }
+                Message.sendToPlayer(MessageType.STATUS_FOOTER, player);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
+            }
+        });
     }
 
     @Override
     public void onInvalidCommand(CommandSender sender, String[] args, String ticketNumber) {
-        tickets = plugin.getTicketRepository();
+        ticketRepository = plugin.getTicketRepository();
         if (!(sender instanceof Player)) {
             return;
         }
@@ -79,19 +82,33 @@ public class StatusCommand extends SubCommandExecutor {
         int id;
         try {
             id = Integer.parseInt(ticketNumber);
-            Ticket t = tickets.getTicketById(id);
-            if (t == null) {
+        } catch (NumberFormatException e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, p, ticketNumber);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            Ticket ticket = null;
+            SQLException exception = null;
+
+            try {
+                ticket = ticketRepository.getTicketById(id);
+            } catch (SQLException e) {
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+                e.printStackTrace();
+                return;
+            }
+
+            if (ticket == null) {
                 Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, ticketNumber);
                 return;
             }
 
-            if (t.getSubmitter().equals(p.getName())) {
-                t.sendMessageToPlayer(p);
+            if (ticket.getSubmitter().equals(p.getName())) {
+                ticket.sendMessageToPlayer(p);
             } else {
                 Message.sendToPlayer(MessageType.ERROR_TICKET_YOUR, p, ticketNumber);
             }
-        } catch (Exception e) {
-            Message.sendToPlayer(MessageType.ERROR_NUMBER, p, ticketNumber);
-        }
+        });
     }
 }

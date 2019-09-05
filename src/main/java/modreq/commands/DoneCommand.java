@@ -23,6 +23,7 @@ import modreq.*;
 import modreq.korik.Utils;
 import modreq.repository.TicketRepository;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -64,42 +65,46 @@ public class DoneCommand implements CommandExecutor {
             return true;
         }
 
-        Ticket t = tickets.getTicketById(id);
-        if (t == null) {
-            Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
-            return true;
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                Ticket t = tickets.getTicketById(id);
+                if (t == null) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
+                    return;
+                }
 
-        String comment = Utils.join(args, " ", 1);
-        String staff = sender.getName();
+                String comment = Utils.join(args, " ", 1);
+                String staff = sender.getName();
 
-        String currenstatus = t.getStatus().getStatusString();
-        String currentstaff = t.getStaff();
+                String currenstatus = t.getStatus().getStatusString();
+                String currentstaff = t.getStaff();
 
-        if (!currenstatus.equals(Status.OPEN.getStatusString())
-                && !currentstaff.equals(staff)
-                && !sender.hasPermission("modreq.overwrite.close")) {
-            sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.ticket.close"), "", "", ""));
-            return true;
-        }
+                if (!currenstatus.equals(Status.OPEN.getStatusString())
+                        && !currentstaff.equals(staff)
+                        && !sender.hasPermission("modreq.overwrite.close")) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_CLOSE, p);
+                    return;
+                }
 
-        t.addComment(new Comment(sender.getName(), p.getUniqueId(), comment, CommentType.CLOSE));
+                t.addComment(new Comment(p.getName(), p.getUniqueId(), comment, CommentType.CLOSE));
 
-        t.setStaff(staff);
-        t.setStatus(Status.CLOSED);
-        try {
-            t.update();
-        } catch (SQLException e) {
-            Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
-            e.printStackTrace();
-        }
+                t.setStaff(staff);
+                t.setStaffUUID(p.getUniqueId());
+                t.setStatus(Status.CLOSED);
 
-        Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_CLOSED, p, idString);
-        if (comment.equals("")) {
-            t.sendMessageToSubmitter(MessageType.PLAYER_CLOSE_WITHOUTCOMMENT.format(p.getName(), idString, ""));
-        } else {
-            t.sendMessageToSubmitter(MessageType.PLAYER_CLOSE_WITHCOMMENT.format(p.getName(), idString, comment));
-        }
+                t.update();
+
+                Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_CLOSED, p, idString);
+                if (comment.equals("")) {
+                    t.sendMessageToSubmitter(MessageType.PLAYER_CLOSE_WITHOUTCOMMENT.format(p.getName(), idString, ""));
+                } else {
+                    t.sendMessageToSubmitter(MessageType.PLAYER_CLOSE_WITHCOMMENT.format(p.getName(), idString, comment));
+                }
+            } catch (SQLException e) {
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+                e.printStackTrace();
+            }
+        });
 
         return true;
     }

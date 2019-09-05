@@ -19,7 +19,6 @@ package modreq.repository;
 
 import modreq.ModReq;
 import modreq.commands.CheckCommand;
-import modreq.commands.ClearticketsCommand;
 import modreq.commands.CommentCommand;
 import modreq.commands.DoneCommand;
 import modreq.commands.ModhelpCommand;
@@ -45,7 +44,6 @@ public class CommandManager {
     private ModsCommand mods;
     private ModhelpCommand modhelp;
     private TicketCommand ticket;
-    private ClearticketsCommand clear;
     private ReloadCommand reload;
     private CommentCommand comment;
 
@@ -61,9 +59,8 @@ public class CommandManager {
         mods = new ModsCommand(plugin);
         modhelp = new ModhelpCommand(plugin);
         ticket = new TicketCommand(plugin);
-        clear = new ClearticketsCommand(plugin);
         reload = new ReloadCommand(plugin);
-        comment = new CommentCommand();
+        comment = new CommentCommand(plugin);
 
     }
 
@@ -78,7 +75,6 @@ public class CommandManager {
         plugin.getCommand("mods").setExecutor(mods);
         plugin.getCommand("modhelp").setExecutor(modhelp);
         plugin.getCommand("ticket").setExecutor(ticket);
-        plugin.getCommand("cleartickets").setExecutor(clear);
         plugin.getCommand("modreload").setExecutor(reload);
         plugin.getCommand("comment").setExecutor(comment);
     }

@@ -25,30 +25,46 @@ import modreq.Ticket;
 import modreq.korik.SubCommandExecutor;
 import modreq.repository.TicketRepository;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Squid;
+
+import java.sql.SQLException;
 
 public class CheckCommand extends SubCommandExecutor {
 
     private ModReq plugin;
-    private TicketRepository tickets;
+    private TicketRepository ticketRepository;
 
     public CheckCommand(ModReq instance) {
         plugin = instance;
+        ticketRepository = instance.getTicketRepository();
     }
 
     @Override
     public void onInvalidCommand(CommandSender sender, String[] args, String command) {
-        tickets = plugin.getTicketRepository();
-        int page = 1;
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("You can only run this command as a player");
+            return;
+        }
+        Player player = (Player) sender;
+        int page;
         try {
             page = Integer.parseInt(command);
         } catch (Exception e) {
-            Message.sendToPlayer(MessageType.ERROR_NUMBER, (Player) sender);
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, player);
             return;
         }
 
-        tickets.sendPlayerPage(page, Status.OPEN, (Player) sender);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                ticketRepository.sendPlayerPage(page, Status.OPEN, player);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
+            }
+        });
     }
 
     @command
@@ -58,67 +74,118 @@ public class CheckCommand extends SubCommandExecutor {
 
     @command(minimumArgsLength = 1, maximumArgsLength = 1, usage = "/check id <id>")
     public void id(CommandSender sender, String[] args) {
-        if (sender instanceof Player) {
-            tickets = plugin.getTicketRepository();
-            int id;
-            Player player = (Player) sender;
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("You can only run this command as a player");
+            return;
+        }
+        int id;
+        Player player = (Player) sender;
+        try {
+            id = Integer.parseInt(args[0]);
+        } catch (Exception e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, player, args[0]);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            Ticket t;
             try {
-                id = Integer.parseInt(args[0]);
-            } catch (Exception e) {
-                Message.sendToPlayer(MessageType.ERROR_NUMBER, player, args[0]);
+                t = ticketRepository.getTicketById(id);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
                 return;
             }
 
-            Ticket t = tickets.getTicketById(id);
             if (t != null) {
                 t.sendMessageToPlayer(player);
             } else {
                 Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, player, args[0]);
             }
-        } else {
-            sender.sendMessage("This command can only be ran as a player");
-        }
+        });
     }
 
     @command(minimumArgsLength = 0, maximumArgsLength = 1, usage = "/check closed <page>")
     public void closed(CommandSender sender, String[] args) {
-        tickets = plugin.getTicketRepository();
-        int page = 1;
-        if (args.length == 1) {
-            page = java.lang.Integer.parseInt(args[0]);
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("You can only run this command as a player");
+            return;
         }
-        if (sender instanceof Player) {
-            tickets.sendPlayerPage(page, Status.CLOSED, (Player) sender);
-        } else {
-            sender.sendMessage("This command can only be ran as a player");
+
+        Player player = (Player) sender;
+        int page;
+        try {
+            page = Integer.parseInt(args[0]);
+        } catch (Exception e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, player, args[0]);
+            return;
         }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                ticketRepository.sendPlayerPage(page, Status.CLOSED, player);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
+            }
+        });
     }
 
     @command(minimumArgsLength = 0, maximumArgsLength = 1, usage = "/check claimed <page>")
     public void claimed(CommandSender sender, String[] args) {
-        tickets = plugin.getTicketRepository();
-        int page = 1;
-        if (args.length == 1) {
-            page = java.lang.Integer.parseInt(args[0]);
-        }
-        if (sender instanceof Player) {
-            tickets.sendPlayerPage(page, Status.CLAIMED, (Player) sender);
-        } else {
+        if (!(sender instanceof Player)) {
             sender.sendMessage("This command can only be ran as a player");
+            return;
         }
+
+        int page = 1;
+        Player player = (Player) sender;
+        try {
+            if (args.length >= 1) {
+                page = Integer.parseInt(args[0]);
+            }
+        } catch (NumberFormatException e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, player, args[0]);
+            return;
+        }
+
+        int finalPage = page;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                ticketRepository.sendPlayerPage(finalPage, Status.CLOSED, player);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
+            }
+        });
     }
 
     @command(minimumArgsLength = 0, maximumArgsLength = 1, usage = "/check claimed <page>")
     public void pending(CommandSender sender, String[] args) {
-        tickets = plugin.getTicketRepository();
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("You can only run this command as a player");
+            return;
+        }
+
+        Player player = (Player) sender;
         int page = 1;
-        if (args.length == 1) {
-            page = java.lang.Integer.parseInt(args[0]);
+        try {
+            if (args.length >= 1) {
+                page = Integer.parseInt(args[0]);
+            }
+        } catch (NumberFormatException e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, player, args[0]);
+            return;
         }
-        if (sender instanceof Player) {
-            tickets.sendPlayerPage(page, Status.PENDING, (Player) sender);
-        } else {
-            sender.sendMessage("This command can only be ran as a player");
-        }
+
+        int finalPage = page;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                ticketRepository.sendPlayerPage(finalPage, Status.CLOSED, player);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
+            }
+        });
     }
 }
