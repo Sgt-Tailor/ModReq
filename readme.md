@@ -1,19 +1,19 @@
-#Welcome to the official ModReq GitHub page.
+# Welcome to the official ModReq GitHub page.
 
-###I am back!
+### I am back!
 Modreq is back in development. I am taking the time to refactor ModReq and
 improve a lot of things with the knowledge I have now. The timeline of the
 next release is unknown, but it will require a partially new config, 
 database and messages file. This will be the 3.0 release for ModReq. Please
 bear with me as I make ModReq ready for a new release.
 
-###About ModReq
+### About ModReq
 ModReq is a bukkit plugin designed to make the life of a moderator or admin
 a lot easier. Every moderator knows that many people are always
 spamming the chat to get your attention. ModReq will create a support ticket
 system for your bukkit server. The following commands exists
 
-#wip: the commands for modreq 3.0 will be the following
+# wip: the commands for modreq 3.0 will be the following
 | command | info |
 | ------- | ---- |
 | /modreq \<message\> | creates a new ticket |
