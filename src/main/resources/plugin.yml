@@ -1,79 +1,34 @@
 name: ModReq
 main: modreq.ModReq
-config-version: 2.5
+config-version: 3.0
 author: Sgt_Tailor
 dev-url: http://dev.bukkit.org/server-mods/modreq/
 description: A Moderator Request plugin
-version: 2.5
+version: "3.0"
 commands:
-    comment:
-        description: lets someone comment on a ticket
-        usage: /comment <id> <comment>
     modreload:
         description: reload modreq
         usage: /modreqreload
         permission: modreq.reload
     ticket:
-        description: An alternative for /check id <id>
+        description: All the modreq command are under this
         usage: /ticket <id>
-        permission: modreq.check
-    cleartickets:
-        description: deletes ALL tickets
-        usage: /cleartickets
-        permission: modreq.cleartickets
-    updatemodreq:
-        description: Downloads the latest version of ModReq
-        usage: /updatemodreq
-        permission: modreq.update
-    modreq:
-        description: Request a mod command
-        usage: /modreq <message>
-        permission: modreq.request
-    check:
-        description: Returns a list of requests
-        usage: /check <pagenumber>
-        permission: modreq.check 
-        aliases: tickets
-    tp-id:
-        description: Teleports you to the location of the request.
-        usage: /tp-id <id>
-        permission: modreq.tp-id
-    claim:
-        description: let a player claim a id
-        usage: /claim <id>
-        permission: modreq.claim.normal
-    re-open:
-        description: re-opens a ticket
-        usage: /re-open <id> (message)
-        permission: modreq.reopen
-    done:
-        description: close a ticket
-        usage: /done <id> (message)
-        permission: modreq.close
-        aliases: close
-    status:
-        description: checks the status of a ticket
-        usage: /status <id>
-        permission: modreq.status
     mods:
         description: returns a list of online mods
         usage: /mods
         permission: modreq.mods
-    modhelp:
-        description: shows the help message
-        usage: /modhelp
 permissions:
     modreq.moderator:
-        default: OP
+        default: op
         description: allows person to claim open tickets, close them and set them to pending. It does not allow them to reopen tickets, or claim pending ones.
         children:
-            modreq.check: true
-            modreq.tp-id: true
+            modreq.show: true
+            modreq.tp: true
             modreq.claim.normal: true
             modreq.close: true
             modreq.setpending: true
     modreq.admin:
-        default: OP
+        default: op
         description: gets everything moderator gets, plus the ability to overwrite claim a ticket, reopen tickets, claim pending ticket, overwrite comment limit.
         children:
             modreq.moderator: true
@@ -83,50 +38,41 @@ permissions:
             modreq.overwrite.commentlimit: true
             modreq.claim.pending: true
     modreq.overwrite.claim:
-        default: OP
+        default: op
         description: allows a person to overwrite claiming a ticket
     modreq.overwrite.close:
-        default: OP
+        default: op
         description: allows a person to overwrite closing a ticket
     modreq.overwrite.commentlimit:
-        default: OP
+        default: op
         description: allows a person to overwrite the comment limit
     mod.reload:
-        default: OP
+        default: op
         description: allows a person to do /modreqreload
-    modreq.cleartickets:
-        default: OP
-        description: allows a person to do /cleartickets
-    modreq.update:
-        default: OP
-        description: allows a person to do /updatemodreq
     modreq.mods:
-        default: TRUE
+        default: true
         description: allows a person to do /mods
-    modreq.check:
-        description: allows a person to to /check
-        default: OP
-    modreq.setpending:
-        description: allows a person to set the status of a ticket to pending
-        default: OP
-    modreq.tp-id:
-        description: allows a person to use /tp-id
-        default: OP
+    modreq.show:
+        description: allows a person to view tickets
+        default: op
+    modreq.escalate:
+        description: allows a person to escalate a ticket
+        default: op
+    modreq.tp:
+        description: allows a person to teleport to a ticket location
+        default: op
     modreq.claim.normal:
-        default: OP
+        default: op
         description: allows a person to claim an open ticket
     modreq.claim.pending:
-        default: OP
+        default: op
         description: allows a person to claim pending tickets.
-    modreq.request:
+    modreq.create:
         description: allows a person to submit a ticket
-        default: TRUE
+        default: true
     modreq.close:
         description: allows a person to close a ticket
-        default: OP
+        default: op
     modreq.reopen:
         description: allows a person to re-open a ticket
-        default: OP
-    modreq.status:
-        default: TRUE
-    
+        default: op

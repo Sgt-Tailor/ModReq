@@ -36,7 +36,7 @@ public class ModReqListener implements Listener {
     public void onLogin(PlayerJoinEvent event) {
         final Player p = event.getPlayer();
         if (p.hasPermission("modreq.check")) {
-            Bukkit.getScheduler().scheduleSyncDelayedTask(plugin,
+            Bukkit.getScheduler().runTaskLaterAsynchronously(plugin,
                     new Runnable() {
                         @Override
                         public void run() {

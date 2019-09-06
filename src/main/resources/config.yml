@@ -22,7 +22,7 @@
 #                            DO NOT EDIT                           #
 ####################################################################
 #The config File version. DO NOT CHANGE YOURSELF
-version: 2.5                                                 
+version: 3.0
 
 ####################################################################
 #                           Configurations                         #
@@ -30,18 +30,6 @@ version: 2.5
 #Use this to specify the maximum amount of open/closed tickets a 
 #player may have.
 maximum-open-tickets: 5
-
-#The Update feature
-#NOTE: as of version 2.3 ModReq does no longer spam console saying:
-#checking for updates and comparing to current version :D
-#Change this to false if you do not want modreq
-#to check for updates. The host of the jar file is bukkit dev. I
-#however host a cache on http://website.shadowblox.com/ to reduce
-#trafic to the bukkit servers. The files downloaded checked every
-#hour are: Version number of modreq, Latest download link. Once you
-#do /updatemodreq the jar file and the changelog are downloaded to
-#a folder inside the plugin folder.
-check-updates: true
 
 #use metrics. This sends anonymous data to mcstats.org to analize. 
 #This is NO HARM for your server
@@ -55,7 +43,7 @@ may-claim-multiple: false
 #online
 use-nickname: false
 #Change this to true if you want claimed ticket to appear in the
-#/check list.
+#/ticket list.
 show-claimed-tickets-in-open-list: false
 
 #If you do not want pending tickets to appear in the /check list for

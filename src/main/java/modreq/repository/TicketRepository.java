@@ -110,10 +110,11 @@ public class TicketRepository {
         return 0;
     }
 
-    public ArrayList<Ticket> getTicketsBySubmitter(Player p) throws SQLException {
+    public ArrayList<Ticket> getTicketsBySubmitter(Player p, int page) throws SQLException {
         Connection conn = getConnection();
-        PreparedStatement stat = conn.prepareStatement("SELECT * FROM ticket WHERE submitterUUID = ? ORDER BY ID DESC LIMIT 5");
+        PreparedStatement stat = conn.prepareStatement("SELECT * FROM ticket WHERE submitterUUID = ? ORDER BY ID DESC LIMIT 5 OFFSET ?");
         stat.setString(1, p.getUniqueId().toString());
+        stat.setInt(2, (page * 5) - 5);
         ResultSet result = stat.executeQuery();
 
         ArrayList<Ticket> value = new ArrayList<Ticket>();
