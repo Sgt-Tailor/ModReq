@@ -161,12 +161,7 @@ public class Ticket {
             }
         }
 
-        String statusString = "";
-        if (status.equals(Status.CLAIMED) || status.equals(Status.PENDING)) {
-            statusString = status.getStatusString();
-        }
-
-        String finalStatusString1 = statusString;
+        String finalStatusString1 = status.getStatusString();
         String finalSummessage = summessage;
         Message.sendToPlayer(MessageType.STATUS_SUMMARY, p, new HashMap<String, String>() {{
             put("ticketId", Integer.toString(id));

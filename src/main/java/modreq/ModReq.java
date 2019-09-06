@@ -254,9 +254,9 @@ public class ModReq extends JavaPlugin {
     }
 
     public static String format(String input, String player, String number, String comment) {
-        input = input.replace("&player", player);
-        input = input.replace("&number", number);
-        input = input.replace("&comment", comment);
+        input = input.replace("%player%", player);
+        input = input.replace("%number%", number);
+        input = input.replace("%comment%", comment);
         input = ChatColor.translateAlternateColorCodes('&', input);
         return input;
     }
