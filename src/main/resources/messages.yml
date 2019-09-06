@@ -47,17 +47,11 @@ staff:
     ticket-submitted: "&b%player% &ajust submitted ticket &6#%number%." #There for compatibility reasons with version < 2.5
     ticketsubmitted: "&b%player% &ajust submitted ticket &6#%number%."
 headers-footers:
-  status:
-    header: "&6----List-of-your-last-5-tickets----"
-    footer: "&6---do /status <id> for more info---"
   mods:
     header: "&6----List-of-online-staffmembers----"
   check:
     header: "&6--List-of-[status]-tickets--"
-    footer: "&6Do /check <page> for more tickets"
-
-  #Colour nodes do not work from here on!
-
+    footer: "&6Do /ticket list (status) <page> for more tickets"
 
 #These are the messages used as default comment to a ticket when a
 #certain command is performed
@@ -86,9 +80,9 @@ ticket:
   staff: Staff member
   request: request
 status:
-  header: "&6----List-of-your-last-5-tickets----"
+  header: "&6---------------List-of-your-last-tickets---------------"
+  footer: "&6----/ticket show <id> or /ticket status <page> for more----"
   summary: "&6#%ticketId% &b%date% [%comments%] &2[%status%] &7%message%"
-  footer: "&6---do /status <id> for more info---"
 
 # chatcolours do not work in the section below
 info:

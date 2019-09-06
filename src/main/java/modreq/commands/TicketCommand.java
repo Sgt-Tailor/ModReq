@@ -6,6 +6,7 @@ import modreq.korik.Utils;
 import modreq.repository.TicketRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -13,6 +14,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class TicketCommand extends SubCommandExecutor {
 
@@ -20,6 +22,7 @@ public class TicketCommand extends SubCommandExecutor {
     private final TicketRepository ticketRepository;
 
     public TicketCommand(ModReq instance, TicketRepository ticketRepository) {
+        super();
         this.plugin = instance;
         this.ticketRepository = ticketRepository;
     }
@@ -44,7 +47,7 @@ public class TicketCommand extends SubCommandExecutor {
                         + Math.round(loc.getX()) + " " + Math.round(loc.getY()) + " "
                         + Math.round(loc.getZ());
 
-                Ticket t = new Ticket(0, p.getName(), p.getUniqueId(), message, Instant.now(), Status.OPEN, location, "no staff member yet", null);
+                Ticket t = new Ticket(0, p.getName(), p.getUniqueId(), message, Instant.now(), Status.OPEN, location, null, null);
                 int ticketId = ticketRepository.addTicket(t);
                 String idString = Integer.toString(ticketId);
 
@@ -91,7 +94,7 @@ public class TicketCommand extends SubCommandExecutor {
                 return;
             }
 
-            if (t.getSubmitterUUID() == player.getUniqueId() || player.hasPermission("modreq.show")) {
+            if (t.getSubmitterUUID().equals(player.getUniqueId()) || player.hasPermission("modreq.show")) {
                 t.sendMessageToPlayer(player);
             } else {
                 Message.sendToPlayer(MessageType.ERROR_PERMISSION, player);
@@ -245,7 +248,7 @@ public class TicketCommand extends SubCommandExecutor {
 
                 t.setStatus(Status.PENDING);
                 t.addDefaultComment(p, CommentType.PENDING);
-                t.setStaff("no staff member");
+                t.setStaff(null);
                 t.setStaffUUID(null);
                 t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.pending"), sender.getName(), Integer.toString(id), ""));
 
@@ -305,7 +308,6 @@ public class TicketCommand extends SubCommandExecutor {
     @command(
             minimumArgsLength = 1,
             playerOnly = true,
-            permissions = "modreq.comment",
             usage = "/ticket comment <id> <comment>")
     public void comment(CommandSender sender, String[] args) {
         Player p = (Player) sender;
@@ -325,7 +327,7 @@ public class TicketCommand extends SubCommandExecutor {
                     Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, args[0]);
                     return;
                 }
-                if (!p.hasPermission("modreq.check") && p.getUniqueId() != t.getSubmitterUUID()) {
+                if (!p.hasPermission("modreq.comment-all") && !p.getUniqueId().equals(t.getSubmitterUUID())) {
                     Message.sendToPlayer(MessageType.ERROR_PERMISSION, p);
                     return;
                 }
@@ -507,5 +509,21 @@ public class TicketCommand extends SubCommandExecutor {
                 Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
             }
         });
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> result = super.onTabComplete(sender, command, alias, args);
+
+        if (args.length == 2 && args[0].equals("list")) {
+            for (Status status : Status.values()) {
+                String statusString = status.getStatusString().toLowerCase();
+                if (statusString.contains(args[1].toLowerCase())) {
+                    result.add(statusString);
+                }
+            }
+        }
+
+        return result;
     }
 }

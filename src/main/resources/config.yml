@@ -27,7 +27,7 @@ version: 3.0
 ####################################################################
 #                           Configurations                         #
 ####################################################################
-#Use this to specify the maximum amount of open/closed tickets a 
+#Use this to specify the maximum amount of open/claimed tickets a
 #player may have.
 maximum-open-tickets: 5
 
@@ -46,7 +46,7 @@ use-nickname: false
 #/ticket list.
 show-claimed-tickets-in-open-list: false
 
-#If you do not want pending tickets to appear in the /check list for
+#If you do not want pending tickets to appear in the /ticket list for
 #people with enough permissions, set this to false
 show-pending-tickets-in-open-list: true
 

@@ -22,16 +22,50 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 
-public abstract class SubCommandExecutor implements CommandExecutor {
+public abstract class SubCommandExecutor implements CommandExecutor, TabCompleter {
+
+    private static Map<String, command> subCommands = new HashMap<>();
+
+    public SubCommandExecutor() {
+        for (Method m : this.getClass().getMethods()) {
+            for (Annotation a : m.getAnnotations()) {
+                if (a instanceof command) {
+                    if (m.getName().equals("Null")) {
+                        continue;
+                    }
+                    subCommands.put(m.getName().toLowerCase(), (command) a);
+                }
+            }
+        }
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> result = new ArrayList<>();
+        if (args.length == 1 ) {
+            subCommands.forEach((subCommand, annotation) -> {
+                if (subCommand.contains(args[0]) && hasPerms(sender, annotation.permissions())) {
+                    result.add(subCommand);
+                }
+            });
+        }
+
+        return result;
+    }
 
     /*
      * For passing from other subcommandexecutor classes
@@ -45,7 +79,7 @@ public abstract class SubCommandExecutor implements CommandExecutor {
      *
      */
 
-    @command(description = "Empty command")
+    @command
     public void Null(CommandSender sender, String[] args) {
         sender.sendMessage(ChatColor.RED + "It is not possible to use this command with no arguments.");
         sender.sendMessage(ChatColor.RED + "Use the 'help' subcommand for a list of available subcommands.");
@@ -59,10 +93,6 @@ public abstract class SubCommandExecutor implements CommandExecutor {
     public void onConsoleExecutePlayerOnlyCommand(CommandSender sender, String[] args, String commandName) {
         sender.sendMessage(ChatColor.RED + "This command must be executed as a player.");
     }
-
-    /*
-     *
-     */
 
     public boolean onCommand(CommandSender sender, Command command,
                              String label, String[] args) {
@@ -107,9 +137,6 @@ public abstract class SubCommandExecutor implements CommandExecutor {
                                 sender.sendMessage(c.usage());
                             } else if (!hasPerms(sender, c.permissions()) && !getAltPerm(sender, m.getName())) {
                                 sender.sendMessage(ChatColor.RED + "You do not have permission do do that!");
-                                for (String p : c.permissions()) {
-                                    sender.sendMessage("- " + p);
-                                }
                             } else {
                                 //well..... if they're here...
                                 m.invoke(this, new Object[]{sender, arguments});
@@ -143,17 +170,20 @@ public abstract class SubCommandExecutor implements CommandExecutor {
             usage = "[command]",
             description = "displays help"
     )
+
     public void help(CommandSender sender, String[] args) {
         if (args.length == 1) {
             for (Method m : this.getClass().getMethods()) {
                 for (Annotation a : m.getAnnotations()) {
                     if (a instanceof command && m.getName().equalsIgnoreCase(args[0])) {
                         command c = (command) a;
-                        sender.sendMessage("[" + ((hasPerms(sender, c.permissions())) ? ChatColor.GREEN : ChatColor.RED) +
-                                m.getName() + ChatColor.GRAY + " subcommand Summary]");
+                        if (!hasPerms(sender, c.permissions())) {
+                            return;
+                        }
+                        sender.sendMessage("[" + ChatColor.GREEN +
+                                    m.getName() + ChatColor.GRAY + " subcommand Summary]");
                         sender.sendMessage(ChatColor.GRAY + m.getName() + " " + c.usage() + ChatColor.GRAY + " - " + c.description());
                         sender.sendMessage(ChatColor.GRAY + "Permissions: " + (c.permissions().length == 0 ? ChatColor.GREEN + "none" : Utils.join(c.permissions(), ",", 0)));
-
                         return;
                     }
                 }
@@ -166,8 +196,19 @@ public abstract class SubCommandExecutor implements CommandExecutor {
             for (Annotation a : m.getAnnotations()) {
                 if (a instanceof command) {
                     command c = (command) a;
-                    sender.sendMessage(((hasPerms(sender, c.permissions())) ? ChatColor.GREEN : ChatColor.RED) +
-                            m.getName() + " " + c.usage() + ChatColor.GRAY + " - " + c.description());
+                    String subCommandName = m.getName() + " ";
+                    if (m.getName().equals("Null")) {
+                        subCommandName = "";
+                    }
+
+                    if (subCommandName.length() == 0 && c.usage().length() == 0) {
+                        continue;
+                    }
+
+                    if (!hasPerms(sender, c.permissions())) {
+                        continue;
+                    }
+                    sender.sendMessage(ChatColor.GREEN + subCommandName + c.usage() + ChatColor.GRAY + " - " + c.description());
                 }
             }
         }

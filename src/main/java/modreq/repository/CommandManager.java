@@ -19,6 +19,14 @@ package modreq.repository;
 
 import modreq.ModReq;
 import modreq.commands.*;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.TabCompleter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CommandManager {
 
@@ -36,8 +44,11 @@ public class CommandManager {
     }
 
     public void initCommands() {
-        plugin.getCommand("mods").setExecutor(mods);
+        PluginCommand mods = plugin.getCommand("mods");
+        mods.setExecutor(this.mods);
         plugin.getCommand("modreload").setExecutor(reload);
-        plugin.getCommand("ticket").setExecutor(newTicket);
+        PluginCommand ticket = plugin.getCommand("ticket");
+        ticket.setExecutor(newTicket);
+        ticket.setTabCompleter(newTicket);
     }
 }

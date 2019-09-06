@@ -27,6 +27,7 @@ permissions:
             modreq.claim.normal: true
             modreq.close: true
             modreq.setpending: true
+            modreq.comment-all: true
     modreq.admin:
         default: op
         description: gets everything moderator gets, plus the ability to overwrite claim a ticket, reopen tickets, claim pending ticket, overwrite comment limit.
@@ -55,6 +56,9 @@ permissions:
     modreq.show:
         description: allows a person to view tickets
         default: op
+    modreq.status:
+        description: allows a person to view their own ticket
+        default: true
     modreq.escalate:
         description: allows a person to escalate a ticket
         default: op
@@ -75,4 +79,7 @@ permissions:
         default: op
     modreq.reopen:
         description: allows a person to re-open a ticket
+        default: op
+    modreq.comment-all:
+        description: Allows a person to comment on all tickets
         default: op
