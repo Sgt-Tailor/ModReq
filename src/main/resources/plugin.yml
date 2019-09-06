@@ -4,7 +4,7 @@ config-version: 3.0
 author: Sgt_Tailor
 dev-url: http://dev.bukkit.org/server-mods/modreq/
 description: A Moderator Request plugin
-version: "3.0"
+version: "${version}"
 commands:
     modreload:
         description: reload modreq
