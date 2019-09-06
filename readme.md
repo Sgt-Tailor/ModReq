@@ -9,8 +9,8 @@ bear with me as I make ModReq ready for a new release.
 
 ###About ModReq
 ModReq is a bukkit plugin designed to make the life of a moderator or admin
-a lot easier. Every high ranked person knows that many people are always
-spamming the chat to get your attention. ModReq will create a support Ticket
+a lot easier. Every moderator knows that many people are always
+spamming the chat to get your attention. ModReq will create a support ticket
 system for your bukkit server. The following commands exists
 
 #wip: the commands for modreq 3.0 will be the following
@@ -30,10 +30,6 @@ system for your bukkit server. The following commands exists
 | /ticket list (status) (page) | list all tickets, filtered by status and page |
 | /mods | display all the online mods (hidden players won't be shown) | 
 
-
-
-Any more information and answers to your question can be found on bukkit Dev
-Bukkit Dev link: http://dev.bukkit.org/server-mods/modreq/
 
 Greetings,
 Sgt_Tailor
