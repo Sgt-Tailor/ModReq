@@ -1,95 +1,231 @@
-/*
- Modreq Minecraft/Bukkit server ticket system
- Copyright (C) 2013 Sven Wiltink
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package modreq.commands;
-
-import java.sql.SQLException;
 
 import modreq.*;
 import modreq.korik.SubCommandExecutor;
+import modreq.korik.Utils;
 import modreq.repository.TicketRepository;
-
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.sql.SQLException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+
 public class TicketCommand extends SubCommandExecutor {
 
-    private ModReq plugin;
-    private TicketRepository tickets;
+    private final ModReq plugin;
+    private final TicketRepository ticketRepository;
 
-    public TicketCommand(ModReq instance) {
-        plugin = instance;
+    public TicketCommand(ModReq instance, TicketRepository ticketRepository) {
+        this.plugin = instance;
+        this.ticketRepository = ticketRepository;
     }
 
-    @Override
-    public void onInvalidCommand(CommandSender sender, String[] args, String command) {
-        tickets = plugin.getTicketRepository();
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("You can only run this command as a player");
-            return;
-        }
-        Player player = (Player) sender;
-        if (sender.hasPermission("modreq.check")) {
-            Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
-            return;
-        }
+    @command(
+            minimumArgsLength = 1,
+            playerOnly = true,
+            permissions = "modreq.create",
+            usage = "/ticket create <message>")
+    public void create(CommandSender sender, String[] args) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            Player p = (Player) sender;
+            try {
+                int ticketsfromplayer = ticketRepository.getTicketCountBySubmitter(p, Status.OPEN);
+                if (ticketsfromplayer >= plugin.getConfig().getInt("maximum-open-tickets")) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_TOOMANY, p);
+                    return;
+                }
+                String message = Utils.join(args, " ", 0);
+                Location loc = p.getLocation();
+                String location = loc.getWorld().getName() + " @ "
+                        + Math.round(loc.getX()) + " " + Math.round(loc.getY()) + " "
+                        + Math.round(loc.getZ());
 
-        if (args.length != 1) {
-            sender.sendMessage("/ticket <id>");
-            return;
-        }
+                Ticket t = new Ticket(0, p.getName(), p.getUniqueId(), message, Instant.now(), Status.OPEN, location, "no staff member yet", null);
+                int ticketId = ticketRepository.addTicket(t);
+                String idString = Integer.toString(ticketId);
 
+                Message.sendToAdmins(MessageType.STAFF_ALL_TICKETSUBMITTED, new HashMap<String, String>() {{
+                    put("player", sender.getName());
+                    put("number", idString);
+                }});
+
+                Message.sendToPlayer(MessageType.PLAYER_SUBMIT, p);
+            } catch (SQLException e) {
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @command(
+            minimumArgsLength = 1,
+            maximumArgsLength = 1,
+            playerOnly = true,
+            usage = "/ticket show <id>")
+    public void show(CommandSender sender, String[] args) {
         int id;
+        Player player = (Player) sender;
         try {
             id = Integer.parseInt(args[0]);
         } catch (Exception e) {
-            sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.number"), "", "", ""));
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, player, args[0]);
             return;
         }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            Ticket ticket;
+            Ticket t;
             try {
-                ticket = tickets.getTicketById(id);
+                t = ticketRepository.getTicketById(id);
             } catch (SQLException e) {
                 e.printStackTrace();
                 Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
                 return;
             }
 
-            if (ticket == null) {
-                Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, player);
+            if (t == null) {
+                Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, player, args[0]);
                 return;
             }
 
-            ticket.sendMessageToPlayer(player);
+            if (t.getSubmitterUUID() == player.getUniqueId() || player.hasPermission("modreq.show")) {
+                t.sendMessageToPlayer(player);
+            } else {
+                Message.sendToPlayer(MessageType.ERROR_PERMISSION, player);
+            }
         });
     }
 
     @command(
-            permissions = "modreq.setpending",
+            minimumArgsLength = 1,
             maximumArgsLength = 1,
+            playerOnly = true,
+            permissions = "modreq.claim",
+            usage = "/ticket claim <id>")
+    public void claim(CommandSender sender, String[] args) {
+        Player p = (Player) sender;
+
+        int ticketId;
+        try {
+            ticketId = Integer.parseInt(args[0]);
+        } catch (Exception e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, p, args[0]);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                Ticket t = ticketRepository.getTicketById(ticketId);
+                if (t == null) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
+                    return;
+                }
+
+                Status currentstatus = t.getStatus();
+                Status status = Status.CLAIMED;
+                String staff = sender.getName();
+
+                if (currentstatus.equals(Status.CLAIMED) && !sender.hasPermission("modreq.overwrite.claim")) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_CLAIM, (Player) sender, args[0]);
+                    return;
+                }
+
+                if (currentstatus.equals(Status.PENDING) && !sender.hasPermission("modreq.claim.pending")) {
+                    Message.sendToPlayer(MessageType.ERROR_CLAIM_PENDING, (Player) sender, args[0]);
+                    return;
+                }
+
+                if (!plugin.getConfig().getBoolean("may-claim-multiple", false)) {
+                    if (ticketRepository.playerHasClaimedTicket(p)) {
+                        Message.sendToPlayer(MessageType.ERROR_CLAIM_MULTIPLE, (Player) sender, args[0]);
+                        return;
+                    }
+
+                }
+
+                t.setStaff(staff);
+                t.setStaffUUID(p.getUniqueId());
+                t.setStatus(status);
+                t.addDefaultComment(p, CommentType.CLAIM);
+                t.update();
+
+                Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_CLAIMED, (Player) sender, args[0]);
+                t.sendMessageToSubmitter(MessageType.PLAYER_CLAIM.format(p.getName(), args[0], ""));
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+            }
+        });
+    }
+
+    @command(
             minimumArgsLength = 1,
             playerOnly = true,
-            usage = "/ticket setpending <id>"
-    )
-    public void setpending(CommandSender sender, String[] args) {
-        tickets = plugin.getTicketRepository();
+            permissions = "modreq.close",
+            usage = "/ticket close <id> (message)")
+    public void close(CommandSender sender, String[] args) {
+        Player p = (Player) sender;
+        int id;
+        String idString = args[0];
+        try {
+            id = Integer.parseInt(idString);
+        } catch (Exception e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, p, idString);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                Ticket t = ticketRepository.getTicketById(id);
+                if (t == null) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
+                    return;
+                }
+
+                String comment = Utils.join(args, " ", 1);
+                String staff = sender.getName();
+
+                String currenstatus = t.getStatus().getStatusString();
+                String currentstaff = t.getStaff();
+
+                if (!currenstatus.equals(Status.OPEN.getStatusString())
+                        && !currentstaff.equals(staff)
+                        && !sender.hasPermission("modreq.overwrite.close")) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_CLOSE, p);
+                    return;
+                }
+
+                t.addComment(new Comment(p.getName(), p.getUniqueId(), comment, CommentType.CLOSE));
+
+                t.setStaff(staff);
+                t.setStaffUUID(p.getUniqueId());
+                t.setStatus(Status.CLOSED);
+
+                t.update();
+
+                Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_CLOSED, p, idString);
+                if (comment.equals("")) {
+                    t.sendMessageToSubmitter(MessageType.PLAYER_CLOSE_WITHOUTCOMMENT.format(p.getName(), idString, ""));
+                } else {
+                    t.sendMessageToSubmitter(MessageType.PLAYER_CLOSE_WITHCOMMENT.format(p.getName(), idString, comment));
+                }
+            } catch (SQLException e) {
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @command(
+            minimumArgsLength = 1,
+            maximumArgsLength = 1,
+            playerOnly = true,
+            permissions = "modreq.escalate",
+            usage = "/ticket escalate <id>")
+    public void escalate(CommandSender sender, String[] args) {
         Player p = (Player) sender;
         int id;
         try {
@@ -101,7 +237,7 @@ public class TicketCommand extends SubCommandExecutor {
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                Ticket t = tickets.getTicketById(id);
+                Ticket t = ticketRepository.getTicketById(id);
                 if (t == null) {
                     Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
                     return;
@@ -110,6 +246,7 @@ public class TicketCommand extends SubCommandExecutor {
                 t.setStatus(Status.PENDING);
                 t.addDefaultComment(p, CommentType.PENDING);
                 t.setStaff("no staff member");
+                t.setStaffUUID(null);
                 t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.pending"), sender.getName(), Integer.toString(id), ""));
 
                 Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_PENDING, p);
@@ -121,5 +258,254 @@ public class TicketCommand extends SubCommandExecutor {
             }
         });
     }
-}
 
+    @command(
+            minimumArgsLength = 1,
+            maximumArgsLength = 1,
+            playerOnly = true,
+            permissions = "modreq.reopen",
+            usage = "/ticket reopen <id>")
+    public void reopen(CommandSender sender, String[] args) {
+        Player p = (Player) sender;
+        int id;
+        try {
+            id = Integer.parseInt(args[0]);
+        } catch (Exception e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, p, args[0]);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                Ticket t = ticketRepository.getTicketById(id);
+                if (t == null) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, args[0]);
+                    return;
+                }
+
+                String comment = Utils.join(args, " ", 1);
+                Status status = Status.OPEN;
+
+                t.addComment(new Comment(sender.getName(), p.getUniqueId(), comment, CommentType.REOPEN));
+                t.setStaff(null);
+                t.setStaffUUID(null);
+                t.setStatus(status);
+                t.update();
+
+                Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_REOPENED, p, id, comment);
+                t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.reopen"), sender.getName(), args[0], ""));
+
+            } catch (SQLException e) {
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @command(
+            minimumArgsLength = 1,
+            playerOnly = true,
+            permissions = "modreq.comment",
+            usage = "/ticket comment <id> <comment>")
+    public void comment(CommandSender sender, String[] args) {
+        Player p = (Player) sender;
+        int id;
+
+        try {
+            id = Integer.parseInt(args[0]);
+        } catch (NumberFormatException e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, p);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                Ticket t = ModReq.getInstance().getTicketRepository().getTicketById(id);
+                if (t == null) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p, args[0]);
+                    return;
+                }
+                if (!p.hasPermission("modreq.check") && p.getUniqueId() != t.getSubmitterUUID()) {
+                    Message.sendToPlayer(MessageType.ERROR_PERMISSION, p);
+                    return;
+                }
+
+                if (maxCommentIsExeeded(p, t)) {
+                    sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("error.comment.toomany"), "", "", ""));
+                    return;
+                }
+                String commenter = p.getName();
+                String comment = Utils.join(args, " ", 1);
+                Comment c = new Comment(commenter, p.getUniqueId(), comment, CommentType.COMMENT);
+
+                t.addComment(c);
+                sender.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.executor.ticket.comment"), "", "", ""));
+                for (Player op : Bukkit.getOnlinePlayers()) {
+                    if (!op.getName().equals(sender.getName())) {//do not send the message to the commandsender
+                        if (t.getSubmitter().equals(op.getName())) {//it us the submitter
+                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("player.comment"), sender.getName(), args[0], ""));
+                        } else if (t.getStaff().equals(sender.getName())) {//it is the staff member
+                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.comment"), sender.getName(), args[0], ""));
+                        } else if (!t.getCommentsBy(op.getName()).isEmpty()) {//it is someone else that commented earlier
+                            op.sendMessage(ModReq.format(ModReq.getInstance().Messages.getString("staff.all.comment"), sender.getName(), args[0], ""));
+                        }
+                    }
+                }
+
+                t.update();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+            }
+        });
+    }
+
+    private boolean maxCommentIsExeeded(Player p, Ticket t) {
+        if (p.hasPermission("modreq.overwrite.commentlimit")) {
+            return false;
+        }
+
+        int maxCommentStreak = ModReq.getInstance().getConfig().getInt("comment-limit");
+        int i = 1;
+
+        for (Comment c : t.getComments()) {
+            if (c.getCommenter().equals(p.getName())) {
+                i++;
+                if (i > maxCommentStreak) {
+                    return true;
+                }
+            } else {
+                i = 1;
+            }
+        }
+        return false;
+    }
+
+    @command(
+            minimumArgsLength = 1,
+            maximumArgsLength = 1,
+            playerOnly = true,
+            permissions = "modreq.tp",
+            usage = "/ticket tp <id>")
+    public void tp(CommandSender sender, String[] args) {
+        Player p = (Player) sender;
+        int id;
+        try {
+            id = Integer.parseInt(args[0]);
+        } catch (Exception e) {
+            Message.sendToPlayer(MessageType.ERROR_NUMBER, p, args[0]);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                Ticket t = ticketRepository.getTicketById(id);
+                if (t == null) {
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_EXIST, p);
+                    return;
+                }
+
+                t.addDefaultComment(p, CommentType.TP);
+                t.update();
+
+                // teleport has to be done on the main thread
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    Location loc = t.getLocation();
+                    p.teleport(loc);
+
+                    Message.sendToPlayer(MessageType.STAFF_EXECUTOR_TICKET_TELEPORT, p);
+                    t.sendMessageToSubmitter(ModReq.format(ModReq.getInstance().Messages.getString("player.teleport"), sender.getName(), args[0], ""));
+                });
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, p);
+            }
+        });
+    }
+
+    @command(
+            maximumArgsLength = 1,
+            playerOnly = true,
+            permissions = "modreq.status",
+            usage = "/ticket status (page)")
+    public void status(CommandSender sender, String[] args) {
+        Player player = (Player) sender;
+
+        int page = 1;
+        if (args.length > 0) {
+            try {
+                page = Integer.parseInt(args[0]);
+                if (page <= 0) {
+                    page = 1;
+                }
+            } catch (Exception e) {
+                Message.sendToPlayer(MessageType.ERROR_NUMBER, player, args[0]);
+                return;
+            }
+        }
+        int finalPage = page;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                ArrayList<Ticket> tickets = ticketRepository.getTicketsBySubmitter(player, finalPage);
+                Message.sendToPlayer(MessageType.STATUS_HEADER, player);
+                for (Ticket ticket : tickets) {
+                    ticket.sendStatus(player);
+                }
+                Message.sendToPlayer(MessageType.STATUS_FOOTER, player);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
+            }
+        });
+    }
+
+    @command(
+            maximumArgsLength = 2,
+            playerOnly = true,
+            permissions = "modreq.show",
+            usage = "/ticket list (status) (page)")
+    public void list(CommandSender sender, String[] args) {
+        Player player = (Player) sender;
+
+        Status status = Status.OPEN;
+        int page = 1;
+
+        if (args.length == 1) {
+            status = Status.getByString(args[0].toLowerCase());
+            if (status == null) {
+                status = Status.OPEN;
+                try {
+                    page = Integer.parseInt(args[0]);
+                } catch (Exception e) {
+                    Message.sendToPlayer(MessageType.ERROR_NUMBER, player);
+                    return;
+                }
+            }
+        } else if (args.length == 2) {
+            status = Status.getByString(args[0].toLowerCase());
+            if (status == null) {
+                // TODO send a message
+                return;
+            }
+
+            try {
+                page = Integer.parseInt(args[1]);
+            } catch (Exception e) {
+                Message.sendToPlayer(MessageType.ERROR_NUMBER, player);
+                return;
+            }
+        }
+
+        Status finalStatus = status;
+        int finalPage = page;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                ticketRepository.sendPlayerPage(finalPage, finalStatus, player);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Message.sendToPlayer(MessageType.ERROR_GENERIC, player);
+            }
+        });
+    }
+}

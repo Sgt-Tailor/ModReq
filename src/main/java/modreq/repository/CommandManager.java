@@ -18,64 +18,26 @@
 package modreq.repository;
 
 import modreq.ModReq;
-import modreq.commands.CheckCommand;
-import modreq.commands.CommentCommand;
-import modreq.commands.DoneCommand;
-import modreq.commands.ModhelpCommand;
-import modreq.commands.ModreqCommand;
-import modreq.commands.ModsCommand;
-import modreq.commands.ReloadCommand;
-import modreq.commands.ReopenCommand;
-import modreq.commands.StatusCommand;
-import modreq.commands.TicketCommand;
-import modreq.commands.TpIdCommand;
-import modreq.commands.ClaimCommand;
+import modreq.commands.*;
 
 public class CommandManager {
 
+    private TicketCommand newTicket;
     private ModReq plugin;
-    private CheckCommand check;
-    private ClaimCommand claim;
-    private DoneCommand done;
-    private StatusCommand status;
-    private ModreqCommand modreq;
-    private TpIdCommand tpid;
-    private ReopenCommand reopen;
     private ModsCommand mods;
-    private ModhelpCommand modhelp;
-    private TicketCommand ticket;
     private ReloadCommand reload;
-    private CommentCommand comment;
 
     public CommandManager(ModReq instance) {
         plugin = instance;
-        check = new CheckCommand(plugin);
-        claim = new ClaimCommand(plugin);
-        done = new DoneCommand(plugin);
-        status = new StatusCommand(plugin);
-        modreq = new ModreqCommand(plugin);
-        tpid = new TpIdCommand(plugin);
-        reopen = new ReopenCommand(plugin);
         mods = new ModsCommand(plugin);
-        modhelp = new ModhelpCommand(plugin);
-        ticket = new TicketCommand(plugin);
         reload = new ReloadCommand(plugin);
-        comment = new CommentCommand(plugin);
+        newTicket = new TicketCommand(plugin, plugin.getTicketRepository());
 
     }
 
     public void initCommands() {
-        plugin.getCommand("check").setExecutor(check);
-        plugin.getCommand("claim").setExecutor(claim);
-        plugin.getCommand("done").setExecutor(done);
-        plugin.getCommand("status").setExecutor(status);
-        plugin.getCommand("modreq").setExecutor(modreq);
-        plugin.getCommand("tp-id").setExecutor(tpid);
-        plugin.getCommand("re-open").setExecutor(reopen);
         plugin.getCommand("mods").setExecutor(mods);
-        plugin.getCommand("modhelp").setExecutor(modhelp);
-        plugin.getCommand("ticket").setExecutor(ticket);
         plugin.getCommand("modreload").setExecutor(reload);
-        plugin.getCommand("comment").setExecutor(comment);
+        plugin.getCommand("ticket").setExecutor(newTicket);
     }
 }
