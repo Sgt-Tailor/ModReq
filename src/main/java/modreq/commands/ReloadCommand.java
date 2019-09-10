@@ -34,7 +34,13 @@ public class ReloadCommand extends SubCommandExecutor {
     @command
     public void Null(CommandSender sender, String[] args) {
         if (sender.hasPermission("modreq.reload")) {
-            plugin.reload();
+            try {
+                plugin.reload();
+            } catch (Exception e) {
+                e.printStackTrace();
+                sender.sendMessage("Something went wrong, check the logs for more info");
+                return;
+            }
             sender.sendMessage(ChatColor.GREEN + "Modreq Reloaded");
         }
     }
