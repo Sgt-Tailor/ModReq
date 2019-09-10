@@ -30,6 +30,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
@@ -114,7 +115,7 @@ public class ModReq extends JavaPlugin {
         }
     }
 
-    public void reload() {
+    public void reload() throws SQLException {
         messages = new File(getDataFolder().getAbsolutePath() + "/messages.yml");
         configFile = new File(getDataFolder().getAbsolutePath() + "/config.yml");
         if (!configFile.exists()) {
@@ -132,6 +133,8 @@ public class ModReq extends JavaPlugin {
         ticketRepository = new TicketRepository(schema, this.getConfig().getBoolean("use-mysql"));
 
         plugin.reloadConfig();
+
+        ticketRepository.ForceReconnect();
     }
 
     public String getCurrentVersion() {
@@ -144,7 +147,7 @@ public class ModReq extends JavaPlugin {
 
     private void startGraphs() {
         metrics.start();
-        try {// test chart
+        try {
             Metrics metrics = new Metrics(plugin);
             Graph graph = metrics.createGraph("Tickets");
             graph.addPlotter(new Metrics.Plotter("Open") {

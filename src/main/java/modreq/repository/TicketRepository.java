@@ -21,6 +21,7 @@ import modreq.Comment;
 import modreq.ModReq;
 import modreq.Status;
 import modreq.Ticket;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -48,11 +49,11 @@ public class TicketRepository {
         this.useMysql = useMysql;
         String prefix = useMysql ? "mysql" : "sqlite";
 
-        createTables = schema.getStringList(prefix + ".schema");
+        this.createTables = schema.getStringList(prefix + ".schema");
         this.getInsertedId = schema.get(prefix + ".get-inserted-id").toString();
     }
 
-    private Connection getConnection() {
+    private synchronized Connection getConnection() {
         try {
             if (connection != null) {
                 if (connection.isClosed() == false) {
@@ -78,11 +79,24 @@ public class TicketRepository {
         } catch (Exception e) {
             e.printStackTrace();
             logger.severe("[ModReq] no connection could be made with the database. Shutting down plugin D:");
-            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            Bukkit.getScheduler().runTask(plugin, () -> plugin.getServer().getPluginManager().disablePlugin(plugin));
             return null;
         }
 
         return connection;
+    }
+
+    public synchronized void ForceReconnect() throws SQLException {
+        if (connection == null) {
+            return;
+        }
+
+        if (!connection.isClosed()) {
+            return;
+        }
+
+        connection.close();
+        getConnection();
     }
 
     public void clearTickets() {
