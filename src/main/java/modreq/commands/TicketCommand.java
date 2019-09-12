@@ -38,7 +38,7 @@ public class TicketCommand extends SubCommandExecutor {
             try {
                 int ticketsfromplayer = ticketRepository.getTicketCountBySubmitter(p, Status.OPEN);
                 if (ticketsfromplayer >= plugin.getConfig().getInt("maximum-open-tickets")) {
-                    Message.sendToPlayer(MessageType.ERROR_TICKET_TOOMANY, p);
+                    Message.sendToPlayer(MessageType.ERROR_TICKET_TOOMANY, p, ticketsfromplayer, "");
                     return;
                 }
                 String message = Utils.join(args, " ", 0);
@@ -363,25 +363,22 @@ public class TicketCommand extends SubCommandExecutor {
         });
     }
 
+    // TODO this doesn't work
     private boolean maxCommentIsExeeded(Player p, Ticket t) {
         if (p.hasPermission("modreq.overwrite.commentlimit")) {
             return false;
         }
 
         int maxCommentStreak = ModReq.getInstance().getConfig().getInt("comment-limit");
-        int i = 1;
 
-        for (Comment c : t.getComments()) {
-            if (c.getCommenter().equals(p.getName())) {
-                i++;
-                if (i > maxCommentStreak) {
-                    return true;
-                }
-            } else {
-                i = 1;
+        List<Comment> comments = t.getComments();
+        for (int i = 0; i < maxCommentStreak; i++) {
+            if (!comments.get(i).getCommenterUUID().equals(p.getUniqueId())) {
+                return false;
             }
         }
-        return false;
+
+        return true;
     }
 
     @command(
