@@ -113,7 +113,7 @@ public class TicketRepository {
     public int getTicketCountBySubmitter(Player p, Status status) throws SQLException {
 
         Connection conn = getConnection();
-        PreparedStatement stat = conn.prepareStatement("SELECT COUNT(1) FROM ticket WHERE 'submitterUUID' = ? AND 'status' = ?");
+        PreparedStatement stat = conn.prepareStatement("SELECT COUNT(1) FROM ticket WHERE submitterUUID = ? AND status = ?");
         stat.setString(1, p.getUniqueId().toString());
         stat.setString(2, status.getStatusString());
         ResultSet result = stat.executeQuery();
