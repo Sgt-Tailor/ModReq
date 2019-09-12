@@ -78,7 +78,7 @@ ticket:
   status: Status
   comment: Comment
   staff: Staff member
-  request: request
+  request: Request
 status:
   header: "&6---------------List-of-your-last-tickets---------------"
   footer: "&6----/ticket show <id> or /ticket status <page> for more----"
